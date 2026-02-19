@@ -126,7 +126,7 @@ model.view_cfast_input_file()  # view the generated input file
 
 With this library you can easily obtain a similar data generation workflow as below:
 
-https://github.com/user-attachments/assets/9ae23493-9440-4850-a371-0079fbd61975
+https://github.com/user-attachments/assets/359045a2-4645-4e95-a788-55bb6aff4b6c
 
 Check out the [examples](https://pycfast.org/examples/) for more usage scenarios.
 
