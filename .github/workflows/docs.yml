@@ -92,6 +92,7 @@ jobs:
         run: |
           cd docs
           uv run sphinx-build -b html source build/html -W --keep-going
+          echo "pycfast.org" > build/html/CNAME
           
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v4
