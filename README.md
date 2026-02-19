@@ -7,6 +7,8 @@
 [![MyPy Checked](https://img.shields.io/badge/mypy-checked-blue)](https://github.com/python/mypy)
 [![codecov](https://codecov.io/gh/bewygs/pycfast/graph/badge.svg?token=B39Q5PHMU3)](https://codecov.io/gh/bewygs/pycfast)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://github.com/bewygs/pycfast/blob/main/LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18703351.svg)](https://doi.org/10.5281/zenodo.18703351)
+
 
 **PyCFAST** is a Python interface for the [**Consolidated Fire and Smoke Transport (CFAST)**](https://pages.nist.gov/cfast/)
 fire simulation software. Its primary goal is to **automate CFAST calculations at scale**,
@@ -198,15 +200,14 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 If you use PyCFAST in your projects, please consider citing the following:
 
 ```bib
-@misc{pycfast-zenodo-2025,
-    title        = {PyCFAST},
-    author       = {{Benoit Wygas}},
-    year         = {2025},
-    publisher    = {Zenodo},
-    version      = {0.1.0},
-    doi          = {},
-    url          = {},
-    note         = {Software release}
+@software{wygas_2026_pycfast,
+  author    = {Wygas, Benoît},
+  title     = {PyCFAST},
+  year      = {2026},
+  publisher = {Zenodo},
+  version   = {v0.1.1},
+  doi       = {10.5281/zenodo.18703352},
+  url       = {https://doi.org/10.5281/zenodo.18703352}
 }
 ```
 

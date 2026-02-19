@@ -10,8 +10,19 @@ authors:
     family-names: WYGAS
     email: benoit.wgs@protonmail.com
     affiliation: Orano
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.18703351
 repository-code: 'https://github.com/bewygs/pycfast'
+url: 'https://pycfast.org'
 abstract: >-
   Python interface for building, running, and analyzing
   CFAST fire simulation models.
+keywords:
+  - fire
+  - simulation
+  - cfast
+  - modeling
+  - fire-safety
+  - engineering
 license: MIT
