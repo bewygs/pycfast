@@ -1,7 +1,7 @@
 # PyCFAST
 
 [![CI Status](https://github.com/bewygs/pycfast/actions/workflows/test.yml/badge.svg)](https://github.com/bewygs/pycfast/actions/workflows/test.yml)
-[![Docs](https://github.com/bewygs/pycfast/actions/workflows/docs.yml/badge.svg)](https://bewygs.github.io/pycfast)
+[![Docs](https://github.com/bewygs/pycfast/actions/workflows/docs.yml/badge.svg)](https://pycfast.org/index.html)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![MyPy Checked](https://img.shields.io/badge/mypy-checked-blue)](https://github.com/python/mypy)
@@ -130,11 +130,11 @@ With this library you can easily obtain a similar data generation workflow as be
 
 https://github.com/user-attachments/assets/359045a2-4645-4e95-a788-55bb6aff4b6c
 
-Check out the [examples](https://pycfast.org/examples/) for more usage scenarios.
+Check out the [examples](https://pycfast.org/examples.html) for more usage scenarios.
 
 ## Installation
 
-PyCFAST requires **Python 3.10 or later**. It is fully tested with **CFAST 7.7.5** and is expected to be compatible with all **CFAST 7.7.x** versions.
+PyCFAST requires **Python 3.10 or later**. It is fully [tested](https://github.com/bewygs/pycfast/tree/main/tests/verification_tests) on verification input file with **CFAST 7.7.5** and is expected to be compatible with all **CFAST 7.7.x** versions.
 
 ### Pip or Conda
 
@@ -185,11 +185,11 @@ Download and install CFAST from the [NIST CFAST website](https://pages.nist.gov/
 
 ## Documentation
 
-Full documentation, including the API reference and examples, is available online: [PyCFAST Documentation](https://pycfast.org/stable/)
+Full documentation, including the API reference and examples, is available online: [PyCFAST Documentation](https://pycfast.org/index.html)
 
 ## Examples
 
-Some examples on how to use PyCFAST with various python libraries (Numpy, SciPy, SAlib, etc.) can be found in the [examples](https://pycfast.org/stable/examples/).
+Some examples on how to use PyCFAST with various python libraries (Numpy, SciPy, SAlib, etc.) can be found in the [examples](https://pycfast.org/examples.html).
 
 ## Contributing
 
