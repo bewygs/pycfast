@@ -1,0 +1,17 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: PyCFAST
+message: 'If you use PyCFAST, please consider citing as below.'
+type: software
+authors:
+  - given-names: Benoît
+    family-names: WYGAS
+    email: benoit.wgs@protonmail.com
+    affiliation: Orano
+repository-code: 'https://github.com/bewygs/pycfast'
+abstract: >-
+  Python interface for building, running, and analyzing
+  CFAST fire simulation models.
+license: MIT

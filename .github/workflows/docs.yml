@@ -1,0 +1,112 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'docs/**'
+      - 'examples/**'
+      - 'CONTRIBUTING.md'
+      - 'pyproject.toml'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'docs/**'
+      - 'examples/**'
+      - 'CONTRIBUTING.md'
+      - 'pyproject.toml'
+      - '.github/workflows/docs.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CFAST_VERSION: "7.7.5"
+      CFAST_TAG: "CFAST-7.7.5"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          
+      - name: Set up Python
+        run: uv python install 3.10
+        
+      - name: Install pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
+
+      - name: Cache CFAST binary
+        id: cache-cfast
+        uses: actions/cache@v4
+        with:
+          path: ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-ubuntu-latest
+          key: cfast-binary-${{ env.CFAST_VERSION }}-Linux-X64-${{ hashFiles('.github/workflows/docs.yml') }}
+          restore-keys: |
+            cfast-binary-${{ env.CFAST_VERSION }}-Linux-X64-
+
+      - name: Install build dependencies for CFAST
+        if: steps.cache-cfast.outputs.cache-hit != 'true'
+        run: sudo apt-get update && sudo apt-get install -y gfortran make
+
+      - name: Download and build CFAST ${{ env.CFAST_VERSION }}
+        if: steps.cache-cfast.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch ${{ env.CFAST_TAG }} https://github.com/firemodels/cfast.git cfast-${{ env.CFAST_VERSION }}
+          cd cfast-${{ env.CFAST_VERSION }}/Build/CFAST/gnu_linux_64
+          chmod +x make_cfast.sh
+          ./make_cfast.sh
+          mkdir -p ~/cfast-cache
+          cp cfast7_linux_64 ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-ubuntu-latest
+          chmod +x ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-ubuntu-latest
+
+      - name: Install CFAST to system path
+        run: |
+          sudo cp ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-ubuntu-latest /usr/bin/cfast
+          sudo chmod +x /usr/bin/cfast
+
+      - name: Verify CFAST installation
+        run: |
+          which cfast
+          cfast
+        
+      - name: Install dependencies
+        run: uv sync --extra docs
+        
+      - name: Build documentation
+        run: |
+          cd docs
+          uv run sphinx-build -b html source build/html -W --keep-going
+          echo "pycfast.org" > build/html/CNAME
+          
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs/build/html
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
