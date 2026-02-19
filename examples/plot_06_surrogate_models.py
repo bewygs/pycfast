@@ -98,8 +98,8 @@ def generate_samples(bounds_dict, n_samples, seed: int = 42):
     return pd.DataFrame(samples, columns=param_names)
 
 
-# Generate 100 training samples
-training_samples = generate_samples(param_bounds, 100)
+# Generate 5000 training samples
+training_samples = generate_samples(param_bounds, 5000)
 print(f"Generated {len(training_samples)} training samples")
 
 # %%
