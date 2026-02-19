@@ -12,6 +12,7 @@ Follow conventional commit format: `<type>: <description>`
 - **MAINT**: maintenance commit (refactoring, typos, etc.)
 - **ENH**: enhancement
 - **CI**: CI/CD workflows
+- **REL**: release commit (version bump, changelog update, etc.)
 - **chore**: Other maintenance
 
 ## Rules
