@@ -9,6 +9,8 @@ compartmentalized structures.
 
 from __future__ import annotations
 
+from importlib.metadata import version
+
 from .ceiling_floor_vents import CeilingFloorVents
 from .compartments import Compartments
 from .devices import Devices
@@ -33,5 +35,5 @@ __all__ = [
     "WallVents",
 ]
 
-__version__ = "0.1.0"
+__version__ = version("pycfast")
 __author__ = "WYGAS Benoît"
