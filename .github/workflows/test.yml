@@ -43,13 +43,13 @@ jobs:
             build-script: make_cfast.sh
             binary-name: cfast7_linux_64
             cfast-executable: cfast
-          # Windows gcc/gfortran configuration  
-          - os: windows-latest
-            compiler: gcc
-            build-dir: gnu_win_64
-            build-script: make_cfast.bat
-            binary-name: cfast7_win_64.exe
-            cfast-executable: cfast.exe
+          # Windows gcc/gfortran configuration, currently disable due to running issues with gfortran on windows, see issues #16
+          # - os: windows-latest
+          #   compiler: gcc
+          #   build-dir: gnu_win_64
+          #   build-script: make_cfast.bat
+          #   binary-name: cfast7_win_64.exe
+          #   cfast-executable: cfast.exe
           # Windows Intel configuration
           - os: windows-latest
             compiler: intel
