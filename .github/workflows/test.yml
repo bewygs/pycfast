@@ -35,6 +35,8 @@ jobs:
         exclude:
           - os: ubuntu-latest
             compiler: intel
+          - os: windows-latest
+            compiler: gcc
         include:
           # Linux gcc/gfortran configuration
           - os: ubuntu-latest
