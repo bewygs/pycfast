@@ -30,7 +30,11 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
-        os: [ubuntu-latest, windows-latest]  
+        os: [ubuntu-latest, windows-latest]
+        compiler: [gcc, intel]
+        exclude:
+          - os: ubuntu-latest
+            compiler: intel
         include:
           # Linux gcc/gfortran configuration
           - os: ubuntu-latest
@@ -74,11 +78,10 @@ jobs:
       id: cache-cfast
       uses: actions/cache@v4
       with:
-        path: ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}
-        key: cfast-binary-${{ env.CFAST_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.github/workflows/test.yml') }}
+        path: ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}
+        key: cfast-binary-${{ env.CFAST_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ hashFiles('.github/workflows/test.yml') }}
         restore-keys: |
-          cfast-binary-${{ env.CFAST_VERSION }}-${{ runner.os }}-${{ runner.arch }}-
-          cfast-binary-${{ env.CFAST_VERSION }}-${{ runner.os }}-
+          cfast-binary-${{ env.CFAST_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-
 
     - name: Install python dependencies
       run: uv sync --extra dev
@@ -98,7 +101,7 @@ jobs:
         cd cfast-${{ env.CFAST_VERSION}}\Build\CFAST\${{ matrix.build-dir }}
         call ${{ matrix.build-script }}
         if not exist "%USERPROFILE%\cfast-cache" mkdir "%USERPROFILE%\cfast-cache"
-        copy ${{ matrix.binary-name }} "%USERPROFILE%\cfast-cache\cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}"
+        copy ${{ matrix.binary-name }} "%USERPROFILE%\cfast-cache\cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}  "
 
     # --- Linux build ---
     - name: Download and install CFAST ${{ env.CFAST_VERSION }} (Linux)
@@ -110,19 +113,19 @@ jobs:
         chmod +x ${{ matrix.build-script }}
         ./${{ matrix.build-script }}
         mkdir -p ~/cfast-cache
-        cp ${{ matrix.binary-name }} ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}
-        chmod +x ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}
+        cp ${{ matrix.binary-name }} ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}
+        chmod +x ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}
 
     - name: Install CFAST to system path (Linux)
       if: runner.os == 'Linux'
       run: |
-        sudo cp ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }} /usr/bin/cfast
+        sudo cp ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }} /usr/bin/cfast
         sudo chmod +x /usr/bin/cfast
 
     - name: Install CFAST to system path (Windows)
       if: runner.os == 'Windows'
       run: |
-        copy "$env:USERPROFILE\cfast-cache\cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}" "C:\Windows\System32\cfast.exe"
+        copy "$env:USERPROFILE\cfast-cache\cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}" "C:\Windows\System32\cfast.exe"
 
     - name: Verify CFAST installation
       shell: bash
