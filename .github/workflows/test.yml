@@ -32,19 +32,28 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
         os: [ubuntu-latest, windows-latest]  
         include:
-          # Linux-specific configuration
+          # Linux gcc/gfortran configuration
           - os: ubuntu-latest
+            compiler: gcc
             build-dir: gnu_linux_64
             build-script: make_cfast.sh
             binary-name: cfast7_linux_64
             cfast-executable: cfast
-          # Windows-specific configuration  
+          # Windows gcc/gfortran configuration  
           - os: windows-latest
+            compiler: gcc
+            build-dir: gnu_win_64
+            build-script: make_cfast.bat
+            binary-name: cfast7_win_64.exe
+            cfast-executable: cfast.exe
+          # Windows Intel configuration
+          - os: windows-latest
+            compiler: intel
             build-dir: intel_win_64
             build-script: make_cfast.bat
             binary-name: cfast7_win_64.exe
             cfast-executable: cfast.exe
-    
+
     env:
       CFAST_VERSION: "7.7.5"
       CFAST_TAG: "CFAST-7.7.5"
@@ -74,15 +83,11 @@ jobs:
     - name: Install python dependencies
       run: uv sync --extra dev
 
-    - name: Install build dependencies for CFAST (Linux)
-      if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Linux'
-      run: sudo apt-get update && sudo apt-get install -y gfortran make
-
-    - name: Install build dependencies for CFAST (Windows)
-      if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Windows'
+    - name: Install build dependencies for CFAST
+      if: steps.cache-cfast.outputs.cache-hit != 'true'
       uses: fortran-lang/setup-fortran@v1
       with:
-        compiler: intel
+        compiler: ${{ matrix.compiler }}
 
     # --- Windows build ---
     - name: Download and install CFAST ${{ env.CFAST_VERSION }} (Windows)
