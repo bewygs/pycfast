@@ -29,22 +29,37 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.13"] # remove 3.11 and 3.12 for reducing github actions minutes
-        os: [ubuntu-latest] #,  windows-latest 
-        include:
-          # Linux-specific configuration
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-latest, windows-latest]
+        compiler: [gcc, intel]
+        exclude:
           - os: ubuntu-latest
+            compiler: intel
+          - os: windows-latest
+            compiler: gcc
+        include:
+          # Linux gcc/gfortran configuration
+          - os: ubuntu-latest
+            compiler: gcc
             build-dir: gnu_linux_64
             build-script: make_cfast.sh
             binary-name: cfast7_linux_64
             cfast-executable: cfast
-          # Windows-specific configuration  
+          # Windows gcc/gfortran configuration, currently disable due to running issues with gfortran on windows, see issues #16
           # - os: windows-latest
-          #   build-dir: intel_win_64 # gnu_win_64 is compiling but is not running
+          #   compiler: gcc
+          #   build-dir: gnu_win_64
           #   build-script: make_cfast.bat
           #   binary-name: cfast7_win_64.exe
           #   cfast-executable: cfast.exe
-    
+          # Windows Intel configuration
+          - os: windows-latest
+            compiler: intel
+            build-dir: intel_win_64
+            build-script: make_cfast.bat
+            binary-name: cfast7_win_64.exe
+            cfast-executable: cfast.exe
+
     env:
       CFAST_VERSION: "7.7.5"
       CFAST_TAG: "CFAST-7.7.5"
@@ -65,24 +80,22 @@ jobs:
       id: cache-cfast
       uses: actions/cache@v4
       with:
-        path: ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}
-        key: cfast-binary-${{ env.CFAST_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.github/workflows/test.yml') }}
+        path: ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}
+        key: cfast-binary-${{ env.CFAST_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ hashFiles('.github/workflows/test.yml') }}
         restore-keys: |
-          cfast-binary-${{ env.CFAST_VERSION }}-${{ runner.os }}-${{ runner.arch }}-
-          cfast-binary-${{ env.CFAST_VERSION }}-${{ runner.os }}-
+          cfast-binary-${{ env.CFAST_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-
 
     - name: Install python dependencies
       run: uv sync --extra dev
 
-    - name: Install build dependencies for CFAST (Linux)
-      if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Linux'
-      run: sudo apt-get update && sudo apt-get install -y gfortran make
-
-    - name: Install build dependencies for CFAST (Windows)
-      if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Windows'
+    - name: Install build dependencies for CFAST
+      if: steps.cache-cfast.outputs.cache-hit != 'true'
       uses: fortran-lang/setup-fortran@v1
       with:
-        compiler: intel
+        compiler: ${{ matrix.compiler }}
+    - name: Install make (Windows gcc only)
+      if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Windows' && matrix.compiler == 'gcc'
+      run: choco install make -y
 
     # --- Windows build ---
     - name: Download and install CFAST ${{ env.CFAST_VERSION }} (Windows)
@@ -93,7 +106,7 @@ jobs:
         cd cfast-${{ env.CFAST_VERSION}}\Build\CFAST\${{ matrix.build-dir }}
         call ${{ matrix.build-script }}
         if not exist "%USERPROFILE%\cfast-cache" mkdir "%USERPROFILE%\cfast-cache"
-        copy ${{ matrix.binary-name }} "%USERPROFILE%\cfast-cache\cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}"
+        copy ${{ matrix.binary-name }} "%USERPROFILE%\cfast-cache\cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}  "
 
     # --- Linux build ---
     - name: Download and install CFAST ${{ env.CFAST_VERSION }} (Linux)
@@ -105,19 +118,19 @@ jobs:
         chmod +x ${{ matrix.build-script }}
         ./${{ matrix.build-script }}
         mkdir -p ~/cfast-cache
-        cp ${{ matrix.binary-name }} ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}
-        chmod +x ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}
+        cp ${{ matrix.binary-name }} ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}
+        chmod +x ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}
 
     - name: Install CFAST to system path (Linux)
       if: runner.os == 'Linux'
       run: |
-        sudo cp ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }} /usr/bin/cfast
+        sudo cp ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }} /usr/bin/cfast
         sudo chmod +x /usr/bin/cfast
 
     - name: Install CFAST to system path (Windows)
       if: runner.os == 'Windows'
       run: |
-        copy "$env:USERPROFILE\cfast-cache\cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}" "C:\Windows\System32\cfast.exe"
+        copy "$env:USERPROFILE\cfast-cache\cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}" "C:\Windows\System32\cfast.exe"
 
     - name: Verify CFAST installation
       shell: bash
@@ -131,6 +144,7 @@ jobs:
 
     - name: Run verification data
       shell: bash
+      # Due to small numerical differences between fortran compilers we generate the verification data on each platform
       run: |
         cd tests
         python generate_verif_data.py --local
