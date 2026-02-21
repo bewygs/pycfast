@@ -91,6 +91,9 @@ jobs:
       uses: fortran-lang/setup-fortran@v1
       with:
         compiler: ${{ matrix.compiler }}
+    - name: Install make (Windows gcc only)
+      if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Windows' && matrix.compiler == 'gcc'
+      run: choco install make -y
 
     # --- Windows build ---
     - name: Download and install CFAST ${{ env.CFAST_VERSION }} (Windows)
