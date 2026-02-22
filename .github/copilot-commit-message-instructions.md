@@ -10,7 +10,7 @@ Follow conventional commit format: `<type>: <description>`
 - **STY**: Code formatting
 - **TST**: addition or modification of tests
 - **MAINT**: maintenance commit (refactoring, typos, etc.)
-- **ENH**: enhancement
+- **FEAT**: new feature or enhancement
 - **CI**: CI/CD workflows
 - **REL**: release commit (version bump, changelog update, etc.)
 - **chore**: Other maintenance
@@ -24,7 +24,7 @@ Follow conventional commit format: `<type>: <description>`
 
 ## Examples
 ```
-ENH: add CFAST 7.8 ventilation support
+FEAT: add CFAST 7.8 ventilation support
 FIX: handle missing executable gracefully
 DOC: update installation guide for uv  
 TST: add compartment validation tests
@@ -38,7 +38,7 @@ STY: apply ruff formatting rules
 ## Breaking Changes
 Add `!` and footer:
 ```
-ENH!: redesign Model class interface
+FEAT!: redesign Model class interface
 
 BREAKING CHANGE: Model.run() returns SimulationResult object
 ```
