@@ -79,7 +79,7 @@ BLD: Dependencies/build system (Makefile, pyproject.toml, ...)
 STY: Code formatting
 TST: addition or modification of tests
 MAINT: maintenance commit (refactoring, typos, etc.)
-ENH: enhancement
+FEAT: new feature or enhancement
 CI: CI/CD workflows
 REL: release commit (version bump, changelog update, etc.)
 chore: Other maintenance
@@ -88,7 +88,7 @@ chore: Other maintenance
 4. **Commit and push**
    ```bash
    git add .
-   git commit -m "ENH: short description"
+   git commit -m "FEAT: short description"
    git push origin feature/your-feature
    ```
 
