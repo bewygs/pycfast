@@ -2,7 +2,7 @@
 
 PyCFAST is a Python interface for building, running, and analyzing CFAST fire simulation models. It allows you to programmatically create CFAST input files, execute simulations, and process results directly in Python.
 
-CFAST is a computer program that fire investigators, safety officials, engineers, architects and builders can use to simulate the impact of past or potential fires and smoke in a specific building environment. CFAST is a two-zone fire model used to calculate the evolving distribution of smoke, fire gases and temperature throughout compartments of a building during a fire.
+CFAST is a computer program that fire investigators, safety officials, researchers, and engineers can use to simulate the impact of past or potential fires and smoke in a specific building environment. CFAST is a two-zone fire model used to calculate the evolving distribution of smoke, fire gases and temperature throughout compartments of a building during a fire.
 
  ## Folder Structure
 
