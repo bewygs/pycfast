@@ -41,25 +41,25 @@ Changelog = "https://github.com/bewygs/pycfast/blob/main/CHANGELOG.md"
 [project.optional-dependencies]
 docs = [
     "pycfast[examples]",
-    "ipython",
+    "ipython>=8.38.0",
     "sphinx>=5.0",
-    "myst-parser",
-    "nbsphinx",
+    "myst-parser>=4.0.1",
+    "nbsphinx>=0.9.7",
     "sphinx-gallery>=0.16",
-    "linkify-it-py",
+    "linkify-it-py>=2.0.3",
     "numpydoc>=1.9.0",
     "sphinx-copybutton>=0.5.2",
     "pydata-sphinx-theme>=0.16.1",
     "sphinx-autodoc-typehints>=3.0.1",
 ]
 dev = [
-    "ruff",
-    "pytest",
-    "mypy",
-    "pre-commit",
-    "coverage",
-    "pytest-cov",
-    "pandas-stubs",
+    "ruff>=0.15.1",
+    "pytest>=8.4.2",
+    "mypy>=1.19.1",
+    "pre-commit>=4.3.0",
+    "coverage>=7.13.4",
+    "pytest-cov>=7.0.0",
+    "pandas-stubs>=2.3.3.260113",
 ]
 examples = [
     "salib>=1.5.1",
