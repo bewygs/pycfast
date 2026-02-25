@@ -1,10 +1,16 @@
-# This workflow will upload a Python Package to PyPI when a release is created
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+# Build platform-specific wheels that include the compiled CFAST binary.
+#
+# Flow per platform:
+#   1. Install Fortran compiler (via fortran-lang/setup-fortran)
+#   2. Run scripts/build_cfast.py  → compiles binary into src/pycfast/_cfast_bin/
+#   3. python -m build --wheel     → produces a py3-none-any wheel
+#   4. wheel tags --platform-tag   → re-tags to py3-none-{platform}
+#
+# Because the CFAST binary is a standalone executable,
+# a single wheel per platform works for ALL Python versions (py3-none-{platform}).
+#
+# A pure-Python sdist is also built (without the binary) as a fallback for
+# platforms without a pre-built wheel (macOS for example).
 
 name: Upload Python Package
 
@@ -15,9 +21,25 @@ on:
 permissions:
   contents: read
 
+env:
+  CFAST_VERSION: "7.7.5"
+
 jobs:
-  release-build:
-    runs-on: ubuntu-latest
+  build-wheels:
+    name: Build wheel (${{ matrix.os }} / ${{ matrix.compiler }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux gcc/gfortran
+          - os: ubuntu-latest
+            compiler: gcc
+            platform-tag: manylinux_2_17_x86_64
+          # Windows gcc/gfortran, currently disable due to running issues with gfortran on windows, see issues #16
+          # - os: windows-latest
+          #   compiler: gcc
+          #   platform-tag: win_amd64
 
     steps:
       - uses: actions/checkout@v6
@@ -26,45 +48,107 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Build release distributions
-        run: |
-          # NOTE: put your own distribution build steps here.
-          python -m pip install build
-          python -m build
-
-      - name: Upload distributions
-        uses: actions/upload-artifact@v6
+      - name: Install Fortran compiler
+        uses: fortran-lang/setup-fortran@v1
         with:
-          name: release-dists
-          path: dist/
+          compiler: ${{ matrix.compiler }}
+
+      - name: Install make (Windows gcc only)
+        if: runner.os == 'Windows' && matrix.compiler == 'gcc'
+        run: choco install make -y
+
+      - name: Compile CFAST binary
+        run: python scripts/build_cfast.py --version ${{ env.CFAST_VERSION }} --compiler ${{ matrix.compiler }}
+
+      - name: Verify binary exists
+        shell: bash
+        run: |
+          echo "Contents of _cfast_bin/:"
+          ls -la src/pycfast/_cfast_bin/
+          python -c "
+          from pathlib import Path
+          bindir = Path('src/pycfast/_cfast_bin')
+          binaries = [f.name for f in bindir.iterdir() if f.is_file() and f.name != '__init__.py']
+          print(f'Binaries found: {binaries}')
+          assert binaries, 'No CFAST binary found!'
+          "
+
+      - name: Build wheel
+        run: |
+          python -m pip install build wheel
+          python -m build --wheel
+
+      - name: Re-tag wheel with platform
+        shell: bash
+        run: |
+          python -m wheel tags --platform-tag ${{ matrix.platform-tag }} --remove dist/*.whl
+          echo "Final wheel:"
+          ls -la dist/*.whl
+
+      - name: Show wheel contents
+        shell: bash
+        run: |
+          python -c "
+          import zipfile, glob
+          for whl in glob.glob('dist/*.whl'):
+              print(f'Wheel: {whl}')
+              with zipfile.ZipFile(whl) as z:
+                  for name in z.namelist():
+                      if 'cfast' in name.lower():
+                          info = z.getinfo(name)
+                          print(f'  {name} ({info.file_size:,} bytes)')
+          "
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: wheel-${{ matrix.os }}-${{ matrix.compiler }}
+          path: dist/*.whl
+
+  build-sdist:
+    name: Build sdist (pure Python fallback)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Build sdist
+        run: |
+          python -m pip install build
+          python -m build --sdist
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: sdist
+          path: dist/*.tar.gz
 
   pypi-publish:
     runs-on: ubuntu-latest
-    needs:
-      - release-build
+    needs: [build-wheels, build-sdist]
     permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
 
-    # Dedicated environments with protections for publishing are strongly recommended.
-    # For more information, see: https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-protection-rules
     environment:
       name: pypi
-      # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
-      # url: https://pypi.org/p/YOURPROJECT
-      #
-      # ALTERNATIVE: if your GitHub Release name is the PyPI project version string
-      # ALTERNATIVE: exactly, uncomment the following line instead:
-      # url: https://pypi.org/project/YOURPROJECT/${{ github.event.release.name }}
 
     steps:
-      - name: Retrieve release distributions
-        uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v7
         with:
-          name: release-dists
+          pattern: wheel-*
+          merge-multiple: true
           path: dist/
 
-      - name: Publish release distributions to PyPI
+      - uses: actions/download-artifact@v7
+        with:
+          name: sdist
+          path: dist/
+
+      - name: List all distributions to be published
+        run: ls -la dist/
+
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
