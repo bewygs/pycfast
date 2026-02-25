@@ -1,6 +1,6 @@
 [project]
 name = "pycfast"
-version = "0.1.2"
+version = "0.1.3dev"
 description = "Python interface for building, running, and analyzing CFAST fire simulation models"
 readme = "README.md"
 requires-python = ">=3.10"
