@@ -23,6 +23,7 @@ from .surface_connections import SurfaceConnections
 from .wall_vents import WallVents
 
 __all__ = [
+    "CFAST_VERSION",
     "CeilingFloorVents",
     "Compartments",
     "Devices",
@@ -37,3 +38,5 @@ __all__ = [
 
 __version__ = version("pycfast")
 __author__ = "WYGAS Benoît"
+
+CFAST_VERSION = "7.7.5"
