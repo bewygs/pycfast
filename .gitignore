@@ -212,3 +212,7 @@ docs/source/auto_examples/
 
 # pycfast related for local development
 tests/verification_tests/verification_data_local/
+
+# Compiled CFAST binaries (built by scripts/build_cfast.py, not committed)
+src/pycfast/_cfast_bin/cfast
+src/pycfast/_cfast_bin/cfast.exe

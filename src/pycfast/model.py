@@ -31,6 +31,50 @@ from .utils.theme import build_card
 from .wall_vents import WallVents
 
 
+def _resolve_cfast_exe(cfast_exe: str | None = None) -> str:
+    """Resolve the CFAST executable path with a fallback chain.
+
+    Resolution order:
+
+    1. Explicit ``cfast_exe`` argument
+    2. ``CFAST`` environment variable
+    3. Bundled binary shipped with the wheel (``pycfast._cfast_bin``)
+    4. ``cfast`` found on the system ``PATH``
+    5. Literal ``"cfast"`` (will fail at runtime if not found)
+
+    Parameters
+    ----------
+    cfast_exe : str or None
+        Explicit path to the CFAST executable.
+
+    Returns
+    -------
+    str
+        Resolved path to the CFAST executable.
+    """
+    if cfast_exe:
+        return cfast_exe
+
+    env_exe = os.getenv("CFAST")
+    if env_exe:
+        return env_exe
+
+    try:
+        from ._cfast_bin import get_cfast_executable
+
+        bundled = get_cfast_executable()
+        if bundled:
+            return bundled
+    except ImportError:
+        pass
+
+    system_exe = shutil.which("cfast")
+    if system_exe:
+        return system_exe
+
+    return "cfast"
+
+
 class CFASTModel:
     """
     Main class for creating and running CFAST fire simulations.
@@ -104,7 +148,7 @@ class CFASTModel:
         devices: list[Devices] | None = None,
         surface_connections: list[SurfaceConnections] | None = None,
         file_name: str = "cfast_input.in",
-        cfast_exe: str | None = "cfast",
+        cfast_exe: str | None = None,
         extra_arguments: list[str] | None = None,
     ):
         self.simulation_environment = simulation_environment
@@ -117,9 +161,7 @@ class CFASTModel:
         self.devices = devices or []
         self.surface_connections = surface_connections or []
         self.file_name = file_name
-        self.cfast_exe = (
-            cfast_exe or os.getenv("CFAST", "cfast") or shutil.which("cfast") or "cfast"
-        )
+        self.cfast_exe = _resolve_cfast_exe(cfast_exe)
         self.extra_arguments = extra_arguments or []
         self._input_written = False
 
