@@ -542,9 +542,11 @@ class TestCFASTModel:
             cfast_exe=None,
         )
 
-        # Accept either the full path or just the command name
-        assert model.cfast_exe in ["cfast", "/usr/bin/cfast"]
-        # Don't assert mock was called since implementation may vary
+        # The resolved exe can be the bundled binary, a system binary, or
+        # the fallback literal "cfast" depending on the environment.
+        assert model.cfast_exe is not None
+        assert isinstance(model.cfast_exe, str)
+        assert "cfast" in model.cfast_exe.lower()
 
     def test_save_writes_input_and_returns_path(self):
         """Test that save() writes the input file and returns its absolute path."""
