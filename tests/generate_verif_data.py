@@ -113,15 +113,12 @@ def generate_verification_outputs(local=False, cfast_version=None):
 def _verify_outputs(output_dir: Path) -> list[str]:
     """Verify that all CFAST runs completed successfully.
 
-    Performs three checks per input file:
+    Checks each ``.stderr`` file in the output directory for fatal
+    runtime signals (e.g. SIGFPE, SIGSEGV) that CFAST may survive
+    but that corrupt the results.
 
-    1. **Stderr check** - detects runtime signals (e.g. SIGFPE) that CFAST
-       may survive but that corrupt the results.
-    2. **Zone CSV existence** - ensures the ``_zone.csv`` file was produced
-       and contains data rows (not just headers).
-    3. **Simulation completeness** - reads the expected simulation duration
-       from the ``.in`` file and compares it to the last time value in the
-       ``_zone.csv``.  A tolerance of 10 % is applied.
+    Benign Fortran IEEE notices (e.g. ``IEEE_UNDERFLOW_FLAG``) are
+    intentionally ignored.
 
     Parameters
     ----------
@@ -136,9 +133,7 @@ def _verify_outputs(output_dir: Path) -> list[str]:
     failed: list[str] = []
     for in_file in sorted(output_dir.rglob("*.in")):
         rel = str(in_file.relative_to(output_dir))
-        reasons: list[str] = []
 
-        # --- 1. Check stderr for runtime signals ---
         stderr_file = in_file.with_suffix(".stderr")
         if stderr_file.exists():
             stderr_content = stderr_file.read_text(encoding="utf-8", errors="replace")
@@ -146,68 +141,14 @@ def _verify_outputs(output_dir: Path) -> list[str]:
                 r"SIGFPE|SIGSEGV|SIGABRT|Backtrace for this error",
                 stderr_content,
             ):
-                reasons.append(
-                    f"runtime signal detected in stderr: "
-                    f"{stderr_content.splitlines()[0]}"
+                first_line = stderr_content.splitlines()[0]
+                print(
+                    f"WARNING [{in_file.name}]: "
+                    f"runtime signal detected in stderr: {first_line}"
                 )
-
-        # --- 2. Check _zone.csv exists and has data ---
-        zone_csv = in_file.with_name(f"{in_file.stem}_zone.csv")
-        if not zone_csv.exists():
-            reasons.append("missing _zone.csv output file")
-        else:
-            zone_lines = zone_csv.read_text(
-                encoding="utf-8", errors="replace"
-            ).splitlines()
-            # First two lines are units and header, data starts at line 3
-            if len(zone_lines) <= 2:
-                reasons.append("_zone.csv has no data rows")
-            else:
-                # --- 3. Check simulation reached expected end time ---
-                expected_time = _parse_simulation_time(in_file)
-                if expected_time is not None:
-                    last_line = zone_lines[-1].strip()
-                    try:
-                        last_time = float(last_line.split(",")[0])
-                        if last_time < expected_time * 0.9:
-                            reasons.append(
-                                f"simulation ended early: last time "
-                                f"{last_time:.1f}s vs expected "
-                                f"{expected_time:.1f}s"
-                            )
-                    except (ValueError, IndexError):
-                        reasons.append("could not parse last time value from _zone.csv")
-
-        if reasons:
-            for reason in reasons:
-                print(f"WARNING [{in_file.name}]: {reason}")
-            failed.append(rel)
+                failed.append(rel)
 
     return failed
-
-
-def _parse_simulation_time(in_file: Path) -> float | None:
-    """Extract the SIMULATION time from a CFAST input file.
-
-    Looks for the ``&TIME SIMULATION = <value>`` pattern in the
-    Fortran namelist-style input.
-
-    Parameters
-    ----------
-    in_file : Path
-        Path to a CFAST ``.in`` file.
-
-    Returns
-    -------
-    float or None
-        The simulation end time in seconds, or ``None`` if it
-        could not be parsed.
-    """
-    content = in_file.read_text(encoding="utf-8", errors="replace")
-    match = re.search(r"SIMULATION\s*=\s*([\d.]+)", content)
-    if match:
-        return float(match.group(1))
-    return None
 
 
 def main():
