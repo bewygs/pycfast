@@ -142,7 +142,128 @@ jobs:
         cfast
 
     - name: Run CFAST verification data generation (checks that CFAST can be executed and generates output)
+      id: verif
       shell: bash
       run: |
         cd tests
+        set +e
         timeout 60m python generate_verif_data.py --local
+        EXIT_CODE=$?
+        cd ..
+        mkdir -p compatibility-results
+        if [ $EXIT_CODE -eq 0 ]; then
+          RESULT="success"
+        elif [ $EXIT_CODE -eq 124 ]; then
+          RESULT="timeout"
+        else
+          RESULT="error"
+        fi
+        echo "{\"os\":\"${{ matrix.os }}\",\"cfast\":\"${{ matrix.cfast-version }}\",\"gcc\":\"${{ matrix.toolchain.version }}\",\"result\":\"${RESULT}\",\"exit_code\":${EXIT_CODE}}" \
+          > compatibility-results/compat-${{ matrix.os }}-cfast${{ matrix.cfast-version }}-gcc${{ matrix.toolchain.version }}.json
+        # Fail the step if verification failed so the job status reflects reality
+        exit $EXIT_CODE
+
+    - name: Upload compatibility result
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: compat-${{ matrix.os }}-cfast${{ matrix.cfast-version }}-gcc${{ matrix.toolchain.version }}
+        path: compatibility-results/*.json
+        retention-days: 5
+
+  summary:
+    name: Compatibility Matrix Summary
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all results
+      uses: actions/download-artifact@v4
+      with:
+        pattern: compat-*
+        merge-multiple: true
+        path: results
+
+    - name: Generate compatibility matrix
+      shell: python3 {0}
+      run: |
+        import json
+        import os
+        from pathlib import Path
+
+        results = {}
+        results_dir = Path("results")
+
+        if results_dir.exists():
+            for f in results_dir.glob("*.json"):
+                try:
+                    data = json.loads(f.read_text())
+                    key = (data["os"], data["cfast"], data["gcc"])
+                    results[key] = data
+                except (json.JSONDecodeError, KeyError) as e:
+                    print(f"Warning: could not parse {f}: {e}")
+
+        os_list = sorted(set(k[0] for k in results))
+        cfast_versions = sorted(set(k[1] for k in results), key=lambda v: list(map(int, v.split("."))), reverse=True)
+        gcc_versions = sorted(set(k[2] for k in results), key=lambda v: (v != "latest", v))
+
+        STATUS_MAP = {
+            "success": "✅",
+            "timeout": "⏱️",
+            "error": "❌",
+        }
+
+        summary = "# Toolchain Compatibility Matrix\n\n"
+
+        for os_name in os_list:
+            summary += f"## {os_name}\n\n"
+            summary += "| CFAST \\\\ GCC | " + " | ".join(f"`gcc-{v}`" for v in gcc_versions) + " |\n"
+            summary += "|---" + "|---" * len(gcc_versions) + "|\n"
+
+            for cv in cfast_versions:
+                row = f"| **{cv}** |"
+                for gv in gcc_versions:
+                    key = (os_name, cv, gv)
+                    if key in results:
+                        status = results[key]["result"]
+                        exit_code = results[key].get("exit_code", "?")
+                        icon = STATUS_MAP.get(status, "❓")
+                        if status == "error":
+                            row += f" {icon} `exit {exit_code}` |"
+                        else:
+                            row += f" {icon} |"
+                    else:
+                        row += " 🔧 |"
+                row += "\n"
+                summary += row
+
+            summary += "\n"
+
+        # Stats
+        total = len(results)
+        successes = sum(1 for r in results.values() if r["result"] == "success")
+        timeouts = sum(1 for r in results.values() if r["result"] == "timeout")
+        errors = sum(1 for r in results.values() if r["result"] == "error")
+        missing = (len(os_list) * len(cfast_versions) * len(gcc_versions)) - total
+
+        summary += "### Legend\n\n"
+        summary += "| Symbol | Meaning |\n"
+        summary += "|---|---|\n"
+        summary += "| ✅ | Success |\n"
+        summary += "| ⏱️ | Timeout (>60 min) |\n"
+        summary += "| ❌ | Runtime error (with exit code) |\n"
+        summary += "| 🔧 | Build failure (no result produced) |\n"
+        summary += "\n"
+        summary += f"### Summary: {successes}/{total} passed"
+        if timeouts:
+            summary += f", {timeouts} timeouts"
+        if errors:
+            summary += f", {errors} errors"
+        if missing:
+            summary += f", {missing} build failures"
+        summary += "\n"
+
+        with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+            f.write(summary)
+
+        print(summary)
