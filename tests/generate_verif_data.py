@@ -1,6 +1,7 @@
 # Script to run periodically to stay synced with verification input files
 import argparse
 import platform
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -60,9 +61,14 @@ def generate_verification_outputs(local=False, cfast_version=None):
         shutil.copy(in_file, ref_in_file)
 
         try:
-            subprocess.run(
-                ["cfast", f"{ref_in_file.stem}.in", "-f"], cwd=ref_subdir, check=True
+            result = subprocess.run(
+                ["cfast", f"{ref_in_file.stem}.in", "-f"],
+                cwd=ref_subdir,
+                check=True,
+                capture_output=True,
+                text=True,
             )
+            stderr_output = result.stderr
         except subprocess.CalledProcessError as e:
             print(
                 f"Warning: CFAST failed for {in_file.name} with exit code {e.returncode}"
@@ -78,7 +84,11 @@ def generate_verification_outputs(local=False, cfast_version=None):
             else:
                 raise
 
-        allowed_extensions = {".csv", ".log", ".in"}
+        if stderr_output:
+            stderr_file = ref_subdir / f"{ref_in_file.stem}.stderr"
+            stderr_file.write_text(stderr_output, encoding="utf-8")
+
+        allowed_extensions = {".csv", ".log", ".in", ".stderr"}
         for file_path in ref_subdir.iterdir():
             if (
                 file_path.is_file()
@@ -101,11 +111,17 @@ def generate_verification_outputs(local=False, cfast_version=None):
 
 
 def _verify_outputs(output_dir: Path) -> list[str]:
-    """
-    Verify that all CFAST runs completed successfully.
+    """Verify that all CFAST runs completed successfully.
 
-    Checks each `.log` file in the output directory for
-    the "Normal exit from CFAST" marker.
+    Performs three checks per input file:
+
+    1. **Stderr check** - detects runtime signals (e.g. SIGFPE) that CFAST
+       may survive but that corrupt the results.
+    2. **Zone CSV existence** - ensures the ``_zone.csv`` file was produced
+       and contains data rows (not just headers).
+    3. **Simulation completeness** - reads the expected simulation duration
+       from the ``.in`` file and compares it to the last time value in the
+       ``_zone.csv``.  A tolerance of 10 % is applied.
 
     Parameters
     ----------
@@ -115,21 +131,83 @@ def _verify_outputs(output_dir: Path) -> list[str]:
     Returns
     -------
     list[str]
-        List of input file names whose log files are missing
-        or do not contain the normal exit marker.
+        List of input file relative paths whose outputs failed validation.
     """
     failed: list[str] = []
-    for in_file in output_dir.rglob("*.in"):
-        log_file = in_file.with_suffix(".log")
-        if not log_file.exists():
-            print(f"WARNING: No log file found for {in_file.name}")
-            failed.append(str(in_file.relative_to(output_dir)))
-            continue
-        log_content = log_file.read_text(encoding="utf-8", errors="replace")
-        if "Normal exit from CFAST" not in log_content:
-            print(f"WARNING: Abnormal exit detected for {in_file.name}")
-            failed.append(str(in_file.relative_to(output_dir)))
+    for in_file in sorted(output_dir.rglob("*.in")):
+        rel = str(in_file.relative_to(output_dir))
+        reasons: list[str] = []
+
+        # --- 1. Check stderr for runtime signals ---
+        stderr_file = in_file.with_suffix(".stderr")
+        if stderr_file.exists():
+            stderr_content = stderr_file.read_text(encoding="utf-8", errors="replace")
+            if re.search(
+                r"SIGFPE|SIGSEGV|SIGABRT|Backtrace for this error",
+                stderr_content,
+            ):
+                reasons.append(
+                    f"runtime signal detected in stderr: "
+                    f"{stderr_content.splitlines()[0]}"
+                )
+
+        # --- 2. Check _zone.csv exists and has data ---
+        zone_csv = in_file.with_name(f"{in_file.stem}_zone.csv")
+        if not zone_csv.exists():
+            reasons.append("missing _zone.csv output file")
+        else:
+            zone_lines = zone_csv.read_text(
+                encoding="utf-8", errors="replace"
+            ).splitlines()
+            # First two lines are units and header, data starts at line 3
+            if len(zone_lines) <= 2:
+                reasons.append("_zone.csv has no data rows")
+            else:
+                # --- 3. Check simulation reached expected end time ---
+                expected_time = _parse_simulation_time(in_file)
+                if expected_time is not None:
+                    last_line = zone_lines[-1].strip()
+                    try:
+                        last_time = float(last_line.split(",")[0])
+                        if last_time < expected_time * 0.9:
+                            reasons.append(
+                                f"simulation ended early: last time "
+                                f"{last_time:.1f}s vs expected "
+                                f"{expected_time:.1f}s"
+                            )
+                    except (ValueError, IndexError):
+                        reasons.append("could not parse last time value from _zone.csv")
+
+        if reasons:
+            for reason in reasons:
+                print(f"WARNING [{in_file.name}]: {reason}")
+            failed.append(rel)
+
     return failed
+
+
+def _parse_simulation_time(in_file: Path) -> float | None:
+    """Extract the SIMULATION time from a CFAST input file.
+
+    Looks for the ``&TIME SIMULATION = <value>`` pattern in the
+    Fortran namelist-style input.
+
+    Parameters
+    ----------
+    in_file : Path
+        Path to a CFAST ``.in`` file.
+
+    Returns
+    -------
+    float or None
+        The simulation end time in seconds, or ``None`` if it
+        could not be parsed.
+    """
+    content = in_file.read_text(encoding="utf-8", errors="replace")
+    match = re.search(r"SIMULATION\s*=\s*([\d.]+)", content)
+    if match:
+        return float(match.group(1))
+    return None
 
 
 def main():
