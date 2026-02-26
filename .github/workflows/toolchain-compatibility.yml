@@ -170,7 +170,7 @@ jobs:
       run: |
         cd tests
         set +e
-        timeout 60m python generate_verif_data.py --local
+        timeout 15m python generate_verif_data.py --local
         EXIT_CODE=$?
         cd ..
         mkdir -p compatibility-results
