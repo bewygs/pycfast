@@ -37,7 +37,7 @@ jobs:
         - {compiler: gcc, version: '12'}
         - {compiler: gcc, version: '13'}
         - {compiler: gcc, version: '14'}
-        - {compiler: gcc, version: '15'}
+        - {compiler: gcc, version: 'latest'}
         include:
           # Linux gcc/gfortran configuration
           - os: ubuntu-latest
