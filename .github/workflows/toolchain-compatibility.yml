@@ -1,4 +1,5 @@
-# This workflow tests CFAST compilation and runtime across multiple CFAST versions and GCC toolchain versions
+# This workflow tests CFAST compilation and runtime across multiple CFAST versions and compiler toolchains
+# Supported compilers: GCC (gfortran), Intel ifx (LLVM-based), Intel ifort (classic)
 # It helps identify compatibility issues between CFAST versions and compiler versions
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
@@ -33,22 +34,24 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         cfast-version: ["7.7.5", "7.7.4", "7.7.3", "7.7.2", "7.7.1", "7.7.0"]
         toolchain:
+        # GCC / gfortran
         - {compiler: gcc, version: '11'}
         - {compiler: gcc, version: '12'}
         - {compiler: gcc, version: '13'}
         - {compiler: gcc, version: '14'}
         - {compiler: gcc, version: 'latest'}
-        include:
-          # Linux gcc/gfortran configuration
-          - os: ubuntu-latest
-            build-dir: gnu_linux_64
-            build-script: make_cfast.sh
-            binary-name: cfast7_linux_64
-          # Windows gcc/gfortran configuration
-          - os: windows-latest
-            build-dir: gnu_win_64
-            build-script: make_cfast.bat
-            binary-name: cfast7_win_64.exe
+        # Intel ifx (LLVM-based)
+        - {compiler: intel, version: '2025.0'}
+        - {compiler: intel, version: '2024.2'}
+        - {compiler: intel, version: '2024.0'}
+        - {compiler: intel, version: '2023.2'}
+        - {compiler: intel, version: '2023.0'}
+        # Intel ifort (classic)
+        - {compiler: intel-classic, version: '2021.12'}
+        - {compiler: intel-classic, version: '2021.11'}
+        - {compiler: intel-classic, version: '2021.10'}
+        - {compiler: intel-classic, version: '2021.9'}
+        - {compiler: intel-classic, version: '2021.7'}
 
     steps:
     - uses: actions/checkout@v6
@@ -62,6 +65,26 @@ jobs:
           echo "tag=CFAST-7.7.5" >> $GITHUB_OUTPUT
         else
           echo "tag=CFAST${{ matrix.cfast-version }}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Set build configuration
+      id: build-config
+      shell: bash
+      run: |
+        COMPILER="${{ matrix.toolchain.compiler }}"
+        if [ "$COMPILER" = "gcc" ]; then
+          PREFIX="gnu"
+        else
+          PREFIX="intel"
+        fi
+        if [ "${{ runner.os }}" = "Windows" ]; then
+          echo "build-dir=${PREFIX}_win_64" >> $GITHUB_OUTPUT
+          echo "build-script=make_cfast.bat" >> $GITHUB_OUTPUT
+          echo "binary-name=cfast7_win_64.exe" >> $GITHUB_OUTPUT
+        else
+          echo "build-dir=${PREFIX}_linux_64" >> $GITHUB_OUTPUT
+          echo "build-script=make_cfast.sh" >> $GITHUB_OUTPUT
+          echo "binary-name=cfast7_linux_64" >> $GITHUB_OUTPUT
         fi
 
     - name: Install uv
@@ -92,8 +115,8 @@ jobs:
         compiler: ${{ matrix.toolchain.compiler }}
         version: ${{ matrix.toolchain.version }}
 
-    - name: Install make (Windows)
-      if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Windows'
+    - name: Install make (Windows, gcc only)
+      if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Windows' && matrix.toolchain.compiler == 'gcc'
       run: choco install make -y
 
     # --- Windows build ---
@@ -102,10 +125,10 @@ jobs:
       shell: cmd
       run: |
         git clone --depth 1 --branch ${{ steps.cfast-tag.outputs.tag }} https://github.com/firemodels/cfast.git cfast-${{ matrix.cfast-version }}
-        cd cfast-${{ matrix.cfast-version }}\Build\CFAST\${{ matrix.build-dir }}
-        call ${{ matrix.build-script }}
+        cd cfast-${{ matrix.cfast-version }}\Build\CFAST\${{ steps.build-config.outputs.build-dir }}
+        call ${{ steps.build-config.outputs.build-script }}
         if not exist "%USERPROFILE%\cfast-cache" mkdir "%USERPROFILE%\cfast-cache"
-        copy ${{ matrix.binary-name }} "%USERPROFILE%\cfast-cache\cfast-${{ matrix.cfast-version }}-${{ matrix.os }}-${{ matrix.toolchain.compiler }}-${{ matrix.toolchain.version }}"
+        copy ${{ steps.build-config.outputs.binary-name }} "%USERPROFILE%\cfast-cache\cfast-${{ matrix.cfast-version }}-${{ matrix.os }}-${{ matrix.toolchain.compiler }}-${{ matrix.toolchain.version }}"
 
     # --- Linux build ---
     - name: Download and build CFAST ${{ matrix.cfast-version }} (Linux)
@@ -113,11 +136,11 @@ jobs:
       shell: bash
       run: |
         git clone --depth 1 --branch ${{ steps.cfast-tag.outputs.tag }} https://github.com/firemodels/cfast.git cfast-${{ matrix.cfast-version }}
-        cd cfast-${{ matrix.cfast-version }}/Build/CFAST/${{ matrix.build-dir }}
-        chmod +x ${{ matrix.build-script }}
-        ./${{ matrix.build-script }}
+        cd cfast-${{ matrix.cfast-version }}/Build/CFAST/${{ steps.build-config.outputs.build-dir }}
+        chmod +x ${{ steps.build-config.outputs.build-script }}
+        ./${{ steps.build-config.outputs.build-script }}
         mkdir -p ~/cfast-cache
-        cp ${{ matrix.binary-name }} ~/cfast-cache/cfast-${{ matrix.cfast-version }}-${{ matrix.os }}-${{ matrix.toolchain.compiler }}-${{ matrix.toolchain.version }}
+        cp ${{ steps.build-config.outputs.binary-name }} ~/cfast-cache/cfast-${{ matrix.cfast-version }}-${{ matrix.os }}-${{ matrix.toolchain.compiler }}-${{ matrix.toolchain.version }}
         chmod +x ~/cfast-cache/cfast-${{ matrix.cfast-version }}-${{ matrix.os }}-${{ matrix.toolchain.compiler }}-${{ matrix.toolchain.version }}
 
     - name: Install CFAST to system path (Linux)
@@ -158,8 +181,8 @@ jobs:
         else
           RESULT="error"
         fi
-        echo "{\"os\":\"${{ matrix.os }}\",\"cfast\":\"${{ matrix.cfast-version }}\",\"gcc\":\"${{ matrix.toolchain.version }}\",\"result\":\"${RESULT}\",\"exit_code\":${EXIT_CODE}}" \
-          > compatibility-results/compat-${{ matrix.os }}-cfast${{ matrix.cfast-version }}-gcc${{ matrix.toolchain.version }}.json
+        echo "{\"os\":\"${{ matrix.os }}\",\"cfast\":\"${{ matrix.cfast-version }}\",\"compiler\":\"${{ matrix.toolchain.compiler }}\",\"compiler_version\":\"${{ matrix.toolchain.version }}\",\"result\":\"${RESULT}\",\"exit_code\":${EXIT_CODE}}" \
+          > compatibility-results/compat-${{ matrix.os }}-cfast${{ matrix.cfast-version }}-${{ matrix.toolchain.compiler }}-${{ matrix.toolchain.version }}.json
         # Fail the step if verification failed so the job status reflects reality
         exit $EXIT_CODE
 
@@ -167,7 +190,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: compat-${{ matrix.os }}-cfast${{ matrix.cfast-version }}-gcc${{ matrix.toolchain.version }}
+        name: compat-${{ matrix.os }}-cfast${{ matrix.cfast-version }}-${{ matrix.toolchain.compiler }}-${{ matrix.toolchain.version }}
         path: compatibility-results/*.json
         retention-days: 5
 
@@ -191,6 +214,21 @@ jobs:
         import os
         from pathlib import Path
 
+        COMPILER_LABELS = {
+            "gcc": "gcc (gfortran)",
+            "intel": "intel (ifx)",
+            "intel-classic": "intel-classic (ifort)",
+        }
+
+        def version_sort_key(v):
+            """Sort versions numerically, with 'latest' always last."""
+            if v == "latest":
+                return (1, [])
+            try:
+                return (0, list(map(int, v.split("."))))
+            except ValueError:
+                return (0, [v])
+
         results = {}
         results_dir = Path("results")
 
@@ -198,14 +236,18 @@ jobs:
             for f in results_dir.glob("*.json"):
                 try:
                     data = json.loads(f.read_text())
-                    key = (data["os"], data["cfast"], data["gcc"])
+                    key = (data["os"], data["cfast"], data["compiler"], data["compiler_version"])
                     results[key] = data
                 except (json.JSONDecodeError, KeyError) as e:
                     print(f"Warning: could not parse {f}: {e}")
 
         os_list = sorted(set(k[0] for k in results))
-        cfast_versions = sorted(set(k[1] for k in results), key=lambda v: list(map(int, v.split("."))), reverse=True)
-        gcc_versions = sorted(set(k[2] for k in results), key=lambda v: (v != "latest", v))
+        cfast_versions = sorted(
+            set(k[1] for k in results),
+            key=lambda v: list(map(int, v.split("."))),
+            reverse=True,
+        )
+        compilers = sorted(set(k[2] for k in results), key=lambda c: list(COMPILER_LABELS.keys()).index(c) if c in COMPILER_LABELS else 99)
 
         STATUS_MAP = {
             "success": "✅",
@@ -217,34 +259,52 @@ jobs:
 
         for os_name in os_list:
             summary += f"## {os_name}\n\n"
-            summary += "| CFAST \\\\ GCC | " + " | ".join(f"`gcc-{v}`" for v in gcc_versions) + " |\n"
-            summary += "|---" + "|---" * len(gcc_versions) + "|\n"
 
-            for cv in cfast_versions:
-                row = f"| **{cv}** |"
-                for gv in gcc_versions:
-                    key = (os_name, cv, gv)
-                    if key in results:
-                        status = results[key]["result"]
-                        exit_code = results[key].get("exit_code", "?")
-                        icon = STATUS_MAP.get(status, "❓")
-                        if status == "error":
-                            row += f" {icon} `exit {exit_code}` |"
+            for compiler in compilers:
+                label = COMPILER_LABELS.get(compiler, compiler)
+                versions = sorted(
+                    set(k[3] for k in results if k[0] == os_name and k[2] == compiler),
+                    key=version_sort_key,
+                )
+                if not versions:
+                    continue
+
+                summary += f"### {label}\n\n"
+                summary += "| CFAST \\\\ Version | " + " | ".join(f"`{v}`" for v in versions) + " |\n"
+                summary += "|---" + "|---" * len(versions) + "|\n"
+
+                for cv in cfast_versions:
+                    row = f"| **{cv}** |"
+                    for ver in versions:
+                        key = (os_name, cv, compiler, ver)
+                        if key in results:
+                            status = results[key]["result"]
+                            exit_code = results[key].get("exit_code", "?")
+                            icon = STATUS_MAP.get(status, "❓")
+                            if status == "error":
+                                row += f" {icon} `exit {exit_code}` |"
+                            else:
+                                row += f" {icon} |"
                         else:
-                            row += f" {icon} |"
-                    else:
-                        row += " 🔧 |"
-                row += "\n"
-                summary += row
+                            row += " 🔧 |"
+                    row += "\n"
+                    summary += row
 
-            summary += "\n"
+                summary += "\n"
 
         # Stats
         total = len(results)
         successes = sum(1 for r in results.values() if r["result"] == "success")
         timeouts = sum(1 for r in results.values() if r["result"] == "timeout")
         errors = sum(1 for r in results.values() if r["result"] == "error")
-        missing = (len(os_list) * len(cfast_versions) * len(gcc_versions)) - total
+        build_failures = 0
+        for os_name in os_list:
+            for cv in cfast_versions:
+                for compiler in compilers:
+                    versions = set(k[3] for k in results if k[0] == os_name and k[2] == compiler)
+                    for ver in versions:
+                        if (os_name, cv, compiler, ver) not in results:
+                            build_failures += 1
 
         summary += "### Legend\n\n"
         summary += "| Symbol | Meaning |\n"
@@ -259,8 +319,8 @@ jobs:
             summary += f", {timeouts} timeouts"
         if errors:
             summary += f", {errors} errors"
-        if missing:
-            summary += f", {missing} build failures"
+        if build_failures:
+            summary += f", {build_failures} build failures"
         summary += "\n"
 
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
