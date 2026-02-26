@@ -145,4 +145,4 @@ jobs:
       shell: bash
       run: |
         cd tests
-        python generate_verif_data.py --local
+        timeout 10m python generate_verif_data.py --local
