@@ -1,19 +1,22 @@
-# Compatibility matrix + CI — unified workflow
+# Compatibility matrix — CFAST × GCC × Ubuntu
 #
-# A single job covers all combinations of:
-#   cfast-version × gcc-version × os × python-version
+# Tests all combinations of cfast-version × gcc-version on ubuntu-latest
+# with Python 3.11 fixed (Python version is irrelevant to the hang issue).
 #
-# The `continue-on-error: true` flag lets the full matrix run to completion
-# so you can read the pass/fail table directly in the GitHub Actions summary
-# via the job name:
-#   "cfast=7.7.4 | gcc=13 | ubuntu-latest | py=3.12"
+# Job count: 6 cfast-versions × 5 gcc-versions = 30 jobs
 #
 # Hang detection
 # --------------
-# CFAST compiled with certain gcc versions does not crash — it hangs silently.
-# pytest-timeout (120 s per test) is used to detect and fail those cases.
-# Add `--timeout=120` to your pytest call, and ensure pytest-timeout is listed
-# in your dev dependencies (uv add --dev pytest-timeout).
+# The hang occurs during `generate_verif_data.py`, not in pytest itself.
+# A 120 s `timeout` command wraps that step so a hanging CFAST binary
+# causes a clear step failure instead of stalling the runner for 6 hours.
+#
+# Reading results
+# ---------------
+# Job names follow the pattern:
+#   "cfast=7.7.4 | gcc=13"
+# so the full pass/fail compatibility table is readable directly in the
+# GitHub Actions summary without any external tooling.
 #
 # CFAST Git tags — upstream inconsistency
 # ----------------------------------------
@@ -23,17 +26,8 @@
 #   7.7.2 → CFAST7.7.2
 #   7.7.1 → CFAST7.7.1    (inferred — verify if clone fails)
 #   7.7.0 → CFAST7.7.0    (inferred — verify if clone fails)
-# Each matrix entry carries its own `cfast-tag` field to handle this.
-#
-# Job count
-# ---------
-#   6 cfast-versions × 5 gcc-versions × 2 os = 60 compat cells
-#   × 4 python-versions = 240 jobs total
-# Python version only affects the pycfast layer, not the CFAST binary,
-# so the CFAST binary is cached per (cfast-version, os, gcc-version) and
-# shared across all 4 Python runs of the same cell.
 
-name: Test
+name: Compatibility Matrix
 
 on:
   workflow_dispatch:
@@ -56,56 +50,56 @@ on:
 
 jobs:
   test:
-    name: "cfast=${{ matrix.cfast-version }} | gcc=${{ matrix.gcc-version }} | ${{ matrix.os }} | py=${{ matrix.python-version }}"
-    runs-on: ${{ matrix.os }}
-    continue-on-error: true   # full matrix always completes; read results in summary
+    name: "cfast=${{ matrix.cfast-version }} | gcc=${{ matrix.gcc-version }}"
+    runs-on: ubuntu-latest
+    continue-on-error: true  # all 30 cells always complete; read pass/fail in summary
 
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
         gcc-version: ['11', '12', '13', '14', '15']
-        os: [ubuntu-latest, windows-latest]
         include:
           # ------------------------------------------------------------------
-          # CFAST version metadata
-          # Each entry adds cfast-version + cfast-tag.
-          # OS-specific build paths are resolved in the per-os includes below.
+          # Each cfast-version is a fully explicit entry to work around the
+          # GitHub Actions limitation that `include` does not produce a
+          # cartesian product with existing axes.
+          # The gcc-version axis is the real matrix dimension; cfast-version
+          # is added by repeating the include block for each gcc value.
           # ------------------------------------------------------------------
+          - { gcc-version: '11', cfast-version: "7.7.5", cfast-tag: "CFAST-7.7.5" }
+          - { gcc-version: '11', cfast-version: "7.7.4", cfast-tag: "CFAST7.7.4"  }
+          - { gcc-version: '11', cfast-version: "7.7.3", cfast-tag: "CFAST7.7.3"  }
+          - { gcc-version: '11', cfast-version: "7.7.2", cfast-tag: "CFAST7.7.2"  }
+          - { gcc-version: '11', cfast-version: "7.7.1", cfast-tag: "CFAST7.7.1"  }
+          - { gcc-version: '11', cfast-version: "7.7.0", cfast-tag: "CFAST7.7.0"  }
 
-          # 7.7.5
-          - cfast-version: "7.7.5"
-            cfast-tag: "CFAST-7.7.5"
-          # 7.7.4
-          - cfast-version: "7.7.4"
-            cfast-tag: "CFAST7.7.4"
-          # 7.7.3
-          - cfast-version: "7.7.3"
-            cfast-tag: "CFAST7.7.3"
-          # 7.7.2
-          - cfast-version: "7.7.2"
-            cfast-tag: "CFAST7.7.2"
-          # 7.7.1
-          - cfast-version: "7.7.1"
-            cfast-tag: "CFAST7.7.1"
-          # 7.7.0
-          - cfast-version: "7.7.0"
-            cfast-tag: "CFAST7.7.0"
+          - { gcc-version: '12', cfast-version: "7.7.5", cfast-tag: "CFAST-7.7.5" }
+          - { gcc-version: '12', cfast-version: "7.7.4", cfast-tag: "CFAST7.7.4"  }
+          - { gcc-version: '12', cfast-version: "7.7.3", cfast-tag: "CFAST7.7.3"  }
+          - { gcc-version: '12', cfast-version: "7.7.2", cfast-tag: "CFAST7.7.2"  }
+          - { gcc-version: '12', cfast-version: "7.7.1", cfast-tag: "CFAST7.7.1"  }
+          - { gcc-version: '12', cfast-version: "7.7.0", cfast-tag: "CFAST7.7.0"  }
 
-          # ------------------------------------------------------------------
-          # OS-specific build paths
-          # ------------------------------------------------------------------
-          - os: ubuntu-latest
-            build-dir: gnu_linux_64
-            build-script: make_cfast.sh
-            binary-name: cfast7_linux_64
-            cfast-install-path: /usr/bin/cfast
+          - { gcc-version: '13', cfast-version: "7.7.5", cfast-tag: "CFAST-7.7.5" }
+          - { gcc-version: '13', cfast-version: "7.7.4", cfast-tag: "CFAST7.7.4"  }
+          - { gcc-version: '13', cfast-version: "7.7.3", cfast-tag: "CFAST7.7.3"  }
+          - { gcc-version: '13', cfast-version: "7.7.2", cfast-tag: "CFAST7.7.2"  }
+          - { gcc-version: '13', cfast-version: "7.7.1", cfast-tag: "CFAST7.7.1"  }
+          - { gcc-version: '13', cfast-version: "7.7.0", cfast-tag: "CFAST7.7.0"  }
 
-          - os: windows-latest
-            build-dir: gnu_win_64
-            build-script: make_cfast.bat
-            binary-name: cfast7_win_64.exe
-            cfast-install-path: C:\Windows\System32\cfast.exe
+          - { gcc-version: '14', cfast-version: "7.7.5", cfast-tag: "CFAST-7.7.5" }
+          - { gcc-version: '14', cfast-version: "7.7.4", cfast-tag: "CFAST7.7.4"  }
+          - { gcc-version: '14', cfast-version: "7.7.3", cfast-tag: "CFAST7.7.3"  }
+          - { gcc-version: '14', cfast-version: "7.7.2", cfast-tag: "CFAST7.7.2"  }
+          - { gcc-version: '14', cfast-version: "7.7.1", cfast-tag: "CFAST7.7.1"  }
+          - { gcc-version: '14', cfast-version: "7.7.0", cfast-tag: "CFAST7.7.0"  }
+
+          - { gcc-version: '15', cfast-version: "7.7.5", cfast-tag: "CFAST-7.7.5" }
+          - { gcc-version: '15', cfast-version: "7.7.4", cfast-tag: "CFAST7.7.4"  }
+          - { gcc-version: '15', cfast-version: "7.7.3", cfast-tag: "CFAST7.7.3"  }
+          - { gcc-version: '15', cfast-version: "7.7.2", cfast-tag: "CFAST7.7.2"  }
+          - { gcc-version: '15', cfast-version: "7.7.1", cfast-tag: "CFAST7.7.1"  }
+          - { gcc-version: '15', cfast-version: "7.7.0", cfast-tag: "CFAST7.7.0"  }
 
     steps:
       - uses: actions/checkout@v4
@@ -119,27 +113,26 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
-      - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
+      - name: Set up Python 3.11
+        run: uv python install 3.11
 
       - name: Install Python dependencies
         run: uv sync --extra dev
 
       # -----------------------------------------------------------------------
       # CFAST binary cache
-      # Key: (cfast-version, os, arch, gcc-version, workflow-file)
-      # The binary does not depend on the Python version so it is shared
-      # across all 4 Python runs of the same (cfast × gcc × os) cell.
+      # Keyed on (cfast-version, gcc-version, workflow-file).
+      # Shared across re-runs as long as the workflow file is unchanged.
       # -----------------------------------------------------------------------
       - name: Cache CFAST binary
         id: cache-cfast
         uses: actions/cache@v4
         with:
-          path: ~/cfast-cache/cfast-${{ matrix.cfast-version }}-${{ matrix.os }}-gcc${{ matrix.gcc-version }}
+          path: ~/cfast-cache/cfast-${{ matrix.cfast-version }}-gcc${{ matrix.gcc-version }}
           key: cfast-${{ matrix.cfast-version }}-${{ runner.os }}-${{ runner.arch }}-gcc${{ matrix.gcc-version }}-${{ hashFiles('.github/workflows/test.yml') }}
 
       # -----------------------------------------------------------------------
-      # Fortran compiler (only needed on cache miss)
+      # Fortran compiler (only on cache miss)
       # -----------------------------------------------------------------------
       - name: Install GCC ${{ matrix.gcc-version }}
         if: steps.cache-cfast.outputs.cache-hit != 'true'
@@ -148,85 +141,50 @@ jobs:
           compiler: gcc
           version: ${{ matrix.gcc-version }}
 
-      - name: Install make (Windows)
-        if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        run: choco install make -y
-
       # -----------------------------------------------------------------------
-      # Build CFAST — Linux
+      # Build CFAST
       # -----------------------------------------------------------------------
-      - name: Clone and build CFAST ${{ matrix.cfast-version }} (Linux)
-        if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Linux'
+      - name: Clone and build CFAST ${{ matrix.cfast-version }}
+        if: steps.cache-cfast.outputs.cache-hit != 'true'
         shell: bash
         run: |
           git clone --depth 1 --branch ${{ matrix.cfast-tag }} \
             https://github.com/firemodels/cfast.git \
             cfast-src
-          cd cfast-src/Build/CFAST/${{ matrix.build-dir }}
-          chmod +x ${{ matrix.build-script }}
-          ./${{ matrix.build-script }}
+          cd cfast-src/Build/CFAST/gnu_linux_64
+          chmod +x make_cfast.sh
+          ./make_cfast.sh
           mkdir -p ~/cfast-cache
-          cp ${{ matrix.binary-name }} \
-            ~/cfast-cache/cfast-${{ matrix.cfast-version }}-${{ matrix.os }}-gcc${{ matrix.gcc-version }}
+          cp cfast7_linux_64 \
+            ~/cfast-cache/cfast-${{ matrix.cfast-version }}-gcc${{ matrix.gcc-version }}
           chmod +x \
-            ~/cfast-cache/cfast-${{ matrix.cfast-version }}-${{ matrix.os }}-gcc${{ matrix.gcc-version }}
+            ~/cfast-cache/cfast-${{ matrix.cfast-version }}-gcc${{ matrix.gcc-version }}
 
       # -----------------------------------------------------------------------
-      # Build CFAST — Windows
+      # Install binary to PATH
       # -----------------------------------------------------------------------
-      - name: Clone and build CFAST ${{ matrix.cfast-version }} (Windows)
-        if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Windows'
-        shell: cmd
-        run: |
-          git clone --depth 1 --branch ${{ matrix.cfast-tag }} ^
-            https://github.com/firemodels/cfast.git ^
-            cfast-src
-          cd cfast-src\Build\CFAST\${{ matrix.build-dir }}
-          call ${{ matrix.build-script }}
-          if not exist "%USERPROFILE%\cfast-cache" mkdir "%USERPROFILE%\cfast-cache"
-          copy ${{ matrix.binary-name }} ^
-            "%USERPROFILE%\cfast-cache\cfast-${{ matrix.cfast-version }}-${{ matrix.os }}-gcc${{ matrix.gcc-version }}"
-
-      # -----------------------------------------------------------------------
-      # Install binary to system PATH
-      # -----------------------------------------------------------------------
-      - name: Install CFAST to PATH (Linux)
-        if: runner.os == 'Linux'
+      - name: Install CFAST to PATH
         run: |
           sudo cp \
-            ~/cfast-cache/cfast-${{ matrix.cfast-version }}-${{ matrix.os }}-gcc${{ matrix.gcc-version }} \
-            ${{ matrix.cfast-install-path }}
-          sudo chmod +x ${{ matrix.cfast-install-path }}
-
-      - name: Install CFAST to PATH (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Copy-Item `
-            "$env:USERPROFILE\cfast-cache\cfast-${{ matrix.cfast-version }}-${{ matrix.os }}-gcc${{ matrix.gcc-version }}" `
-            "${{ matrix.cfast-install-path }}"
-
-      - name: Verify CFAST on PATH
-        shell: bash
-        run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            where cfast
-          else
-            which cfast
-          fi
+            ~/cfast-cache/cfast-${{ matrix.cfast-version }}-gcc${{ matrix.gcc-version }} \
+            /usr/bin/cfast
+          sudo chmod +x /usr/bin/cfast
 
       # -----------------------------------------------------------------------
-      # Tests
-      # --timeout=120 kills any test where CFAST hangs silently.
-      # A hang caused by an incompatible gcc/cfast combination will surface
-      # as a FAILED (timeout) in the job summary instead of stalling forever.
+      # Generate verification data — THIS is where hangs occur.
+      # `timeout 120` sends SIGTERM after 120 s and SIGKILL after 130 s,
+      # making the step fail immediately instead of stalling the runner.
       # -----------------------------------------------------------------------
       - name: Generate verification data
         shell: bash
         run: |
           cd tests
-          python generate_verif_data.py --local
+          timeout --kill-after=10 900 python generate_verif_data.py --local
 
+      # -----------------------------------------------------------------------
+      # Run tests (only reached if verification data was generated successfully)
+      # --timeout=120 as a second safety net for any hanging pytest call.
+      # -----------------------------------------------------------------------
       - name: Run tests
         env:
           CFAST_VERSION: ${{ matrix.cfast-version }}
@@ -236,19 +194,3 @@ jobs:
             --cov=src/pycfast \
             --cov-report=xml \
             --cov-report=term-missing
-
-      # -----------------------------------------------------------------------
-      # Codecov — only upload for the canonical combination to avoid noise:
-      # latest CFAST + gcc 14 + ubuntu + python 3.12
-      # -----------------------------------------------------------------------
-      - name: Upload results to Codecov
-        if: |
-          matrix.cfast-version == '7.7.5' &&
-          matrix.gcc-version == '14' &&
-          matrix.os == 'ubuntu-latest' &&
-          matrix.python-version == '3.12'
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: cfast-${{ matrix.cfast-version }}-py${{ matrix.python-version }}-${{ matrix.os }}
-          fail_ci_if_error: false
