@@ -1,31 +1,23 @@
 # Compatibility matrix — CFAST × GCC × Ubuntu
 #
-# Tests all combinations of cfast-version × gcc-version on ubuntu-latest
-# with Python 3.11 fixed (Python version is irrelevant to the hang issue).
-#
 # Job count: 6 cfast-versions × 5 gcc-versions = 30 jobs
 #
-# Hang detection
-# --------------
-# The hang occurs during `generate_verif_data.py`, not in pytest itself.
-# A 120 s `timeout` command wraps that step so a hanging CFAST binary
-# causes a clear step failure instead of stalling the runner for 6 hours.
-#
-# Reading results
-# ---------------
-# Job names follow the pattern:
-#   "cfast=7.7.4 | gcc=13"
-# so the full pass/fail compatibility table is readable directly in the
-# GitHub Actions summary without any external tooling.
+# cfast-version and gcc-version are both real matrix axes, producing a
+# proper 6×5 cartesian product. The cfast-tag (inconsistent upstream naming)
+# is resolved at runtime in the "Resolve CFAST tag" step.
 #
 # CFAST Git tags — upstream inconsistency
-# ----------------------------------------
 #   7.7.5 → CFAST-7.7.5   (with hyphen)
 #   7.7.4 → CFAST7.7.4    (no hyphen)
 #   7.7.3 → CFAST7.7.3
 #   7.7.2 → CFAST7.7.2
-#   7.7.1 → CFAST7.7.1    (inferred — verify if clone fails)
-#   7.7.0 → CFAST7.7.0    (inferred — verify if clone fails)
+#   7.7.1 → CFAST7.7.1
+#   7.7.0 → CFAST7.7.0
+#
+# Hang detection
+#   The hang occurs in generate_verif_data.py, not in pytest.
+#   `timeout --kill-after=10 120` wraps that step to fail fast instead
+#   of stalling the runner for 6 hours.
 
 name: Compatibility Matrix
 
@@ -52,57 +44,32 @@ jobs:
   test:
     name: "cfast=${{ matrix.cfast-version }} | gcc=${{ matrix.gcc-version }}"
     runs-on: ubuntu-latest
-    continue-on-error: true  # all 30 cells always complete; read pass/fail in summary
+    continue-on-error: true
 
     strategy:
       fail-fast: false
       matrix:
-        gcc-version: ['11', '12', '13', '14', '15']
-        include:
-          # ------------------------------------------------------------------
-          # Each cfast-version is a fully explicit entry to work around the
-          # GitHub Actions limitation that `include` does not produce a
-          # cartesian product with existing axes.
-          # The gcc-version axis is the real matrix dimension; cfast-version
-          # is added by repeating the include block for each gcc value.
-          # ------------------------------------------------------------------
-          - { gcc-version: '11', cfast-version: "7.7.5", cfast-tag: "CFAST-7.7.5" }
-          - { gcc-version: '11', cfast-version: "7.7.4", cfast-tag: "CFAST7.7.4"  }
-          - { gcc-version: '11', cfast-version: "7.7.3", cfast-tag: "CFAST7.7.3"  }
-          - { gcc-version: '11', cfast-version: "7.7.2", cfast-tag: "CFAST7.7.2"  }
-          - { gcc-version: '11', cfast-version: "7.7.1", cfast-tag: "CFAST7.7.1"  }
-          - { gcc-version: '11', cfast-version: "7.7.0", cfast-tag: "CFAST7.7.0"  }
-
-          - { gcc-version: '12', cfast-version: "7.7.5", cfast-tag: "CFAST-7.7.5" }
-          - { gcc-version: '12', cfast-version: "7.7.4", cfast-tag: "CFAST7.7.4"  }
-          - { gcc-version: '12', cfast-version: "7.7.3", cfast-tag: "CFAST7.7.3"  }
-          - { gcc-version: '12', cfast-version: "7.7.2", cfast-tag: "CFAST7.7.2"  }
-          - { gcc-version: '12', cfast-version: "7.7.1", cfast-tag: "CFAST7.7.1"  }
-          - { gcc-version: '12', cfast-version: "7.7.0", cfast-tag: "CFAST7.7.0"  }
-
-          - { gcc-version: '13', cfast-version: "7.7.5", cfast-tag: "CFAST-7.7.5" }
-          - { gcc-version: '13', cfast-version: "7.7.4", cfast-tag: "CFAST7.7.4"  }
-          - { gcc-version: '13', cfast-version: "7.7.3", cfast-tag: "CFAST7.7.3"  }
-          - { gcc-version: '13', cfast-version: "7.7.2", cfast-tag: "CFAST7.7.2"  }
-          - { gcc-version: '13', cfast-version: "7.7.1", cfast-tag: "CFAST7.7.1"  }
-          - { gcc-version: '13', cfast-version: "7.7.0", cfast-tag: "CFAST7.7.0"  }
-
-          - { gcc-version: '14', cfast-version: "7.7.5", cfast-tag: "CFAST-7.7.5" }
-          - { gcc-version: '14', cfast-version: "7.7.4", cfast-tag: "CFAST7.7.4"  }
-          - { gcc-version: '14', cfast-version: "7.7.3", cfast-tag: "CFAST7.7.3"  }
-          - { gcc-version: '14', cfast-version: "7.7.2", cfast-tag: "CFAST7.7.2"  }
-          - { gcc-version: '14', cfast-version: "7.7.1", cfast-tag: "CFAST7.7.1"  }
-          - { gcc-version: '14', cfast-version: "7.7.0", cfast-tag: "CFAST7.7.0"  }
-
-          - { gcc-version: '15', cfast-version: "7.7.5", cfast-tag: "CFAST-7.7.5" }
-          - { gcc-version: '15', cfast-version: "7.7.4", cfast-tag: "CFAST7.7.4"  }
-          - { gcc-version: '15', cfast-version: "7.7.3", cfast-tag: "CFAST7.7.3"  }
-          - { gcc-version: '15', cfast-version: "7.7.2", cfast-tag: "CFAST7.7.2"  }
-          - { gcc-version: '15', cfast-version: "7.7.1", cfast-tag: "CFAST7.7.1"  }
-          - { gcc-version: '15', cfast-version: "7.7.0", cfast-tag: "CFAST7.7.0"  }
+        cfast-version: ["7.7.0", "7.7.1", "7.7.2", "7.7.3", "7.7.4", "7.7.5"]
+        gcc-version:   ["11", "12", "13", "14", "15"]
 
     steps:
       - uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # Resolve the correct Git tag for this cfast-version.
+      # 7.7.5 uses a hyphen (CFAST-7.7.5), all others do not (CFAST7.7.x).
+      # The resolved tag is written to $GITHUB_ENV so all subsequent steps
+      # can reference it as ${{ env.CFAST_TAG }}.
+      # -----------------------------------------------------------------------
+      - name: Resolve CFAST tag
+        shell: bash
+        run: |
+          VERSION="${{ matrix.cfast-version }}"
+          if [ "$VERSION" = "7.7.5" ]; then
+            echo "CFAST_TAG=CFAST-${VERSION}" >> "$GITHUB_ENV"
+          else
+            echo "CFAST_TAG=CFAST${VERSION}" >> "$GITHUB_ENV"
+          fi
 
       # -----------------------------------------------------------------------
       # Python + dependencies
@@ -121,8 +88,6 @@ jobs:
 
       # -----------------------------------------------------------------------
       # CFAST binary cache
-      # Keyed on (cfast-version, gcc-version, workflow-file).
-      # Shared across re-runs as long as the workflow file is unchanged.
       # -----------------------------------------------------------------------
       - name: Cache CFAST binary
         id: cache-cfast
@@ -148,7 +113,7 @@ jobs:
         if: steps.cache-cfast.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          git clone --depth 1 --branch ${{ matrix.cfast-tag }} \
+          git clone --depth 1 --branch ${{ env.CFAST_TAG }} \
             https://github.com/firemodels/cfast.git \
             cfast-src
           cd cfast-src/Build/CFAST/gnu_linux_64
@@ -171,19 +136,19 @@ jobs:
           sudo chmod +x /usr/bin/cfast
 
       # -----------------------------------------------------------------------
-      # Generate verification data — THIS is where hangs occur.
-      # `timeout 120` sends SIGTERM after 120 s and SIGKILL after 130 s,
-      # making the step fail immediately instead of stalling the runner.
+      # Generate verification data
+      # THIS is where hangs occur — wrapped with timeout.
+      # SIGTERM after 120 s, SIGKILL after 130 s.
       # -----------------------------------------------------------------------
       - name: Generate verification data
         shell: bash
         run: |
           cd tests
-          timeout --kill-after=10 900 python generate_verif_data.py --local
+          timeout --kill-after=10 120 python generate_verif_data.py --local
 
       # -----------------------------------------------------------------------
-      # Run tests (only reached if verification data was generated successfully)
-      # --timeout=120 as a second safety net for any hanging pytest call.
+      # Run tests
+      # --timeout=120 as a safety net for any hang inside pytest itself.
       # -----------------------------------------------------------------------
       - name: Run tests
         env:
