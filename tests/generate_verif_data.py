@@ -87,6 +87,50 @@ def generate_verification_outputs(local=False, cfast_version=None):
                 print(f"Removing {file_path.name}")
                 file_path.unlink()
 
+    failed_cases = _verify_outputs(verification_data_dir_output)
+    if failed_cases:
+        print(f"\nERROR: {len(failed_cases)} verification case(s) failed:")
+        for case in failed_cases:
+            print(f"  - {case}")
+        raise RuntimeError(
+            f"{len(failed_cases)} verification case(s) did not complete successfully. "
+            "Check log files for details."
+        )
+    else:
+        print("\nAll verification cases completed successfully.")
+
+
+def _verify_outputs(output_dir: Path) -> list[str]:
+    """
+    Verify that all CFAST runs completed successfully.
+
+    Checks each `.log` file in the output directory for
+    the "Normal exit from CFAST" marker.
+
+    Parameters
+    ----------
+    output_dir : Path
+        Directory containing CFAST output files.
+
+    Returns
+    -------
+    list[str]
+        List of input file names whose log files are missing
+        or do not contain the normal exit marker.
+    """
+    failed: list[str] = []
+    for in_file in output_dir.rglob("*.in"):
+        log_file = in_file.with_suffix(".log")
+        if not log_file.exists():
+            print(f"WARNING: No log file found for {in_file.name}")
+            failed.append(str(in_file.relative_to(output_dir)))
+            continue
+        log_content = log_file.read_text(encoding="utf-8", errors="replace")
+        if "Normal exit from CFAST" not in log_content:
+            print(f"WARNING: Abnormal exit detected for {in_file.name}")
+            failed.append(str(in_file.relative_to(output_dir)))
+    return failed
+
 
 def main():
     """Run the verification data generation script with command line arguments."""
