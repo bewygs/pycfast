@@ -1,25 +1,7 @@
-# Compatibility matrix — CFAST × GCC × Ubuntu
-#
-# Job count: 6 cfast-versions × 5 gcc-versions = 30 jobs
-#
-# cfast-version and gcc-version are both real matrix axes, producing a
-# proper 6×5 cartesian product. The cfast-tag (inconsistent upstream naming)
-# is resolved at runtime in the "Resolve CFAST tag" step.
-#
-# CFAST Git tags — upstream inconsistency
-#   7.7.5 → CFAST-7.7.5   (with hyphen)
-#   7.7.4 → CFAST7.7.4    (no hyphen)
-#   7.7.3 → CFAST7.7.3
-#   7.7.2 → CFAST7.7.2
-#   7.7.1 → CFAST7.7.1
-#   7.7.0 → CFAST7.7.0
-#
-# Hang detection
-#   The hang occurs in generate_verif_data.py, not in pytest.
-#   `timeout --kill-after=10 120` wraps that step to fail fast instead
-#   of stalling the runner for 6 hours.
+# This workflow runs tests across multiple Python versions with CFAST integration on linux and windows platforms
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Compatibility Matrix
+name: Test
 
 on:
   workflow_dispatch:
@@ -31,6 +13,7 @@ on:
       - 'pyproject.toml'
       - 'uv.lock'
       - '.github/workflows/test.yml'
+
   pull_request:
     branches: [ "main" ]
     paths:
@@ -42,120 +25,139 @@ on:
 
 jobs:
   test:
-    name: "cfast=${{ matrix.cfast-version }} | gcc=${{ matrix.gcc-version }}"
-    runs-on: ubuntu-latest
-    continue-on-error: true
-
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        cfast-version: ["7.7.0", "7.7.1", "7.7.2", "7.7.3", "7.7.4", "7.7.5"]
-        gcc-version:   ["11", "12", "13", "14", "15"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-latest, windows-latest]
+        compiler: [gcc, intel]
+        exclude:
+          - os: ubuntu-latest
+            compiler: intel
+          - os: windows-latest
+            compiler: gcc
+        include:
+          # Linux gcc/gfortran configuration
+          - os: ubuntu-latest
+            compiler: gcc
+            build-dir: gnu_linux_64
+            build-script: make_cfast.sh
+            binary-name: cfast7_linux_64
+            cfast-executable: cfast
+          # Windows gcc/gfortran configuration, currently disable due to running issues with gfortran on windows, see issues #16
+          # - os: windows-latest
+          #   compiler: gcc
+          #   build-dir: gnu_win_64
+          #   build-script: make_cfast.bat
+          #   binary-name: cfast7_win_64.exe
+          #   cfast-executable: cfast.exe
+          # Windows Intel configuration
+          - os: windows-latest
+            compiler: intel
+            build-dir: intel_win_64
+            build-script: make_cfast.bat
+            binary-name: cfast7_win_64.exe
+            cfast-executable: cfast.exe
+
+    env:
+      CFAST_VERSION: "7.7.5"
+      CFAST_TAG: "CFAST-7.7.5"
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
-      # -----------------------------------------------------------------------
-      # Resolve the correct Git tag for this cfast-version.
-      # 7.7.5 uses a hyphen (CFAST-7.7.5), all others do not (CFAST7.7.x).
-      # The resolved tag is written to $GITHUB_ENV so all subsequent steps
-      # can reference it as ${{ env.CFAST_TAG }}.
-      # -----------------------------------------------------------------------
-      - name: Resolve CFAST tag
-        shell: bash
-        run: |
-          VERSION="${{ matrix.cfast-version }}"
-          if [ "$VERSION" = "7.7.5" ]; then
-            echo "CFAST_TAG=CFAST-${VERSION}" >> "$GITHUB_ENV"
-          else
-            echo "CFAST_TAG=CFAST${VERSION}" >> "$GITHUB_ENV"
-          fi
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
-      # -----------------------------------------------------------------------
-      # Python + dependencies
-      # -----------------------------------------------------------------------
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
 
-      - name: Set up Python 3.11
-        run: uv python install 3.11
+    - name: Cache CFAST binary
+      id: cache-cfast
+      uses: actions/cache@v4
+      with:
+        path: ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}
+        key: cfast-binary-${{ env.CFAST_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ hashFiles('.github/workflows/test.yml') }}
+        restore-keys: |
+          cfast-binary-${{ env.CFAST_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-
 
-      - name: Install Python dependencies
-        run: uv sync --extra dev
+    - name: Install python dependencies
+      run: uv sync --extra dev
 
-      # -----------------------------------------------------------------------
-      # CFAST binary cache
-      # -----------------------------------------------------------------------
-      - name: Cache CFAST binary
-        id: cache-cfast
-        uses: actions/cache@v4
-        with:
-          path: ~/cfast-cache/cfast-${{ matrix.cfast-version }}-gcc${{ matrix.gcc-version }}
-          key: cfast-${{ matrix.cfast-version }}-${{ runner.os }}-${{ runner.arch }}-gcc${{ matrix.gcc-version }}-${{ hashFiles('.github/workflows/test.yml') }}
+    - name: Install build dependencies for CFAST
+      if: steps.cache-cfast.outputs.cache-hit != 'true'
+      uses: fortran-lang/setup-fortran@v1
+      with:
+        compiler: ${{ matrix.compiler }}
+    - name: Install make (Windows gcc only)
+      if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Windows' && matrix.compiler == 'gcc'
+      run: choco install make -y
 
-      # -----------------------------------------------------------------------
-      # Fortran compiler (only on cache miss)
-      # -----------------------------------------------------------------------
-      - name: Install GCC ${{ matrix.gcc-version }}
-        if: steps.cache-cfast.outputs.cache-hit != 'true'
-        uses: fortran-lang/setup-fortran@v1
-        with:
-          compiler: gcc
-          version: ${{ matrix.gcc-version }}
+    # --- Windows build ---
+    - name: Download and install CFAST ${{ env.CFAST_VERSION }} (Windows)
+      if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Windows'
+      shell: cmd
+      run: |
+        git clone --depth 1 --branch ${{ env.CFAST_TAG }} https://github.com/firemodels/cfast.git cfast-${{ env.CFAST_VERSION }}
+        cd cfast-${{ env.CFAST_VERSION}}\Build\CFAST\${{ matrix.build-dir }}
+        call ${{ matrix.build-script }}
+        if not exist "%USERPROFILE%\cfast-cache" mkdir "%USERPROFILE%\cfast-cache"
+        copy ${{ matrix.binary-name }} "%USERPROFILE%\cfast-cache\cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}  "
 
-      # -----------------------------------------------------------------------
-      # Build CFAST
-      # -----------------------------------------------------------------------
-      - name: Clone and build CFAST ${{ matrix.cfast-version }}
-        if: steps.cache-cfast.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          git clone --depth 1 --branch ${{ env.CFAST_TAG }} \
-            https://github.com/firemodels/cfast.git \
-            cfast-src
-          cd cfast-src/Build/CFAST/gnu_linux_64
-          chmod +x make_cfast.sh
-          ./make_cfast.sh
-          mkdir -p ~/cfast-cache
-          cp cfast7_linux_64 \
-            ~/cfast-cache/cfast-${{ matrix.cfast-version }}-gcc${{ matrix.gcc-version }}
-          chmod +x \
-            ~/cfast-cache/cfast-${{ matrix.cfast-version }}-gcc${{ matrix.gcc-version }}
+    # --- Linux build ---
+    - name: Download and install CFAST ${{ env.CFAST_VERSION }} (Linux)
+      if: steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Linux'
+      shell: bash
+      run: |
+        git clone --depth 1 --branch ${{ env.CFAST_TAG }} https://github.com/firemodels/cfast.git cfast-${{ env.CFAST_VERSION }}
+        cd cfast-${{ env.CFAST_VERSION }}/Build/CFAST/${{ matrix.build-dir }}
+        chmod +x ${{ matrix.build-script }}
+        ./${{ matrix.build-script }}
+        mkdir -p ~/cfast-cache
+        cp ${{ matrix.binary-name }} ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}
+        chmod +x ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}
 
-      # -----------------------------------------------------------------------
-      # Install binary to PATH
-      # -----------------------------------------------------------------------
-      - name: Install CFAST to PATH
-        run: |
-          sudo cp \
-            ~/cfast-cache/cfast-${{ matrix.cfast-version }}-gcc${{ matrix.gcc-version }} \
-            /usr/bin/cfast
-          sudo chmod +x /usr/bin/cfast
+    - name: Install CFAST to system path (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo cp ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }} /usr/bin/cfast
+        sudo chmod +x /usr/bin/cfast
 
-      # -----------------------------------------------------------------------
-      # Generate verification data
-      # THIS is where hangs occur — wrapped with timeout.
-      # SIGTERM after 120 s, SIGKILL after 130 s.
-      # -----------------------------------------------------------------------
-      - name: Generate verification data
-        shell: bash
-        run: |
-          cd tests
-          timeout --kill-after=10 120 python generate_verif_data.py --local
+    - name: Install CFAST to system path (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        copy "$env:USERPROFILE\cfast-cache\cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}" "C:\Windows\System32\cfast.exe"
 
-      # -----------------------------------------------------------------------
-      # Run tests
-      # --timeout=120 as a safety net for any hang inside pytest itself.
-      # -----------------------------------------------------------------------
-      - name: Run tests
-        env:
-          CFAST_VERSION: ${{ matrix.cfast-version }}
-        run: |
-          uv run pytest \
-            --timeout=120 \
-            --cov=src/pycfast \
-            --cov-report=xml \
-            --cov-report=term-missing
+    - name: Verify CFAST installation
+      shell: bash
+      run: |
+        if [ "${{ runner.os }}" = "Windows" ]; then
+          where cfast
+        else
+          which cfast
+        fi
+        cfast
+
+    - name: Run verification data
+      shell: bash
+      # Due to small numerical differences between fortran compilers we generate the verification data on each platform
+      run: |
+        cd tests
+        python generate_verif_data.py --local
+
+    - name: Run tests
+      env:
+        CFAST_VERSION: ${{ env.CFAST_VERSION }}
+      run: uv run pytest --cov=src/pycfast --cov-report=xml --cov-report=term-missing
+
+    - name: Upload results to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        flags: cfast-${{ env.CFAST_VERSION }}-py${{ matrix.python-version }}-${{ matrix.os }}
+        fail_ci_if_error: false
+
