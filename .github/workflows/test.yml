@@ -78,7 +78,7 @@ jobs:
 
     - name: Cache CFAST binary
       id: cache-cfast
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-${{ matrix.os }}-${{ matrix.compiler }}
         key: cfast-binary-${{ env.CFAST_VERSION }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ hashFiles('.github/workflows/test.yml') }}
