@@ -33,7 +33,7 @@ from pycfast.parsers import parse_cfast_file
 # baseline. This model contains all simulation settings and components.
 #
 # For this example, we use :func:`~pycfast.parsers.parse_cfast_file` to load the
-# `SP_AST_Diesel_1p1.in <data/SP_AST_Diesel_1p1.in>`_
+# `SP_AST_Diesel_1p1.in <https://github.com/firemodels/cfast/blob/master/Validation/SP_AST/SP_AST_Diesel_1p1.in>`_
 # model which is fast to compute, making it suitable for optimization studies.
 
 model = parse_cfast_file("data/SP_AST_Diesel_1p1.in")

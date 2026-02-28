@@ -20,7 +20,7 @@ from pycfast.parsers import parse_cfast_file
 # Step 2: Parse CFAST File
 # ------------------------
 # The :func:`~pycfast.parsers.parse_cfast_file` is a convenience function to parse input CFAST files.
-# Here we will parse the `PRISME D1 input file <data/PRS_D1.in>`_ for demonstration purposes.
+# Here we will parse the `PRISME D1 input file <https://github.com/firemodels/cfast/blob/master/Validation/PRISME/PRS_D1.in>`_ for demonstration purposes.
 
 model = parse_cfast_file(r"data/PRS_D1.in", r"parsed_PRS_D1.in")
 
