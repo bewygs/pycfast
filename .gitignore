@@ -209,6 +209,7 @@ __marimo__/
 # Documentation generated files
 docs/source/api/generated/
 docs/source/auto_examples/
+docs/source/sg_execution_times.rst
 
 # pycfast related for local development
 tests/verification_tests/verification_data_local/
