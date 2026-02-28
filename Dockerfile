@@ -21,7 +21,7 @@ RUN chmod +x ${CFAST_BUILD_SCRIPT} && ./${CFAST_BUILD_SCRIPT}
 RUN cp ${CFAST_BINARY_NAME} /usr/local/bin/cfast && \
     chmod +x /usr/local/bin/cfast
 
-FROM python:3.10-slim
+FROM python:3.14-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
