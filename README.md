@@ -103,7 +103,7 @@ model = parse_cfast_file("existing_model.in")
 
 **Note:** When importing an existing model, ensure that all component names (such as TITLE, MATERIAL, ID, etc.) use **only alphanumeric characters**. Avoid **special characters** like quotes and slashes, as these may cause parsing issues and will be automatically sanitized where possible.
 
-You can inspect any model interactively (displays the HTML card shown above), or use text-based methods:
+You can also inspect the model interactively on Jupyter or VS Code, or use text-based methods:
 
 ```python
 model             # interactive HTML card in Jupyter/VS Code
@@ -173,10 +173,6 @@ Download and install CFAST from the [NIST CFAST website](https://pages.nist.gov/
 
 Full documentation, including the API reference and examples, is available online: [PyCFAST Documentation](https://pycfast.org/index.html)
 
-## Examples
-
-Some examples on how to use PyCFAST with various python libraries (Numpy, SciPy, SAlib, etc.) can be found in the [examples](https://pycfast.org/examples.html).
-
 ## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for more information.
@@ -208,7 +204,4 @@ This Python package was developed with the support of [**Orano**](https://www.or
   </picture>
 </a>
 
-PyCFAST is built on top of the work of the CFAST development team at the 
-[National Institute of Standards and Technology (NIST)](https://www.nist.gov/). 
-We acknowledge their ongoing efforts in maintaining and improving the CFAST fire 
-modeling software.
+PyCFAST is built on top of the work of the CFAST development team at the [National Institute of Standards and Technology (NIST)](https://www.nist.gov/). We acknowledge their ongoing efforts in maintaining and improving the CFAST fire modeling software.
