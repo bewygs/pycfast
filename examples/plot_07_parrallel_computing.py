@@ -61,7 +61,7 @@ client
 # -----------------------
 # We start with an existing CFAST model as our template. We'll use
 # :func:`~pycfast.parsers.parse_cfast_file` to load the
-# `USN_Hawaii_Test_03.in <https://github.com/firemodels/cfast/blob/master/Validation/High_Bay/USN_Hawaii_Test_03.in>`_. This model serves
+# `USN_Hawaii_Test_03.in <https://github.com/firemodels/cfast/blob/master/Validation/High_Bay/USN_Hawaii_Test_03.in>`_ model. This model serves
 # as the foundation that we'll modify systematically to generate our dataset.
 
 model = parse_cfast_file("data/USN_Hawaii_Test_03.in")

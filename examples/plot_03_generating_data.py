@@ -29,7 +29,7 @@ from pycfast.parsers import parse_cfast_file
 # Step 2: Load Base Model
 # -----------------------
 # We start with an existing CFAST model as our template. We'll use
-# `USN_Hawaii_Test_03.in <https://github.com/firemodels/cfast/blob/master/Validation/High_Bay/USN_Hawaii_Test_03.in>`_. This model serves
+# `USN_Hawaii_Test_03.in <https://github.com/firemodels/cfast/blob/master/Validation/High_Bay/USN_Hawaii_Test_03.in>`_ input file. This model serves
 # as the foundation that we'll modify systematically to generate our dataset.
 
 model = parse_cfast_file("data/USN_Hawaii_Test_03.in")
