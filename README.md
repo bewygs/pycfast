@@ -10,16 +10,11 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18703351.svg)](https://doi.org/10.5281/zenodo.18703351)
 
 
-**PyCFAST** is a Python interface for the [**Consolidated Fire and Smoke Transport (CFAST)**](https://pages.nist.gov/cfast/)
-fire simulation software. Its primary goal is to **automate CFAST calculations at scale**,
-run parametric studies, sensitivity analyses, data generation, or optimization loops that would be
-impractical through the graphical interface. It also provides a convenient way to
-create CFAST input files, execute simulations, and analyze results using the versatility
-and extensive ecosystem of Python.
+**PyCFAST** is a Python interface for the [**Consolidated Fire and Smoke Transport (CFAST)**](https://pages.nist.gov/cfast/) fire simulation software. Its primary goal is to **automate CFAST calculations at scale**, run parametric studies, sensitivity analyses, data generation, or optimization loops that would be impractical through the graphical interface (CEdit). It also provides a convenient way to create CFAST input files, execute simulations, and analyze results using the versatility and extensive ecosystem of Python.
 
 ## From CEdit GUI to Python
 
-PyCFAST can be seen as an alternative to the CEdit graphical interface. It exposes Python objects with **rich interactive representations** that integrate naturally into your Python workflow. Instead of relying on static input files, you define and manipulate CFAST models programmatically.
+PyCFAST can be seen as an alternative to the CFAST graphical interface, CEdit. It exposes Python objects that integrate naturally into your Python workflow. Instead of relying on modifying input files through the GUI, you define and manipulate CFAST models programmatically.
 
 <table>
 <tr>
@@ -40,30 +35,12 @@ room = Compartments(
     wall_mat_id="Gypboard",
     floor_mat_id="Gypboard",
 )
-room  # displays interactive HTML card
+
 ```
 
 </td>
 </tr>
 </table>
-
-Every PyCFAST object such as compartments, fires, vents, devices, materials can render as an interactive HTML card when displayed in Jupyter notebooks or VS Code notebooks. These cards provide a visual summary of the component's properties and can be expanded to show more details.:
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/source/_static/images/pycfast-all-cards-dark.png">
-    <img src="docs/source/_static/images/pycfast-all-cards-light.png" alt="PyCFAST component cards" width="700">
-  </picture>
-</p>
-
-The complete model overview displays all components at a glance with expandable details:
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/source/_static/images/pycfast-model-card-dark.png">
-    <img src="docs/source/_static/images/pycfast-model-card-light.png" alt="PyCFAST model card" width="400">
-  </picture>
-</p>
 
 
 ## Example Usage
@@ -99,12 +76,21 @@ model = CFASTModel(
     mechanical_vents=mechanical_vents,
     fires=fires,
     file_name="test_simulation.in",
-    cfast_exe="/path/to/cfast_executable",
-    extra_arguments=["-f"],
 )
 
 results = model.run()
-# results is a dict of pandas DataFrames for each output CSV file
+# results is a dict of pandas DataFrames
+# Available keys: compartments, devices, masses, vents, walls, zones
+
+results["compartments"].head()
+#   Time    ULT_1   LLT_1   HGT_1  VOL_1  PRS_1  ...
+# 0  0.0    20.00   20.00    5.00   0.01    0.0   ...
+# 1  1.0    20.83   20.00    5.00   0.10    0.0   ...
+
+results["devices"].head()
+#   Time  TRGGAST_1  TRGSURT_1  TRGINT_1  TRGFLXI_1  ...
+# 0  0.0      20.0       20.0      20.0       0.0    ...
+# 1  1.0      20.0       20.0      20.0       0.38   ...
 ```
 
 Or you can import your existing model from a CFAST input file:
