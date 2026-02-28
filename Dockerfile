@@ -1,31 +1,47 @@
-# Use an official Python runtime as a parent image
-FROM python:3.10-slim
+FROM ubuntu:24.04 AS cfast-builder
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ARG CFAST_TAG=CFAST-7.7.5
+ARG CFAST_BUILD_DIR=gnu_linux_64
+ARG CFAST_BUILD_SCRIPT=make_cfast.sh
+ARG CFAST_BINARY_NAME=cfast7_linux_64
 
-# Set the working directory in the container
-WORKDIR /app
-
-# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget \
-    build-essential \
+    git \
+    gfortran \
+    make \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install CFAST
-RUN wget https://github.com/firemodels/cfast/releases/latest/download/CFAST_Linux.tar.gz -O /tmp/CFAST_Linux.tar.gz && \
-    tar -xzf /tmp/CFAST_Linux.tar.gz -C /usr/local/bin && \
-    chmod +x /usr/local/bin/cfast && \
-    rm /tmp/CFAST_Linux.tar.gz
+RUN git clone --depth 1 --branch ${CFAST_TAG} https://github.com/firemodels/cfast.git /cfast-src
 
-# Copy the requirements file and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+WORKDIR /cfast-src/Build/CFAST/${CFAST_BUILD_DIR}
 
-# Copy the PyCFAST source code into the container
-COPY ./src/pycfast /app/src/pycfast
+RUN chmod +x ${CFAST_BUILD_SCRIPT} && ./${CFAST_BUILD_SCRIPT}
 
-# Set the default command to run when the container starts
+RUN cp ${CFAST_BINARY_NAME} /usr/local/bin/cfast && \
+    chmod +x /usr/local/bin/cfast
+
+FROM python:3.10-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+COPY --from=cfast-builder /usr/local/bin/cfast /usr/local/bin/cfast
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgfortran5 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+COPY pyproject.toml README.md ./
+
+COPY ./src ./src
+
+RUN uv pip install --system --no-cache .
+
+RUN cfast || true
+
 CMD ["python"]
