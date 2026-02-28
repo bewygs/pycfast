@@ -1,7 +1,7 @@
 Getting Started
 ===============
 
-``PyCFAST`` allows you to create and manage CFAST fire simulation models entirely in Python. You can either build models from scratch or import existing CFAST input files.
+PyCFAST allows you to create and manage CFAST fire simulation models entirely in Python. You can either build models from scratch or import existing CFAST input files.
 
 Creating a New Model
 ~~~~~~~~~~~~~~~~~~~~
@@ -75,7 +75,7 @@ Once your model is ready, you can inspect it and run the simulation:
     # Run the simulation
     results = model.run()
 
-The ``run()`` method returns a dictionary containing pandas DataFrames for each output CSV file, making it easy to analyze results directly in Python.
+The :meth:`~pycfast.CFASTModel.run` method returns a dictionary containing pandas DataFrames for each output CSV file, making it easy to analyze results directly in Python.
 
 Modifying Models
 ~~~~~~~~~~~~~~~~
@@ -98,8 +98,8 @@ These modification methods enable parametric studies and provide smooth integrat
 Next Steps
 ~~~~~~~~~~
 
-This quick guide covers the fundamental concepts of ``PyCFAST`` to help you start building and running fire simulations effectively.
+This quick guide covers the fundamental concepts of PyCFAST to help you start building and running fire simulations effectively.
 
 For comprehensive documentation of all available classes, methods, and their parameters, explore the :doc:`API reference <api/index>`.
 
-To see ``PyCFAST`` in different contexts, check out the practical :doc:`examples` that demonstrate real-world applications you can adapt for your specific needs.
+To see PyCFAST in different contexts, check out the practical :doc:`examples` that demonstrate real-world applications you can adapt for your specific needs.
