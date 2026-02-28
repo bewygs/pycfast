@@ -76,12 +76,21 @@ model = CFASTModel(
     mechanical_vents=mechanical_vents,
     fires=fires,
     file_name="test_simulation.in",
-    cfast_exe="/path/to/cfast_executable",
-    extra_arguments=["-f"],
 )
 
 results = model.run()
-# results is a dict of pandas DataFrames for each output CSV file
+# results is a dict of pandas DataFrames
+# Available keys: compartments, devices, masses, vents, walls, zones
+
+results["compartments"].head()
+#   Time    ULT_1   LLT_1   HGT_1  VOL_1  PRS_1  ...
+# 0  0.0    20.00   20.00    5.00   0.01    0.0   ...
+# 1  1.0    20.83   20.00    5.00   0.10    0.0   ...
+
+results["devices"].head()
+#   Time  TRGGAST_1  TRGSURT_1  TRGINT_1  TRGFLXI_1  ...
+# 0  0.0      20.0       20.0      20.0       0.0    ...
+# 1  1.0      20.0       20.0      20.0       0.38   ...
 ```
 
 Or you can import your existing model from a CFAST input file:
