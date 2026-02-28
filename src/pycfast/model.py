@@ -38,9 +38,7 @@ def _resolve_cfast_exe(cfast_exe: str | None = None) -> str:
 
     1. Explicit ``cfast_exe`` argument
     2. ``CFAST`` environment variable
-    3. Bundled binary shipped with the wheel (``pycfast._cfast_bin``)
-    4. ``cfast`` found on the system ``PATH``
-    5. Literal ``"cfast"`` (will fail at runtime if not found)
+    3. ``cfast`` found on the system ``PATH``
 
     Parameters
     ----------
@@ -51,6 +49,11 @@ def _resolve_cfast_exe(cfast_exe: str | None = None) -> str:
     -------
     str
         Resolved path to the CFAST executable.
+
+    Raises
+    ------
+    FileNotFoundError
+        If no CFAST executable can be found.
     """
     if cfast_exe:
         return cfast_exe
@@ -59,20 +62,18 @@ def _resolve_cfast_exe(cfast_exe: str | None = None) -> str:
     if env_exe:
         return env_exe
 
-    try:
-        from ._cfast_bin import get_cfast_executable
-
-        bundled = get_cfast_executable()
-        if bundled:
-            return bundled
-    except ImportError:
-        pass
-
     system_exe = shutil.which("cfast")
     if system_exe:
         return system_exe
 
-    return "cfast"
+    msg = (
+        "CFAST executable not found. Please either:\n"
+        "  - Add 'cfast' to your system PATH\n"
+        "  - Set the CFAST environment variable\n"
+        "  - Pass cfast_exe='/path/to/cfast' to CFASTModel()\n\n"
+        "CFAST can be downloaded from: https://pages.nist.gov/cfast/"
+    )
+    raise FileNotFoundError(msg)
 
 
 class CFASTModel:
@@ -161,7 +162,7 @@ class CFASTModel:
         self.devices = devices or []
         self.surface_connections = surface_connections or []
         self.file_name = file_name
-        self.cfast_exe = _resolve_cfast_exe(cfast_exe)
+        self.cfast_exe = cfast_exe
         self.extra_arguments = extra_arguments or []
         self._input_written = False
 
@@ -433,7 +434,7 @@ class CFASTModel:
 
         try:
             input_file_path = self._write_input()
-            cfast_exe = self.cfast_exe
+            cfast_exe = _resolve_cfast_exe(self.cfast_exe)
             # cfast and its input files need to be in the same directory
             # otherwise there is a weird error where only "_zone.csv" is generated
             cwd = os.path.dirname(input_file_path)
