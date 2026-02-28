@@ -85,12 +85,8 @@ html_theme_options = {
     "show_toc_level": 2,
     "footer_start": ["pycfast_footer", "sphinx-version"],
     "footer_end": ["theme-version"],
-    "switcher": {
-        "json_url": "_static/version.json",
-        "version_match": version,
-    },
-    "navbar_start": ["navbar-logo", "version-switcher"],
-    "navbar_end": ["theme-switcher", "navbar-icon-links"],
+    "navbar_start": ["navbar-logo"],
+    "navbar_end": ["navbar-icon-links"],
     "secondary_sidebar_items": ["page-toc", "edit-this-page", "sourcelink"],
 }
 
