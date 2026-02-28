@@ -40,30 +40,12 @@ room = Compartments(
     wall_mat_id="Gypboard",
     floor_mat_id="Gypboard",
 )
-room  # displays interactive HTML card
+
 ```
 
 </td>
 </tr>
 </table>
-
-Every PyCFAST object such as compartments, fires, vents, devices, materials can render as an interactive HTML card when displayed in Jupyter notebooks or VS Code notebooks. These cards provide a visual summary of the component's properties and can be expanded to show more details.:
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/source/_static/images/pycfast-all-cards-dark.png">
-    <img src="docs/source/_static/images/pycfast-all-cards-light.png" alt="PyCFAST component cards" width="700">
-  </picture>
-</p>
-
-The complete model overview displays all components at a glance with expandable details:
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/source/_static/images/pycfast-model-card-dark.png">
-    <img src="docs/source/_static/images/pycfast-model-card-light.png" alt="PyCFAST model card" width="400">
-  </picture>
-</p>
 
 
 ## Example Usage
