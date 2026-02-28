@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to PyCFAST are documented in this file.
 
+## [0.1.3] - 2026-02-28
+- Remove CFAST binary distribution due to complexity (#34)
+- Add testing for multiple CFAST versions on Windows and Linux from version 7.7.0 to 7.7.5 (#33)
+- Refactor Dockerfile
+- Add CODE_OF_CONDUCT.md
+- Improve documentation and installation instructions (#35, #36)
+
 ## [0.1.2] - 2026-02-25
 - Add wheels with CFAST precompiled binaries for Linux (#21)
 - Add bug report and feature request issue templates
