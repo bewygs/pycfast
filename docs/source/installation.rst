@@ -30,10 +30,16 @@ To install the latest development version of PyCFAST, you can install from sourc
 CFAST Installation
 ------------------
 
-Download and install CFAST from the `NIST CFAST website <https://pages.nist.gov/cfast/>`_ or
-the `CFAST GitHub repository <https://github.com/firemodels/cfast>`_. Follow the installation
-instructions for your operating system and ensure ``cfast`` is available in your PATH. If 
-CFAST is installed in a non-standard location, you can manually specify the path
+Download and install CFAST from the `NIST CFAST downloads page <https://pages.nist.gov/cfast/downloads.html/>`_ or
+the `CFAST GitHub repository <https://github.com/firemodels/cfast/releases>`_. Follow the installation
+instructions for your operating system and ensure ``cfast`` is available in your PATH. On Windows go into
+command prompt and type ``cfast`` to check if it is recognized as a command. You should see the CFAST version information.
+
+.. image:: _static/images/cfast-cmd-win.png
+   :alt: CFAST command prompt on Windows
+   :align: center
+
+If CFAST is installed in a non-standard location, you can manually specify the path
 with these methods.
 
 
