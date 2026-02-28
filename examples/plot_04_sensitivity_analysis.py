@@ -27,7 +27,7 @@ from pycfast.parsers import parse_cfast_file
 # For this example, we'll use a predefined CFAST input file as our base model.
 # You can replace this with your own model file. We'll use
 # :func:`~pycfast.parsers.parse_cfast_file` to load the
-# `USN_Hawaii_Test_03.in <data/USN_Hawaii_Test_03.in>`_ input file.
+# `USN_Hawaii_Test_03.in <https://github.com/firemodels/cfast/blob/master/Validation/High_Bay/USN_Hawaii_Test_03.in>`_ input file.
 
 model = parse_cfast_file("data/USN_Hawaii_Test_03.in")
 

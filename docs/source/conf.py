@@ -65,6 +65,10 @@ napoleon_include_init_with_doc = True
 # This patterns also effect to html_static_path and html_extra_path
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "logos/lsapy/branding.md"]
 
+# If true, '()' will be appended to :func: etc. cross-reference text.
+add_function_parentheses = False
+
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 html_title = "PyCFAST"
@@ -85,12 +89,8 @@ html_theme_options = {
     "show_toc_level": 2,
     "footer_start": ["pycfast_footer", "sphinx-version"],
     "footer_end": ["theme-version"],
-    "switcher": {
-        "json_url": "_static/version.json",
-        "version_match": version,
-    },
-    "navbar_start": ["navbar-logo", "version-switcher"],
-    "navbar_end": ["theme-switcher", "navbar-icon-links"],
+    "navbar_start": ["navbar-logo"],
+    "navbar_end": ["navbar-icon-links"],
     "secondary_sidebar_items": ["page-toc", "edit-this-page", "sourcelink"],
 }
 

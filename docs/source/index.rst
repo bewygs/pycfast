@@ -6,7 +6,7 @@
 Welcome to the PyCFAST documentation
 ====================================
 
-**PyCFAST** is a Python interface for the |CFAST Page|_ fire simulation software,
+PyCFAST is a Python interface for the |CFAST Page|_ fire simulation software,
 providing an easy-to-use Python programming interface for building and running fire
 scenarios. It allows researchers and engineers to automate, customize, create CFAST
 input files, execute simulations, and analyze results using the versatility and
