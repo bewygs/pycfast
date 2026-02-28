@@ -1,8 +1,8 @@
 Installation
 ============
 
-PyCFAST requires **Python 3.10 or later**. It fully supports **CFAST 7.7.5** and is
-expected to be compatible with all **CFAST 7.7.x** versions.
+PyCFAST requires **Python 3.10 or later**. It fully supports CFAST version from **7.7.0**
+to version **7.7.5**.
 
 Pip
 ---
