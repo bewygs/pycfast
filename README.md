@@ -77,7 +77,19 @@ model = CFASTModel(
     fires=fires,
     file_name="test_simulation.in",
 )
+```
 
+Or you can import your existing model from a CFAST input file:
+
+```python
+from pycfast.parsers import parse_cfast_file
+
+model = parse_cfast_file("existing_model.in")
+```
+
+Then you can run the model and obtain results as pandas DataFrames:
+
+```python
 results = model.run()
 # results is a dict of pandas DataFrames
 # Available keys: compartments, devices, masses, vents, walls, zones
@@ -93,13 +105,6 @@ results["devices"].head()
 # 1  1.0      20.0       20.0      20.0       0.38   ...
 ```
 
-Or you can import your existing model from a CFAST input file:
-
-```python
-from pycfast.parsers import parse_cfast_file
-
-model = parse_cfast_file("existing_model.in")
-```
 
 **Note:** When importing an existing model, ensure that all component names (such as TITLE, MATERIAL, ID, etc.) use **only alphanumeric characters**. Avoid **special characters** like quotes and slashes, as these may cause parsing issues and will be automatically sanitized where possible.
 
