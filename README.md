@@ -10,16 +10,11 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18703351.svg)](https://doi.org/10.5281/zenodo.18703351)
 
 
-**PyCFAST** is a Python interface for the [**Consolidated Fire and Smoke Transport (CFAST)**](https://pages.nist.gov/cfast/)
-fire simulation software. Its primary goal is to **automate CFAST calculations at scale**,
-run parametric studies, sensitivity analyses, data generation, or optimization loops that would be
-impractical through the graphical interface. It also provides a convenient way to
-create CFAST input files, execute simulations, and analyze results using the versatility
-and extensive ecosystem of Python.
+**PyCFAST** is a Python interface for the [**Consolidated Fire and Smoke Transport (CFAST)**](https://pages.nist.gov/cfast/) fire simulation software. Its primary goal is to **automate CFAST calculations at scale**, run parametric studies, sensitivity analyses, data generation, or optimization loops that would be impractical through the graphical interface (CEdit). It also provides a convenient way to create CFAST input files, execute simulations, and analyze results using the versatility and extensive ecosystem of Python.
 
 ## From CEdit GUI to Python
 
-PyCFAST can be seen as an alternative to the CEdit graphical interface. It exposes Python objects with **rich interactive representations** that integrate naturally into your Python workflow. Instead of relying on static input files, you define and manipulate CFAST models programmatically.
+PyCFAST can be seen as an alternative to the CFAST graphical interface, CEdit. It exposes Python objects that integrate naturally into your Python workflow. Instead of relying on modifying input files through the GUI, you define and manipulate CFAST models programmatically.
 
 <table>
 <tr>
