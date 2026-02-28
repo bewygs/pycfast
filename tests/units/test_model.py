@@ -15,7 +15,7 @@ from pycfast.devices import Devices
 from pycfast.fires import Fires
 from pycfast.material_properties import MaterialProperties
 from pycfast.mechanical_vents import MechanicalVents
-from pycfast.model import CFASTModel
+from pycfast.model import CFASTModel, _resolve_cfast_exe
 from pycfast.simulation_environment import SimulationEnvironment
 from pycfast.surface_connections import SurfaceConnections
 from pycfast.wall_vents import WallVents
@@ -157,19 +157,17 @@ class TestCFASTModel:
 
         assert model.cfast_exe == "/custom/path/to/cfast"
 
-    @patch.dict(os.environ, {"CFAST": "/env/path/to/cfast"})
-    def test_init_cfast_exe_from_environment(self):
-        """Test initialization with CFAST executable from environment variable."""
+    def test_init_cfast_exe_none_by_default(self):
+        """Test that cfast_exe is stored as None when not provided."""
         simulation_env = SimulationEnvironment(title="Test")
         compartment = Compartments(id="ROOM1")
 
         model = CFASTModel(
             simulation_environment=simulation_env,
             compartments=[compartment],
-            cfast_exe=None,
         )
 
-        assert model.cfast_exe == "/env/path/to/cfast"
+        assert model.cfast_exe is None
 
     def test_write_input_content_minimal(self):
         """Test that input file is written with correct content for minimal model."""
@@ -528,25 +526,30 @@ class TestCFASTModel:
         assert model.surface_connections == []
         assert model.extra_arguments == []
 
-    @patch("shutil.which")
-    def test_cfast_exe_detection(self, mock_which):
-        """Test CFAST executable detection."""
-        mock_which.return_value = "/usr/bin/cfast"
+    @patch.dict(os.environ, {"CFAST": "/env/path/to/cfast"})
+    def test_resolve_cfast_exe_from_environment(self):
+        """Test _resolve_cfast_exe picks up the CFAST environment variable."""
+        assert _resolve_cfast_exe(None) == "/env/path/to/cfast"
 
-        simulation_env = SimulationEnvironment(title="Test")
-        compartment = Compartments(id="ROOM1")
+    @patch.dict(os.environ, {}, clear=False)
+    @patch("pycfast.model.shutil.which", return_value="/some/path/to/cfast")
+    def test_resolve_cfast_exe_from_path(self, mock_which):
+        """Test _resolve_cfast_exe finds cfast on system PATH."""
+        os.environ.pop("CFAST", None)
+        assert _resolve_cfast_exe(None) == "/some/path/to/cfast"
+        mock_which.assert_called_once_with("cfast")
 
-        model = CFASTModel(
-            simulation_environment=simulation_env,
-            compartments=[compartment],
-            cfast_exe=None,
-        )
+    @patch.dict(os.environ, {}, clear=False)
+    @patch("pycfast.model.shutil.which", return_value=None)
+    def test_resolve_cfast_exe_not_found(self, mock_which):
+        """Test _resolve_cfast_exe raises FileNotFoundError when cfast is not found."""
+        os.environ.pop("CFAST", None)
+        with pytest.raises(FileNotFoundError, match="CFAST executable not found"):
+            _resolve_cfast_exe(None)
 
-        # The resolved exe can be the bundled binary, a system binary, or
-        # the fallback literal "cfast" depending on the environment.
-        assert model.cfast_exe is not None
-        assert isinstance(model.cfast_exe, str)
-        assert "cfast" in model.cfast_exe.lower()
+    def test_resolve_cfast_exe_explicit_path(self):
+        """Test _resolve_cfast_exe returns explicit path as-is."""
+        assert _resolve_cfast_exe("/custom/path/to/cfast") == "/custom/path/to/cfast"
 
     def test_save_writes_input_and_returns_path(self):
         """Test that save() writes the input file and returns its absolute path."""
