@@ -90,7 +90,7 @@ html_theme_options = {
     "footer_start": ["pycfast_footer", "sphinx-version"],
     "footer_end": ["theme-version"],
     "navbar_start": ["navbar-logo"],
-    "navbar_end": ["navbar-icon-links"],
+    "navbar_end": ["theme-switcher", "navbar-icon-links"],
     "secondary_sidebar_items": ["page-toc", "edit-this-page", "sourcelink"],
 }
 
