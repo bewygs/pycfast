@@ -67,7 +67,7 @@ print(
 
 # %%
 # Step 4: Run simulations with varying parameters
-# ----------------------------
+# -----------------------------------------------
 # Now we'll systematically modify the model parameters and run simulations
 # to generate our dataset.
 #
