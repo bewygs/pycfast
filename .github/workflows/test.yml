@@ -41,7 +41,7 @@ jobs:
           # Windows: no latest (no pre-built installer available)
           - os: windows-latest
             cfast-version: "latest"
-          # Linux: only test 7.7.5 and latest (compile from source with gcc)
+          # Linux: only tested on version 7.7.5 and latest commit due to issue with gcc issue with CFAST older version
           - os: ubuntu-latest
             cfast-version: "7.7.0"
           - os: ubuntu-latest
@@ -53,7 +53,7 @@ jobs:
           - os: ubuntu-latest
             cfast-version: "7.7.4"
         include:
-          # Linux: compile from source with gcc ---
+          # Linux: compile from source with gcc
           - os: ubuntu-latest
             cfast-version: "7.7.5"
             cfast-tag: "CFAST-7.7.5"
@@ -66,7 +66,9 @@ jobs:
             build-dir: gnu_linux
             build-script: make_cfast.sh
             binary-name: cfast7_linux
-          # Windows: extract from official installer ---
+          # Windows: tested across version 7.7.0 to 7.7.5 version without the latest commit because it needs
+          # to use the official installer (we can't compile from source with gnu_win due to CFAST running
+          # issue with gfortran on windows see issue #16)
           - os: windows-latest
             cfast-version: "7.7.5"
             installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST-7.7.5/CFAST-7.7.5_SMV-6.10.1.exe"
