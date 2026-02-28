@@ -134,7 +134,7 @@ Check out the [examples](https://pycfast.org/examples.html) for more usage scena
 
 ## Installation
 
-PyCFAST requires **Python 3.10 or later**. It is fully [tested](https://github.com/bewygs/pycfast/tree/main/tests/verification_tests) on verification input file with **CFAST 7.7.5** and is expected to be compatible with all **CFAST 7.7.x** versions.
+PyCFAST requires **Python 3.10 or later**. It is fully [tested on verification input file](https://github.com/bewygs/pycfast/tree/main/tests/verification_tests) from CFAST version **7.7.0** to version **7.7.5**.
 
 ### Pip or Conda
 
