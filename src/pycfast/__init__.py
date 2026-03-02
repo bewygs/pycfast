@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from importlib.metadata import version
 
+from . import datasets
 from .ceiling_floor_vents import CeilingFloorVents
 from .compartments import Compartments
 from .devices import Devices
@@ -23,6 +24,7 @@ from .surface_connections import SurfaceConnections
 from .wall_vents import WallVents
 
 __all__ = [
+    "datasets",
     "CFAST_VERSION",
     "CeilingFloorVents",
     "Compartments",

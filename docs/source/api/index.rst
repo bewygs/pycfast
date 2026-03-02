@@ -10,3 +10,4 @@ This page provides an overview of all implemented public objects, functions and 
    cfastmodel
    components
    parser
+   datasets
