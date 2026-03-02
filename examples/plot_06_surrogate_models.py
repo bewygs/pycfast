@@ -15,12 +15,10 @@ Build surrogate model machine learning models to predict CFAST outputs instantly
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import seaborn as sns
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from scipy.stats import qmc
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
@@ -29,6 +27,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from torch.utils.data import DataLoader, TensorDataset
 
+from pycfast.datasets import load_sp_ast_diesel_1p1
 from pycfast.parsers import parse_cfast_file
 
 plt.style.use("seaborn-v0_8-whitegrid")
@@ -56,109 +55,23 @@ model
 model.summary()
 
 # %%
-# Step 3: Generate Training Data
-# --------------------------------
-# We define parameter ranges and use Sobol sampling to generate a well-distributed
-# training dataset.
+# Step 3: Load Pre-computed Training Data
+# ------------------------------------------
+# Instead of running 5000 CFAST simulations (which can take hours),
+# we load a precomputed dataset that is included with pycfast using
+# :func:`~pycfast.datasets.load_sp_ast_diesel_1p1`.
+#
+# The data was generated once with Sobol quasi-random sampling across
+# the parameter space (see the module docstring for full details).
 
-param_bounds = {
-    "heat_of_combustion": [5.0, 50.0],
-    "radiative_fraction": [0.1, 0.5],
-    "soot_yield": [0.01, 0.15],
-    "target_location_z": [1.45, 5.45],  # height of target above floor
-}
+training_data = load_sp_ast_diesel_1p1()
 
-print("Parameter ranges:")
-for param, bounds in param_bounds.items():
-    print(f"  {param}: {bounds}")
-
-# %%
-# We will use Sobol sampling to generate a training dataset.
-# Sobol sequences provide low-discrepancy coverage of the parameter space.
-
-
-def generate_samples(bounds_dict, n_samples, seed: int = 42):
-    param_names = list(bounds_dict.keys())
-    lower = np.array([bounds[0] for bounds in bounds_dict.values()], dtype=float)
-    upper = np.array([bounds[1] for bounds in bounds_dict.values()], dtype=float)
-
-    sampler = qmc.Sobol(d=len(param_names), scramble=True, seed=seed)
-    unit_samples = sampler.random(n_samples)
-
-    # Centered discrepancy (default)
-    disc_centered = qmc.discrepancy(unit_samples)
-
-    # L2-star discrepancy
-    disc_l2 = qmc.discrepancy(unit_samples, method="L2-star")
-
-    print(f"Centered discrepancy: {disc_centered:.5f}")
-    print(f"L2-star discrepancy:  {disc_l2:.5f}")
-
-    samples = qmc.scale(unit_samples, lower, upper)
-    return pd.DataFrame(samples, columns=param_names)
-
-
-# Generate 5000 training samples
-training_samples = generate_samples(param_bounds, 5000)
-print(f"Generated {len(training_samples)} training samples")
-
-# %%
-# Discrepancy score allows us to measure how well the samples cover the
-# parameter space. Lower is better. Now we define the simulation function
-# and run CFAST for each sample.
-
-
-def run_cfast_simulation(row: pd.Series) -> float:
-    data_table = model.fires[0].data_table
-
-    temp_data_table = [
-        r[:5] + [row["soot_yield"]] + r[6:] if len(r) > 6 else r for r in data_table
-    ]
-
-    # update fire parameters in the model using :meth:`~pycfast.CFASTModel.update_fire_params`
-    temp_model = model.update_fire_params(
-        fire="n-Decane Test 1_Fire",
-        data_table=temp_data_table,
-        heat_of_combustion=row["heat_of_combustion"],
-        radiative_fraction=row["radiative_fraction"],
-    )
-
-    # Update the second target device location using :meth:`~pycfast.CFASTModel.update_device_params`
-    temp_model = temp_model.update_device_params(
-        device="Targ 1",
-        location=[50.0, 50.0, row["target_location_z"]],  # x, y, z
-    )
-
-    sim_results = temp_model.run()
-    max_trgsurt = sim_results["devices"]["TRGSURT_1"].max()
-
-    return max_trgsurt
-
-
-# %%
-# Run simulations and collect training data
-print("Running CFAST simulations...")
-results = []
-
-for i, row in training_samples.iterrows():
-    print(f"Running simulation {i + 1}/{len(training_samples)}", end="\r")
-    max_trgsurt = run_cfast_simulation(row)
-
-    results.append(
-        {
-            "heat_of_combustion": row["heat_of_combustion"],
-            "radiative_fraction": row["radiative_fraction"],
-            "soot_yield": row["soot_yield"],
-            "target_location_z": row["target_location_z"],
-            "max_trgsurt": max_trgsurt,
-        }
-    )
-
-training_data = pd.DataFrame(results)
-print(f"Collected {len(training_data)} successful simulations")
+print(f"Loaded {len(training_data)} samples")
 print(
-    f"TRGSURT range: {training_data['max_trgsurt'].min():.1f} - {training_data['max_trgsurt'].max():.1f} °C"
+    f"TRGSURT range: {training_data['max_trgsurt'].min():.1f}"
+    f" - {training_data['max_trgsurt'].max():.1f} °C"
 )
+training_data.head()
 
 # %%
 # Step 4: Quick Data Exploration
@@ -501,7 +414,30 @@ print(f"\nBest model: {best_model} (R² = {metrics[best_model]['R²']:.4f})")
 
 import time
 
-test_params = training_samples.iloc[0]
+import pandas as pd
+
+
+def run_cfast_simulation(row: pd.Series) -> float:
+    """Run one CFAST simulation and return max TRGSURT."""
+    data_table = model.fires[0].data_table
+    temp_data_table = [
+        r[:5] + [row["soot_yield"]] + r[6:] if len(r) > 6 else r for r in data_table
+    ]
+    temp_model = model.update_fire_params(
+        fire="n-Decane Test 1_Fire",
+        data_table=temp_data_table,
+        heat_of_combustion=row["heat_of_combustion"],
+        radiative_fraction=row["radiative_fraction"],
+    )
+    temp_model = temp_model.update_device_params(
+        device="Targ 1",
+        location=[50.0, 50.0, row["target_location_z"]],
+    )
+    sim_results = temp_model.run()
+    return float(sim_results["devices"]["TRGSURT_1"].max())
+
+
+test_params = training_data.iloc[0]
 start = time.time()
 test_model_run = run_cfast_simulation(test_params)
 cfast_time = time.time() - start
