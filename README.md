@@ -6,6 +6,7 @@
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![MyPy Checked](https://img.shields.io/badge/mypy-checked-blue)](https://github.com/python/mypy)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pycfast)
 [![codecov](https://codecov.io/gh/bewygs/pycfast/graph/badge.svg?token=B39Q5PHMU3)](https://codecov.io/gh/bewygs/pycfast)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://github.com/bewygs/pycfast/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18703351.svg)](https://doi.org/10.5281/zenodo.18703351)
