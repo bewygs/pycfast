@@ -31,7 +31,9 @@ from pycfast import Compartments
 
 room = Compartments(
     id="Comp 1",
-    width=10.0, depth=10.0, height=10.0,
+    width=10.0,
+    depth=10.0,
+    height=10.0,
     ceiling_mat_id="Gypboard",
     wall_mat_id="Gypboard",
     floor_mat_id="Gypboard",
