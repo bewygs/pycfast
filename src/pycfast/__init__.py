@@ -9,6 +9,7 @@ compartmentalized structures.
 
 from __future__ import annotations
 
+import logging
 from importlib.metadata import version
 
 from . import datasets
@@ -22,6 +23,8 @@ from .model import CFASTModel
 from .simulation_environment import SimulationEnvironment
 from .surface_connections import SurfaceConnections
 from .wall_vents import WallVents
+
+logging.getLogger("pycfast").addHandler(logging.NullHandler())
 
 __all__ = [
     "datasets",

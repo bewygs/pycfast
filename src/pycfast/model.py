@@ -8,6 +8,7 @@ and executing CFAST fire simulations through a Python interface.
 from __future__ import annotations
 
 import copy
+import logging
 import os
 import shutil
 import subprocess
@@ -29,6 +30,8 @@ from .surface_connections import SurfaceConnections
 from .utils import CSV_READ_CONFIGS
 from .utils.theme import build_card
 from .wall_vents import WallVents
+
+logger = logging.getLogger("pycfast")
 
 
 def _resolve_cfast_exe(cfast_exe: str | None = None) -> str:
@@ -184,28 +187,8 @@ class CFASTModel:
         return f"CFASTModel(file_name='{self.file_name}', {', '.join(components)})"
 
     def __str__(self) -> str:
-        """Return a user-friendly string representation of the CFASTModel."""
-        total_components = (
-            len(self.compartments)
-            + len(self.fires)
-            + len(self.wall_vents)
-            + len(self.ceiling_floor_vents)
-            + len(self.mechanical_vents)
-            + len(self.devices)
-            + len(self.material_properties)
-            + len(self.surface_connections)
-        )
-
-        return (
-            f"CFAST Fire Model '{self.file_name}'\n"
-            f"  Compartments: {len(self.compartments)}\n"
-            f"  Fires: {len(self.fires)}\n"
-            f"  Vents: {len(self.wall_vents)} wall, {len(self.ceiling_floor_vents)} ceiling/floor, {len(self.mechanical_vents)} mechanical\n"
-            f"  Devices: {len(self.devices)}\n"
-            f"  Materials: {len(self.material_properties)}\n"
-            f"  Surface Connections: {len(self.surface_connections)}\n"
-            f"  Total components: {total_components}"
-        )
+        """Return a detailed string representation of the CFASTModel."""
+        return self.summary()
 
     def _repr_html_(self) -> str:
         """Return an HTML representation for Jupyter/interactive environments."""
@@ -392,7 +375,7 @@ class CFASTModel:
             execution exceeds this time, it will be terminated. If None,
             no timeout will be applied.
         verbose: bool, optional
-            If True, prints CFAST stdout and stderr to the console.
+            If True, logs CFAST stdout and stderr at DEBUG level.
 
         Returns
         -------
@@ -453,8 +436,8 @@ class CFASTModel:
                     timeout=timeout,
                 )
                 if verbose:
-                    print(f"CFAST stdout:\n{result.stdout}")
-                    print(f"CFAST stderr:\n{result.stderr}")
+                    logger.debug("CFAST stdout:\n%s", result.stdout)
+                    logger.debug("CFAST stderr:\n%s", result.stderr)
             except subprocess.CalledProcessError as e:
                 error_msg = f"CFAST execution failed with return code {e.returncode}"
                 log_content = self._get_log()
@@ -490,11 +473,11 @@ class CFASTModel:
                         dataframes[suffix] = pd.DataFrame()
                         continue
                     except Exception as e:
-                        print(f"Error reading {csv_file}: {e}")
+                        logger.error("Error reading %s: %s", csv_file, e)
                         dataframes[suffix] = None
                 else:
                     if suffix not in optional_csvs:
-                        print(f"CSV file not found: {csv_file}")
+                        logger.warning("CSV file not found: %s", csv_file)
                     dataframes[suffix] = None
 
             return dataframes
@@ -1583,16 +1566,21 @@ class CFASTModel:
         finally:
             self.file_name = original_file_name
 
-    def summary(self) -> None:
+    def summary(self) -> str:
         """
-        Print a clear summary of the CFAST model configuration.
+        Return a clear summary of the CFAST model configuration as a string.
 
         Shows the model info and all components with their current parameter values
         using each component's string representation.
 
+        Returns
+        -------
+        str
+            Formatted summary of the model configuration.
+
         Examples
         --------
-        >>> model.summary()
+        >>> print(model.summary())
         Model: my_simulation.in
         Simulation: 'Building Fire Test' (3600s)
 
@@ -1602,52 +1590,55 @@ class CFASTModel:
         Compartments (2):
             Compartments(id='ROOM1', width=4.0, depth=3.0, height=2.5...)
         """
-        print(f"\nModel: {self.file_name}")
-        print(
+        lines: list[str] = []
+
+        lines.append(f"\nModel: {self.file_name}")
+        lines.append(
             f"Simulation: '{self.simulation_environment.title}' ({self.simulation_environment.time_simulation}s)"
         )
-
-        print("\nComponents:")
+        lines.append("\nComponents:")
 
         if self.material_properties:
-            print(f"  Material Properties ({len(self.material_properties)}):")
+            lines.append(f"  Material Properties ({len(self.material_properties)}):")
             for mat in self.material_properties:
-                print(f"    {mat}")
+                lines.append(f"    {mat}")
 
         if self.compartments:
-            print(f"  Compartments ({len(self.compartments)}):")
+            lines.append(f"  Compartments ({len(self.compartments)}):")
             for comp in self.compartments:
-                print(f"    {comp}")
+                lines.append(f"    {comp}")
 
         if self.wall_vents:
-            print(f"  Wall Vents ({len(self.wall_vents)}):")
+            lines.append(f"  Wall Vents ({len(self.wall_vents)}):")
             for wall_vent in self.wall_vents:
-                print(f"    {wall_vent}")
+                lines.append(f"    {wall_vent}")
 
         if self.ceiling_floor_vents:
-            print(f"  Ceiling/Floor Vents ({len(self.ceiling_floor_vents)}):")
+            lines.append(f"  Ceiling/Floor Vents ({len(self.ceiling_floor_vents)}):")
             for ceiling_floor_vent in self.ceiling_floor_vents:
-                print(f"    {ceiling_floor_vent}")
+                lines.append(f"    {ceiling_floor_vent}")
 
         if self.mechanical_vents:
-            print(f"  Mechanical Vents ({len(self.mechanical_vents)}):")
+            lines.append(f"  Mechanical Vents ({len(self.mechanical_vents)}):")
             for mechanical_vent in self.mechanical_vents:
-                print(f"    {mechanical_vent}")
+                lines.append(f"    {mechanical_vent}")
 
         if self.fires:
-            print(f"  Fires ({len(self.fires)}):")
+            lines.append(f"  Fires ({len(self.fires)}):")
             for fire in self.fires:
-                print(f"    {fire}")
+                lines.append(f"    {fire}")
 
         if self.devices:
-            print(f"  Devices ({len(self.devices)}):")
+            lines.append(f"  Devices ({len(self.devices)}):")
             for device in self.devices:
-                print(f"    {device}")
+                lines.append(f"    {device}")
 
         if self.surface_connections:
-            print(f"  Surface Connections ({len(self.surface_connections)}):")
+            lines.append(f"  Surface Connections ({len(self.surface_connections)}):")
             for conn in self.surface_connections:
-                print(f"    {conn}")
+                lines.append(f"    {conn}")
+
+        return "\n".join(lines)
 
     def view_cfast_input_file(self, pretty_print: bool = True) -> str:
         """

@@ -70,7 +70,7 @@ Once your model is ready, you can inspect it and run the simulation:
 .. code-block:: python
 
     # Review your model configuration
-    model.summary()
+    print(model.summary())
 
     # Run the simulation
     results = model.run()

@@ -53,7 +53,7 @@ model
 
 print(f"Model: {model}")
 
-model.summary()
+print(model.summary())
 
 # %%
 # Step 4: Modify Parsed Model

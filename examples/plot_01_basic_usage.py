@@ -333,7 +333,7 @@ model
 # %%
 # Or use the :meth:`~pycfast.CFASTModel.summary` method to print a summary of the model configuration.
 
-model.summary()
+print(model.summary())
 
 # %%
 # You can also save to the disk the CFAST model input file with the :meth:`~pycfast.CFASTModel.save` method and view its contents with :meth:`~pycfast.CFASTModel.view_cfast_input_file` (not neccessary
