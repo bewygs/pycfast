@@ -325,11 +325,12 @@ class TestCFASTModel:
     @patch("subprocess.run")
     @patch("pandas.read_csv")
     @patch("os.path.exists")
-    @patch("builtins.print")
     def test_run_verbose_true(
-        self, mock_print, mock_exists, mock_read_csv, mock_subprocess
+        self, mock_exists, mock_read_csv, mock_subprocess, caplog
     ):
-        """Test CFAST execution with verbose=True prints stdout and stderr."""
+        """Test CFAST execution with verbose=True logs stdout and stderr at DEBUG level."""
+        import logging
+
         model = self.create_minimal_model()
 
         # Mock successful subprocess run with stdout and stderr
@@ -349,29 +350,22 @@ class TestCFASTModel:
         with tempfile.TemporaryDirectory() as temp_dir:
             model.file_name = os.path.join(temp_dir, "test.in")
 
-            results = model.run(verbose=True)
+            with caplog.at_level(logging.DEBUG, logger="pycfast"):
+                results = model.run(verbose=True)
 
-            # Verify that print was called with stdout and stderr
-            expected_calls = [
-                (
-                    (
-                        "CFAST stdout:\nCFAST simulation started\nSimulation completed successfully",
-                    ),
-                    {},
-                ),
-                (("CFAST stderr:\nWarning: some minor issue detected",), {}),
-            ]
-            mock_print.assert_has_calls(expected_calls, any_order=False)
+            assert "CFAST stdout:" in caplog.text
+            assert "CFAST stderr:" in caplog.text
             assert results is not None
 
     @patch("subprocess.run")
     @patch("pandas.read_csv")
     @patch("os.path.exists")
-    @patch("builtins.print")
     def test_run_verbose_false(
-        self, mock_print, mock_exists, mock_read_csv, mock_subprocess
+        self, mock_exists, mock_read_csv, mock_subprocess, caplog
     ):
-        """Test CFAST execution with verbose=False does not print stdout and stderr."""
+        """Test CFAST execution with verbose=False does not log stdout and stderr."""
+        import logging
+
         model = self.create_minimal_model()
 
         # Mock successful subprocess run with stdout and stderr
@@ -391,25 +385,22 @@ class TestCFASTModel:
         with tempfile.TemporaryDirectory() as temp_dir:
             model.file_name = os.path.join(temp_dir, "test.in")
 
-            results = model.run(verbose=False)
+            with caplog.at_level(logging.DEBUG, logger="pycfast"):
+                results = model.run(verbose=False)
 
-            # Verify that print was not called for CFAST output
-            stdout_calls = [
-                call
-                for call in mock_print.call_args_list
-                if "CFAST stdout:" in str(call) or "CFAST stderr:" in str(call)
-            ]
-            assert len(stdout_calls) == 0
+            assert "CFAST stdout:" not in caplog.text
+            assert "CFAST stderr:" not in caplog.text
             assert results is not None
 
     @patch("subprocess.run")
     @patch("pandas.read_csv")
     @patch("os.path.exists")
-    @patch("builtins.print")
     def test_run_verbose_default(
-        self, mock_print, mock_exists, mock_read_csv, mock_subprocess
+        self, mock_exists, mock_read_csv, mock_subprocess, caplog
     ):
-        """Test CFAST execution with default verbose=False does not print output."""
+        """Test CFAST execution with default verbose=False does not log output."""
+        import logging
+
         model = self.create_minimal_model()
 
         # Mock successful subprocess run with stdout and stderr
@@ -427,21 +418,16 @@ class TestCFASTModel:
         with tempfile.TemporaryDirectory() as temp_dir:
             model.file_name = os.path.join(temp_dir, "test.in")
 
-            results = model.run()  # No verbose argument, should default to False
+            with caplog.at_level(logging.DEBUG, logger="pycfast"):
+                results = model.run()  # No verbose argument, should default to False
 
-            # Verify that print was not called for CFAST output
-            stdout_calls = [
-                call
-                for call in mock_print.call_args_list
-                if "CFAST stdout:" in str(call) or "CFAST stderr:" in str(call)
-            ]
-            assert len(stdout_calls) == 0
+            assert "CFAST stdout:" not in caplog.text
+            assert "CFAST stderr:" not in caplog.text
             assert results is not None
 
     @patch("subprocess.run")
-    @patch("builtins.print")
-    def test_run_verbose_with_error(self, mock_print, mock_subprocess):
-        """Test CFAST execution failure with verbose=True still prints output before raising error."""
+    def test_run_verbose_with_error(self, mock_subprocess):
+        """Test CFAST execution failure with verbose=True still raises error."""
         model = self.create_minimal_model()
 
         # Create a mock result object with stdout and stderr
@@ -615,17 +601,16 @@ class TestCFASTModel:
         assert "material_properties=1" in repr_str
 
     def test_str(self):
-        """Test __str__ method."""
+        """Test __str__ method delegates to summary()."""
         model = self.create_full_model()
 
         str_repr = str(model)
-        assert "CFAST Fire Model 'full_test.in'" in str_repr
-        assert "Compartments: 2" in str_repr
-        assert "Fires: 1" in str_repr
-        assert "Vents: 1 wall, 1 ceiling/floor, 1 mechanical" in str_repr
-        assert "Devices: 1" in str_repr
-        assert "Materials: 1" in str_repr
-        assert "Total components:" in str_repr
+        assert "full_test.in" in str_repr
+        assert "Compartments (2):" in str_repr
+        assert "Fires (1):" in str_repr
+        assert "Wall Vents (1):" in str_repr
+        assert "Devices (1):" in str_repr
+        assert "Material Properties (1):" in str_repr
 
     # Note: __len__, __bool__, __eq__, __hash__, __contains__ methods not implemented in current version
     # These tests are removed to match actual implementation
@@ -706,37 +691,29 @@ class TestCFASTModel:
         with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
             model["invalid_key"] = []
 
-    def test_summary(self, capsys) -> None:
+    def test_summary(self) -> None:
         """Test summary method output."""
         model = self.create_minimal_model()
 
-        # Call summary method
-        model.summary()
-
-        # Capture printed output
-        captured = capsys.readouterr()
+        result = model.summary()
 
         # Check that key information is in the output
-        assert "Model: test.in" in captured.out
-        assert "Test Simulation" in captured.out
-        assert "Compartments (1):" in captured.out
-        assert "28.80 m³" in captured.out  # Volume calculation: 3.0 * 4.0 * 2.4
+        assert "Model: test.in" in result
+        assert "Test Simulation" in result
+        assert "Compartments (1):" in result
+        assert "28.80 m³" in result  # Volume calculation: 3.0 * 4.0 * 2.4
 
-    def test_summary_with_full_model(self, capsys) -> None:
+    def test_summary_with_full_model(self) -> None:
         """Test summary method with a full model containing all components."""
         model = self.create_full_model()
 
-        # Call summary method
-        model.summary()
-
-        # Capture printed output
-        captured = capsys.readouterr()
+        result = model.summary()
 
         # Check that all component types are shown
-        assert "Compartments (2):" in captured.out
-        assert "Fires (1):" in captured.out
-        assert "Wall Vents (1):" in captured.out
-        assert "Devices (1):" in captured.out
+        assert "Compartments (2):" in result
+        assert "Fires (1):" in result
+        assert "Wall Vents (1):" in result
+        assert "Devices (1):" in result
 
     # Tests for update methods
     def test_update_fire_params(self) -> None:
