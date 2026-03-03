@@ -16,8 +16,6 @@ import warnings
 from collections.abc import Generator
 from typing import Any, cast
 
-logger = logging.getLogger("pycfast")
-
 import numpy as np
 import pandas as pd
 
@@ -33,6 +31,7 @@ from .utils import CSV_READ_CONFIGS
 from .utils.theme import build_card
 from .wall_vents import WallVents
 
+logger = logging.getLogger("pycfast")
 
 def _resolve_cfast_exe(cfast_exe: str | None = None) -> str:
     """Resolve the CFAST executable path with a fallback chain.

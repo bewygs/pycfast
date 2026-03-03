@@ -12,8 +12,6 @@ import re
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("pycfast")
-
 import f90nml  # type: ignore
 
 from ..ceiling_floor_vents import CeilingFloorVents
@@ -26,6 +24,8 @@ from ..model import CFASTModel
 from ..simulation_environment import SimulationEnvironment
 from ..surface_connections import SurfaceConnections
 from ..wall_vents import WallVents
+
+logger = logging.getLogger("pycfast")
 
 # CFAST namelist block type constants
 BLOCK_TYPE_HEAD = "HEAD"
@@ -242,7 +242,9 @@ class CFASTParser:
                 uppercase_data = {k.upper(): v for k, v in block_data.items()}
                 block_handlers[block_name_lower](uppercase_data)
             else:
-                logger.warning("Unknown block type '%s' encountered, skipping.", block_name)
+                logger.warning(
+                    "Unknown block type '%s' encountered, skipping.", block_name
+                )
 
         # Process fire hash map after all blocks are parsed
         self._finalize_fire_parsing()

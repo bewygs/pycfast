@@ -12,8 +12,6 @@ from __future__ import annotations
 import logging
 from importlib.metadata import version
 
-logging.getLogger("pycfast").addHandler(logging.NullHandler())
-
 from . import datasets
 from .ceiling_floor_vents import CeilingFloorVents
 from .compartments import Compartments
@@ -25,6 +23,8 @@ from .model import CFASTModel
 from .simulation_environment import SimulationEnvironment
 from .surface_connections import SurfaceConnections
 from .wall_vents import WallVents
+
+logging.getLogger("pycfast").addHandler(logging.NullHandler())
 
 __all__ = [
     "datasets",
