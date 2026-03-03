@@ -7,9 +7,12 @@ back to CFASTModel objects using the various PyCFAST object.
 
 from __future__ import annotations
 
+import logging
 import re
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger("pycfast")
 
 import f90nml  # type: ignore
 
@@ -239,9 +242,7 @@ class CFASTParser:
                 uppercase_data = {k.upper(): v for k, v in block_data.items()}
                 block_handlers[block_name_lower](uppercase_data)
             else:
-                print(
-                    f"Warning: Unknown block type '{block_name}' encountered, skipping."
-                )
+                logger.warning("Unknown block type '%s' encountered, skipping.", block_name)
 
         # Process fire hash map after all blocks are parsed
         self._finalize_fire_parsing()

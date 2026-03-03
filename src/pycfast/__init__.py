@@ -9,7 +9,10 @@ compartmentalized structures.
 
 from __future__ import annotations
 
+import logging
 from importlib.metadata import version
+
+logging.getLogger("pycfast").addHandler(logging.NullHandler())
 
 from . import datasets
 from .ceiling_floor_vents import CeilingFloorVents
