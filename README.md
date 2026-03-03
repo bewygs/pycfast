@@ -2,6 +2,7 @@
 
 [![CI Status](https://github.com/bewygs/pycfast/actions/workflows/test.yml/badge.svg)](https://github.com/bewygs/pycfast/actions/workflows/test.yml)
 [![Docs](https://github.com/bewygs/pycfast/actions/workflows/docs.yml/badge.svg)](https://pycfast.org/index.html)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/bewygs/pycfast/main.svg)](https://results.pre-commit.ci/latest/github/bewygs/pycfast/main)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![MyPy Checked](https://img.shields.io/badge/mypy-checked-blue)](https://github.com/python/mypy)
