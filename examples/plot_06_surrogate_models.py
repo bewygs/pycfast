@@ -52,7 +52,7 @@ print(f"Soot yield: {model.fires[0].data_table[0][5]}")
 model
 
 # %%
-model.summary()
+print(model.summary())
 
 # %%
 # Step 3: Load Pre-computed Training Data
