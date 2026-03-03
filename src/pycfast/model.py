@@ -33,6 +33,7 @@ from .wall_vents import WallVents
 
 logger = logging.getLogger("pycfast")
 
+
 def _resolve_cfast_exe(cfast_exe: str | None = None) -> str:
     """Resolve the CFAST executable path with a fallback chain.
 
