@@ -65,6 +65,7 @@ clean:
 	rm -rf .coverage
 	rm -rf .pytest_cache/
 	rm -rf docs/build/
+	rm -rf .ruff_cache/
 	rm -rf docs/source/auto_examples/
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
