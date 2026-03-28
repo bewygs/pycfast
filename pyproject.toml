@@ -54,7 +54,7 @@ docs = [
     "sphinx-autodoc-typehints>=3.0.1",
 ]
 dev = [
-    "ruff>=0.15.1",
+    "ruff>=0.15.7",
     "pytest>=8.4.2",
     "mypy>=1.19.1",
     "pre-commit>=4.3.0",
