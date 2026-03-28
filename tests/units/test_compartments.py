@@ -98,6 +98,18 @@ class TestCompartments:
         with pytest.raises(ValueError, match="must contain exactly 2 values"):
             Compartments(id="ROOM1", leak_area_ratio=leak_area_ratio)
 
+    @pytest.mark.parametrize("param", ["width", "depth", "height"])
+    def test_negative_dimension(self, param: str):
+        """Test that initialization fails with negative dimensions."""
+        with pytest.raises(ValueError, match="must be positive"):
+            Compartments(id="ROOM1", **{param: -1.0})  # type: ignore[arg-type]
+
+    @pytest.mark.parametrize("param", ["origin_x", "origin_y", "origin_z"])
+    def test_negative_location(self, param: str):
+        """Test that initialization fails with negative origin coordinates."""
+        with pytest.raises(ValueError, match=r"must be >= 0"):
+            Compartments(id="ROOM1", width=3.0, depth=4.0, height=2.4, **{param: -1.0})  # type: ignore[arg-type]
+
     def test_to_input_string_basic(self):
         """Test basic input string generation."""
         comp = Compartments(id="ROOM1", width=3.0, depth=4.0, height=2.4)
