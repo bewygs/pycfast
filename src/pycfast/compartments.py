@@ -192,6 +192,27 @@ class Compartments:
                 "[wall_leak, floor_leak]"
             )
 
+        for dim, val in (
+            ("width", self.width),
+            ("depth", self.depth),
+            ("height", self.height),
+        ):
+            if val is not None and val <= 0:
+                raise ValueError(
+                    f"Compartment '{self.id}': {dim} must be positive, got {val}."
+                )
+
+        for coord, val in (
+            ("origin_x", self.origin_x),
+            ("origin_y", self.origin_y),
+            ("origin_z", self.origin_z),
+        ):
+            if val is not None and val < 0:
+                raise ValueError(
+                    f"Compartment '{self.id}': {coord} must be >= 0, got {val}. "
+                    "Negative positions are not allowed by CFAST."
+                )
+
     def __repr__(self) -> str:
         """Return a detailed string representation of the Compartments."""
         return (
