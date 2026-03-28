@@ -92,6 +92,46 @@ class TestCeilingFloorVents:
                 fraction=[1.0],
             )
 
+    def test_area_negative_values(self):
+        """Test that negative area values are rejected."""
+        with pytest.raises(ValueError, match="area must be non-negative"):
+            CeilingFloorVents(id="VENT1", comps_ids=["UPPER", "LOWER"], area=-1.0)
+
+    @pytest.mark.parametrize(
+        ("param", "value"),
+        [
+            pytest.param("pre_fraction", -0.5, id="pre_fraction-negative"),
+            pytest.param("post_fraction", -0.5, id="post_fraction-negative"),
+        ],
+    )
+    def test_pre_post_fraction_invalid_values(self, param, value):
+        """Test that invalid pre/post_fraction values (out of [0, 1]) are rejected."""
+        with pytest.raises(ValueError, match=r"must be in \[0, 1\]\."):
+            CeilingFloorVents(
+                id="VENT1",
+                comps_ids=["UPPER", "LOWER"],
+                area=1.0,
+                open_close_criterion="TEMPERATURE",
+                **{param: value},
+            )
+
+    def test_fraction_invalid_values(self):
+        """Test that invalid fracion value (out of [0, 1]) are rejected."""
+        with pytest.raises(ValueError, match=r"must be in \[0, 1\]\."):
+            CeilingFloorVents(
+                id="VENT1",
+                comps_ids=["UPPER", "LOWER"],
+                area=1.0,
+                fraction=[-0.5, -1.5],
+            )
+
+    def test_area_warning_for_zero_area(self):
+        """Test that a warning is raised for zero area."""
+        with pytest.warns(
+            UserWarning, match="area=0 means no flow will occur through this vent"
+        ):
+            CeilingFloorVents(id="VENT1", comps_ids=["UPPER", "LOWER"], area=0.0)
+
     def test_to_input_string_basic(self):
         """Test basic input string generation."""
         vent = CeilingFloorVents(
