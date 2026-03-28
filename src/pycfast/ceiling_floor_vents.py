@@ -7,6 +7,7 @@ flow vent connections between compartments.
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 from .utils.namelist import NamelistRecord
@@ -158,6 +159,34 @@ class CeilingFloorVents:
         if self.time is not None and self.fraction is not None:
             if len(self.time) != len(self.fraction):
                 raise ValueError("Time and fraction lists must be of equal length")
+
+        if self.area < 0:
+            raise ValueError(
+                f"CeilingFloorVents '{self.id}': area must be non-negative, got {self.area}."
+            )
+
+        for label, val in (
+            ("pre_fraction", self.pre_fraction),
+            ("post_fraction", self.post_fraction),
+        ):
+            if val is not None and not 0.0 <= val <= 1.0:
+                raise ValueError(
+                    f"CeilingFloorVents '{self.id}': {label}={val} must be in [0, 1]."
+                )
+
+        if self.fraction is not None:
+            for i, f in enumerate(self.fraction):
+                if not 0.0 <= f <= 1.0:
+                    raise ValueError(
+                        f"CeilingFloorVents '{self.id}': fraction[{i}]={f} must be in [0, 1]."
+                    )
+
+        if self.area == 0:
+            warnings.warn(
+                f"CeilingFloorVents '{self.id}': area=0 means no flow will occur through this vent.",
+                UserWarning,
+                stacklevel=2,
+            )
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the CeilingFloorVents."""
