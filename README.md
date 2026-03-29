@@ -57,7 +57,7 @@ from pycfast import CFASTModel, Compartments, SimulationEnvironment
 model = CFASTModel(
     simulation_environment=SimulationEnvironment(title="My Simulation"),
     compartments=[Compartments()],
-    # you can also add: fires, wall_vents, ceiling_floor_vents, mechanical_vents, material_properties, ...
+    # you can also add: fires, wall_vents, ceiling_floor_vents, mechanical_vents, ...
     file_name="my_simulation.in",
 )
 model.summary()
