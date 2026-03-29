@@ -8,6 +8,7 @@ chemical composition, and physical properties.
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 import numpy as np
@@ -192,6 +193,32 @@ class Fires:
         """
         if len(self.location) != 2:
             raise ValueError("Location must be a list of two floats [x, y].")
+
+        if self.heat_of_combustion <= 0:
+            raise ValueError(
+                f"heat_of_combustion must be positive, got {self.heat_of_combustion}."
+            )
+
+        for attr in ("carbon", "hydrogen", "nitrogen", "oxygen", "chlorine"):
+            val = getattr(self, attr)
+            if val < 0:
+                raise ValueError(f"{attr} must be non-negative, got {val}.")
+
+        if self.carbon == 0 and self.hydrogen == 0:
+            warnings.warn(
+                "carbon=0 and hydrogen=0: fuel contains no hydrocarbon. "
+                "CFAST requires a hydrocarbon fuel, this may cause inaccurate results.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+        if not 0.0 <= self.radiative_fraction <= 1.0:
+            warnings.warn(
+                f"radiative_fraction={self.radiative_fraction} is outside [0, 1]. "
+                "This may cause inaccurate results.",
+                UserWarning,
+                stacklevel=2,
+            )
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the Fires."""

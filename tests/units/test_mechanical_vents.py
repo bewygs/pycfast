@@ -168,6 +168,33 @@ class TestMechanicalVents:
                 cutoffs=[150.0, 100.0],  # Second cutoff less than first
             )
 
+    @pytest.mark.parametrize(
+        "area",
+        [
+            pytest.param([-0.1, 0.1], id="negative-first"),
+            pytest.param([0.1, -0.1], id="negative-second"),
+        ],
+    )
+    def test_init_negative_area(self, make_mechanical_vent, area: list[float]):
+        """Test that initialization fails with negative area values."""
+        with pytest.raises(ValueError, match="must be non-negative"):
+            make_mechanical_vent(area=area)
+
+    def test_init_invalid_filter_efficiency(self, make_mechanical_vent):
+        """Test that initialization fails with filter_efficiency outside [0, 100]."""
+        with pytest.raises(ValueError, match=r"must be in \[0, 100\]"):
+            make_mechanical_vent(filter_efficiency=150.0)
+
+    def test_init_invalid_fraction_values(self, make_mechanical_vent):
+        """Test that initialization fails with fraction values outside [0, 1]."""
+        with pytest.raises(ValueError, match=r"must be in \[0, 1\]"):
+            make_mechanical_vent(fraction=[-0.5, 1.0])
+
+    def test_init_negative_filter_time_warning(self, make_mechanical_vent):
+        """Test that a warning is raised for negative filter_time."""
+        with pytest.warns(UserWarning, match="filter_time.*is negative"):
+            make_mechanical_vent(filter_time=-1.0)
+
     def test_to_input_string_basic(self):
         """Test basic input string generation."""
         vent = MechanicalVents(
@@ -257,12 +284,12 @@ class TestMechanicalVents:
             cutoffs=[100, 150],
             offsets=[0.0, 1.0],
             filter_time=300.0,  # 5 minute time constant
-            filter_efficiency=0.95,  # 95% efficient
+            filter_efficiency=95.0,  # 95% efficient
         )
         result = vent.to_input_string()
 
         assert "FILTER_TIME = 300.0" in result
-        assert "FILTER_EFFICIENCY = 0.95" in result
+        assert "FILTER_EFFICIENCY = 95.0" in result
 
     def test_to_input_string_criterion_without_optional_params(
         self, make_mechanical_vent
@@ -398,7 +425,7 @@ class TestMechanicalVents:
             cutoffs=[100, 150],
             offsets=[0.8, 1.2],
             filter_time=10.0,
-            filter_efficiency=0.85,
+            filter_efficiency=85.0,
             open_close_criterion="TEMPERATURE",
             time=[0.0, 300.0],
             fraction=[1.0, 0.0],
@@ -414,7 +441,7 @@ class TestMechanicalVents:
         assert vent["cutoffs"] == [100, 150]
         assert vent["offsets"] == [0.8, 1.2]
         assert vent["filter_time"] == 10.0
-        assert vent["filter_efficiency"] == 0.85
+        assert vent["filter_efficiency"] == 85.0
         assert vent["open_close_criterion"] == "TEMPERATURE"
         assert vent["time"] == [0.0, 300.0]
         assert vent["fraction"] == [1.0, 0.0]

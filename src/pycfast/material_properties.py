@@ -7,6 +7,7 @@ thermophysical properties of materials used in CFAST simulations.
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 from .utils.namelist import NamelistRecord
@@ -98,6 +99,25 @@ class MaterialProperties:
         """
         if not isinstance(self.id, str) or len(self.id) > 16:
             raise TypeError("id must be a string with no more than 16 characters.")
+
+        for prop, val in (
+            ("conductivity", self.conductivity),
+            ("density", self.density),
+            ("specific_heat", self.specific_heat),
+            ("thickness", self.thickness),
+        ):
+            if val is not None and val <= 0:
+                raise ValueError(
+                    f"MaterialProperties '{self.id}': {prop} must be positive, got {val}."
+                )
+
+        if self.emissivity is not None and not 0.0 <= self.emissivity <= 1.0:
+            warnings.warn(
+                f"MaterialProperties '{self.id}': emissivity={self.emissivity} is outside [0, 1]."
+                "This may cause inaccurate results.",
+                UserWarning,
+                stacklevel=2,
+            )
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the MaterialProperties."""

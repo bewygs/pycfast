@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import subprocess
-
 import pytest
 
 from pycfast import (
@@ -198,17 +196,15 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
     file_name = tmp_path / f"{prefix}.in"
     cfast_exe = "cfast"
     extra_arguments = ["-f"]
-    model = CFASTModel(
-        simulation_environment=simulation_env,
-        material_properties=material_properties,
-        compartments=compartments,
-        wall_vents=wall_vents,
-        mechanical_vents=mechanical_vents,
-        fires=[],
-        cfast_exe=cfast_exe,
-        extra_arguments=extra_arguments,
-        file_name=str(file_name),
-    )
-
-    with pytest.raises(subprocess.CalledProcessError):
-        model.run()
+    with pytest.raises(ValueError, match="comps_ids"):
+        CFASTModel(
+            simulation_environment=simulation_env,
+            material_properties=material_properties,
+            compartments=compartments,
+            wall_vents=wall_vents,
+            mechanical_vents=mechanical_vents,
+            fires=[],
+            cfast_exe=cfast_exe,
+            extra_arguments=extra_arguments,
+            file_name=str(file_name),
+        )

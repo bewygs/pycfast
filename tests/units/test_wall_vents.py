@@ -92,8 +92,9 @@ class TestWallVents:
         assert vent.post_fraction == 0.2
 
     def test_init_default_values(self):
-        """Test initialization with default values."""
-        vent = WallVents(id="DOOR1", comps_ids=["ROOM1", "ROOM2"])
+        """Test initialization with default values (zero height/width warns about no flow)."""
+        with pytest.warns(UserWarning, match="height or width is 0"):
+            vent = WallVents(id="DOOR1", comps_ids=["ROOM1", "ROOM2"])
         assert vent.bottom == 0
         assert vent.height == 0
         assert vent.width == 0
@@ -116,6 +117,23 @@ class TestWallVents:
         """Test error when OUTSIDE is the first compartment."""
         with pytest.raises(ValueError, match="Compartment order is incorrect"):
             WallVents(id="DOOR1", comps_ids=["OUTSIDE", "ROOM1"])
+
+    @pytest.mark.parametrize("param", ["height", "width", "bottom"])
+    def test_init_negative_dimension(self, make_wall_vent, param: str):
+        """Test that initialization fails with negative height, width, or bottom."""
+        with pytest.raises(ValueError, match="must be non-negative"):
+            make_wall_vent(**{param: -1.0})  # type: ignore[arg-type]
+
+    @pytest.mark.parametrize("param", ["pre_fraction", "post_fraction"])
+    def test_init_pre_post_fraction_out_of_range(self, make_wall_vent, param: str):
+        """Test that initialization fails with pre/post_fraction outside [0, 1]."""
+        with pytest.raises(ValueError, match=r"must be in \[0, 1\]"):
+            make_wall_vent(**{param: 1.5})  # type: ignore[arg-type]
+
+    def test_init_fraction_values_out_of_range(self, make_wall_vent):
+        """Test that initialization fails with fraction values outside [0, 1]."""
+        with pytest.raises(ValueError, match=r"must be in \[0, 1\]"):
+            make_wall_vent(fraction=[-0.5, 1.0])
 
     def test_init_mismatched_time_fraction_lists(self):
         """Test that initialization fails with mismatched time and fraction lists."""

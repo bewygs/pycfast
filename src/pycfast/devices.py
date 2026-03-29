@@ -7,6 +7,7 @@ and sensors in a fire simulation, including both targets and detectors.
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 from .utils.namelist import NamelistRecord
@@ -407,49 +408,76 @@ class Devices:
         detector_types = {"HEAT_DETECTOR", "SMOKE_DETECTOR", "SPRINKLER"}
 
         if self.type in target_types:
-            if not getattr(self, "material_id", None):
+            if not self.material_id:
                 raise ValueError(f"Target type '{self.type}' requires material_id")
 
-            normal = getattr(self, "normal", None)
-            surface_orientation = getattr(self, "surface_orientation", None)
-            if (normal is None and surface_orientation is None) or (
-                normal is not None and surface_orientation is not None
+            if (self.normal is None and self.surface_orientation is None) or (
+                self.normal is not None and self.surface_orientation is not None
             ):
                 raise ValueError(
                     f"Target type '{self.type}' requires either normal or "
                     f"surface_orientation (but not both)"
                 )
-            if normal is not None and surface_orientation is None:
+            if self.normal is not None and self.surface_orientation is None:
                 if (
-                    not isinstance(normal, list)
-                    or len(normal) != 3
-                    or not all(isinstance(n, int | float) for n in normal)
+                    not isinstance(self.normal, list)
+                    or len(self.normal) != 3
+                    or not all(isinstance(n, int | float) for n in self.normal)
                 ):
                     raise ValueError(
                         "normal must be a list of 3 numbers representing [nx, ny, nz]."
                     )
 
+            if (
+                self.temperature_depth is not None
+                and not 0.0 <= self.temperature_depth <= 1.0
+            ):
+                raise ValueError(
+                    f"Target '{self.id}': temperature_depth={self.temperature_depth} must be in [0, 1]."
+                )
+
         elif self.type in detector_types:
             if self.type == "HEAT_DETECTOR":
-                if not all(
-                    [
-                        getattr(self, "setpoint", None) is not None,
-                        getattr(self, "rti", None) is not None,
-                    ]
-                ):
+                if self.setpoint is None or self.rti is None:
                     raise ValueError(
                         "HEAT_DETECTOR requires setpoint and rti parameters"
                     )
+                if self.rti <= 0:
+                    raise ValueError(
+                        f"HEAT_DETECTOR '{self.id}': rti must be positive, got {self.rti}."
+                    )
+                if self.setpoint <= 0:
+                    raise ValueError(
+                        f"HEAT_DETECTOR '{self.id}': setpoint must be positive, got {self.setpoint}."
+                    )
             elif self.type == "SPRINKLER":
-                if not all(
-                    [
-                        getattr(self, "setpoint", None) is not None,
-                        getattr(self, "rti", None) is not None,
-                        getattr(self, "spray_density", None) is not None,
-                    ]
+                if (
+                    self.setpoint is None
+                    or self.rti is None
+                    or self.spray_density is None
                 ):
                     raise ValueError(
                         "SPRINKLER requires setpoint, rti, and spray_density parameters"
+                    )
+                if self.rti <= 0:
+                    raise ValueError(
+                        f"SPRINKLER '{self.id}': rti must be positive, got {self.rti}."
+                    )
+                if self.setpoint <= 0:
+                    raise ValueError(
+                        f"SPRINKLER '{self.id}': setpoint must be positive, got {self.setpoint}."
+                    )
+                if self.spray_density <= 0:
+                    raise ValueError(
+                        f"SPRINKLER '{self.id}': spray_density must be positive, got {self.spray_density}."
+                    )
+            elif self.type == "SMOKE_DETECTOR":
+                if not 0.0 <= self.obscuration <= 100.0:
+                    warnings.warn(
+                        f"SMOKE_DETECTOR '{self.id}': obscuration={self.obscuration} is outside [0, 100] %/m. "
+                        "This may cause inaccurate results.",
+                        UserWarning,
+                        stacklevel=2,
                     )
 
         elif self.type not in target_types | detector_types:
