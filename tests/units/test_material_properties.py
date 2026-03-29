@@ -196,23 +196,33 @@ class TestMaterialProperties:
         result = mat.to_input_string()
         assert "MATERIAL = 'Material-123 (Type A)'" in result
 
-    def test_to_input_string_zero_values(self):
-        """Test input string generation with zero values."""
-        mat = MaterialProperties(
-            id="ZERO",
-            material="Zero Properties",
-            conductivity=0.0,
-            density=0.0,
-            specific_heat=0.0,
-            thickness=0.0,
-            emissivity=0.0,
-        )
-        result = mat.to_input_string()
-        assert "CONDUCTIVITY = 0.0" in result
-        assert "DENSITY = 0.0" in result
-        assert "SPECIFIC_HEAT = 0.0" in result
-        assert "THICKNESS = 0.0" in result
-        assert "EMISSIVITY = 0.0" in result
+    @pytest.mark.parametrize(
+        "prop,value",
+        [
+            pytest.param("conductivity", 0.0, id="zero-conductivity"),
+            pytest.param("conductivity", -1.0, id="negative-conductivity"),
+            pytest.param("density", 0.0, id="zero-density"),
+            pytest.param("density", -500, id="negative-density"),
+            pytest.param("specific_heat", 0.0, id="zero-specific-heat"),
+            pytest.param("specific_heat", -0.5, id="negative-specific-heat"),
+            pytest.param("thickness", 0.0, id="zero-thickness"),
+            pytest.param("thickness", -0.01, id="negative-thickness"),
+        ],
+    )
+    def test_invalid_physical_properties(self, prop, value):
+        """Test that zero or negative physical properties raise ValueError."""
+        kwargs = {"id": "ZERO", "material": "Test Material", prop: value}
+        with pytest.raises(ValueError, match=f"{prop} must be positive"):
+            MaterialProperties(**kwargs)
+
+    def test_emissivity_warning(self):
+        """Test that emissivity values outside 0-1 raise a warning."""
+        with pytest.warns(UserWarning, match="This may cause inaccurate results"):
+            MaterialProperties(
+                id="TestMat",
+                material="Test Material",
+                emissivity=1.5,
+            )
 
     def test_to_input_string_ends_correctly(self):
         """Test that input string ends with proper format."""
