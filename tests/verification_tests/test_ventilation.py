@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from pycfast import (
     CeilingFloorVents,
     CFASTModel,
@@ -16,6 +18,8 @@ from .verification import (
     compare_model_to_verification_data,
     get_verification_data_dir,
 )
+
+pytestmark = [pytest.mark.slow, pytest.mark.local]
 
 verification_data_dir = get_verification_data_dir(Path(__file__).parent, "Ventilation")
 
