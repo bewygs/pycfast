@@ -49,7 +49,22 @@ room = Compartments(
 
 ## Example Usage
 
-You can define your own CFAST model directly in python by importing the required classes.
+This minimal model runs with just a title and one compartment with default values:
+
+```python
+from pycfast import CFASTModel, Compartments, SimulationEnvironment
+
+model = CFASTModel(
+    simulation_environment=SimulationEnvironment(title="My Simulation"),
+    compartments=[Compartments()],
+    # you can also add: fires, wall_vents, ceiling_floor_vents, mechanical_vents, material_properties, ...
+    file_name="my_simulation.in",
+)
+model.summary()
+model.save()
+```
+
+For a full model with all components:
 
 ```python
 from pycfast import (
@@ -63,22 +78,14 @@ from pycfast import (
     WallVents,
 )
 
-simulation_environment = SimulationEnvironment(...)
-material_properties = [MaterialProperties(...)]
-compartments = [Compartments(...)]
-wall_vents = [WallVents(...)]
-ceiling_floor_vents = [CeilingFloorVents(...)]
-mechanical_vents = [MechanicalVents(...)]
-fires = [Fires(...)]
-
 model = CFASTModel(
-    simulation_environment=simulation_environment,
-    material_properties=material_properties,
-    compartments=compartments,
-    wall_vents=wall_vents,
-    ceiling_floor_vents=ceiling_floor_vents,
-    mechanical_vents=mechanical_vents,
-    fires=fires,
+    simulation_environment=SimulationEnvironment(...),
+    material_properties=[MaterialProperties(...)],
+    compartments=[Compartments(...)],
+    wall_vents=[WallVents(...)],
+    ceiling_floor_vents=[CeilingFloorVents(...)],
+    mechanical_vents=[MechanicalVents(...)],
+    fires=[Fires(...)],
     file_name="test_simulation.in",
 )
 ```
