@@ -111,6 +111,30 @@ class TestFires:
                 location=location,
             )
 
+    def test_init_invalide_heat_of_combustion(self, make_fire):
+        """Test that initialization fails with negative heat of combustion."""
+        with pytest.raises(ValueError, match="heat_of_combustion must be positive"):
+            make_fire(heat_of_combustion=-1000)
+
+    @pytest.mark.parametrize(
+        "param",
+        ["carbon", "chlorine", "hydrogen", "nitrogen", "oxygen"],
+    )
+    def test_init_negative_atomic_values(self, make_fire, param: str):
+        """Test that initialization fails with negative atomic values."""
+        with pytest.raises(ValueError, match="must be non-negative"):
+            make_fire(**{param: -1})  # type: ignore[arg-type]
+
+    def test_carbon_and_hydrogen_zero_warning(self, make_fire):
+        """Test that a warning is raised when both carbon and hydrogen are zero."""
+        with pytest.warns(UserWarning, match="fuel contains no hydrocarbon"):
+            make_fire(fire_id="INERT_GAS", carbon=0, hydrogen=0)
+
+    def test_invalid_radiative_fraction_warning(self, make_fire):
+        """Test that initialization fails with invalid radiative fraction."""
+        with pytest.warns(UserWarning, match="This may cause inaccurate results"):
+            make_fire(radiative_fraction=1.5)
+
     def test_init_invalid_data_table_columns(self):
         """Test that initialization fails with wrong number of columns in data table."""
         invalid_data_table = [
