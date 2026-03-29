@@ -1548,3 +1548,264 @@ class TestCFASTModel:
         assert "Compartments" in html_str  # Check section exists
         assert "Fires" in html_str
         assert "Materials" in html_str
+
+
+class TestCFASTModelValidateDependencies:
+    """Test _validate_dependencies cross-component constraints."""
+
+    @pytest.fixture()
+    def sim_env(self):
+        return SimulationEnvironment(title="Test")
+
+    @pytest.fixture()
+    def room1(self):
+        return Compartments(id="ROOM1", width=3.0, depth=4.0, height=2.4)
+
+    @pytest.fixture()
+    def room2(self):
+        return Compartments(id="ROOM2", width=3.0, depth=4.0, height=2.4)
+
+    def _make(self, sim_env, compartments, **kwargs):
+        return CFASTModel(
+            simulation_environment=sim_env,
+            compartments=compartments,
+            **kwargs,
+        )
+
+    def test_too_many_compartments(self, sim_env):
+        """Test that more than 100 compartments raises ValueError."""
+        compartments = [Compartments(id=f"ROOM{i}") for i in range(101)]
+        with pytest.raises(ValueError, match="maximum of 100 compartments"):
+            self._make(sim_env, compartments)
+
+    def test_duplicate_compartment_ids(self, sim_env):
+        """Test that duplicate compartment IDs raises ValueError."""
+        with pytest.raises(ValueError, match="Duplicate id 'ROOM1'"):
+            self._make(sim_env, [Compartments(id="ROOM1"), Compartments(id="ROOM1")])
+
+    def test_duplicate_fire_ids(self, sim_env, room1):
+        """Test that duplicate fire IDs raises ValueError."""
+        fire = Fires(id="FIRE1", comp_id="ROOM1", fire_id="PU", location=[1.0, 1.0])
+        fire_dup = Fires(id="FIRE1", comp_id="ROOM1", fire_id="PU", location=[2.0, 2.0])
+        with pytest.raises(ValueError, match="Duplicate id 'FIRE1'"):
+            self._make(sim_env, [room1], fires=[fire, fire_dup])
+
+    def test_duplicate_device_ids(self, sim_env, room1):
+        """Test that duplicate device IDs raises ValueError."""
+        dev1 = Devices.create_heat_detector("HD1", "ROOM1", [1.0, 2.0, 1.5], 70.0, 50.0)
+        dev2 = Devices.create_heat_detector("HD1", "ROOM1", [2.0, 2.0, 1.5], 70.0, 50.0)
+        with pytest.raises(ValueError, match="Duplicate id 'HD1'"):
+            self._make(sim_env, [room1], devices=[dev1, dev2])
+
+    def test_duplicate_material_ids(self, sim_env, room1):
+        """Test that duplicate material IDs raises ValueError."""
+        mat = MaterialProperties(id="GYPSUM", material="Gypsum Board")
+        mat_dup = MaterialProperties(id="GYPSUM", material="Gypsum Board")
+        with pytest.raises(ValueError, match="Duplicate id 'GYPSUM'"):
+            self._make(sim_env, [room1], material_properties=[mat, mat_dup])
+
+    @pytest.mark.parametrize(
+        ("component_type", "component"),
+        [
+            pytest.param(
+                "fires",
+                Fires(id="F1", comp_id="UNKNOWN", fire_id="PU", location=[1.0, 1.0]),
+                id="fire",
+            ),
+            pytest.param(
+                "devices",
+                Devices.create_heat_detector(
+                    "HD1", "UNKNOWN", [1.0, 2.0, 1.5], 70.0, 50.0
+                ),
+                id="device",
+            ),
+        ],
+    )
+    def test_undefined_comp_id(self, sim_env, room1, component_type, component):
+        """Test that a fire or device referencing an undefined compartment raises ValueError."""
+        with pytest.raises(ValueError, match="comp_id='UNKNOWN' does not match"):
+            self._make(sim_env, [room1], **{component_type: [component]})
+
+    def test_wall_vent_undefined_first_comp(self, sim_env, room1):
+        """Test that WallVents with undefined first compartment raises ValueError."""
+        vent = WallVents(
+            id="V1",
+            comps_ids=["UNKNOWN", "ROOM1"],
+            bottom=0,
+            height=2,
+            width=1,
+            face="RIGHT",
+            offset=0,
+        )
+        with pytest.raises(
+            ValueError, match=r"comps_ids\[0\]='UNKNOWN' does not match"
+        ):
+            self._make(sim_env, [room1], wall_vents=[vent])
+
+    def test_wall_vent_undefined_second_comp(self, sim_env, room1):
+        """Test that WallVents with undefined second compartment raises ValueError."""
+        vent = WallVents(
+            id="V1",
+            comps_ids=["ROOM1", "UNKNOWN"],
+            bottom=0,
+            height=2,
+            width=1,
+            face="RIGHT",
+            offset=0,
+        )
+        with pytest.raises(
+            ValueError, match=r"comps_ids\[1\]='UNKNOWN' does not match"
+        ):
+            self._make(sim_env, [room1], wall_vents=[vent])
+
+    def test_wall_vent_outside_second_comp_is_valid(self, sim_env, room1):
+        """Test that OUTSIDE as second compartment in WallVents is accepted."""
+        vent = WallVents(
+            id="V1",
+            comps_ids=["ROOM1", "OUTSIDE"],
+            bottom=0,
+            height=2,
+            width=1,
+            face="RIGHT",
+            offset=0,
+        )
+        model = self._make(sim_env, [room1], wall_vents=[vent])
+        assert len(model.wall_vents) == 1
+
+    @pytest.mark.parametrize(
+        ("vent_type", "vent"),
+        [
+            pytest.param(
+                "ceiling_floor_vents",
+                CeilingFloorVents(id="V1", comps_ids=["ROOM1", "UNKNOWN"], area=1.0),
+                id="ceiling-floor-vent",
+            ),
+            pytest.param(
+                "mechanical_vents",
+                MechanicalVents(
+                    id="V1", comps_ids=["ROOM1", "UNKNOWN"], offsets=[0.0, 0.0]
+                ),
+                id="mechanical-vent",
+            ),
+        ],
+    )
+    def test_vent_undefined_comp_ids(self, sim_env, room1, vent_type, vent):
+        """Test that ceiling/floor and mechanical vents with undefined compartment raise ValueError."""
+        with pytest.raises(ValueError, match="does not match any defined compartment"):
+            self._make(sim_env, [room1], **{vent_type: [vent]})
+
+    def test_surface_connection_undefined_comp_id(self, sim_env, room1):
+        """Test that SurfaceConnections with undefined comp_id raises ValueError."""
+        sc = SurfaceConnections.wall_connection("UNKNOWN", "ROOM1", fraction=0.5)
+        with pytest.raises(ValueError, match="comp_id='UNKNOWN' does not match"):
+            self._make(sim_env, [room1], surface_connections=[sc])
+
+    def test_surface_connection_undefined_comp_ids(self, sim_env, room1):
+        """Test that SurfaceConnections with undefined comp_ids raises ValueError."""
+        sc = SurfaceConnections.wall_connection("ROOM1", "UNKNOWN", fraction=0.5)
+        with pytest.raises(ValueError, match="comp_ids='UNKNOWN' does not match"):
+            self._make(sim_env, [room1], surface_connections=[sc])
+
+    def test_device_undefined_material_id(self, sim_env, room1):
+        """Test that a device referencing an undefined material raises ValueError."""
+        device = Devices(
+            id="T1",
+            comp_id="ROOM1",
+            location=[1.0, 2.0, 1.5],
+            type="PLATE",
+            material_id="UNKNOWN",
+            surface_orientation="CEILING",
+        )
+        with pytest.raises(ValueError, match="material_id='UNKNOWN' does not match"):
+            self._make(sim_env, [room1], devices=[device])
+
+    @pytest.mark.parametrize(
+        "mat_attr", ["ceiling_mat_id", "wall_mat_id", "floor_mat_id"]
+    )
+    def test_compartment_undefined_material_id(self, sim_env, mat_attr):
+        """Test that a compartment referencing an undefined material raises ValueError."""
+        comp = Compartments(id="ROOM1", **{mat_attr: "UNKNOWN"})  # type: ignore
+        with pytest.raises(ValueError, match=f"{mat_attr}='UNKNOWN' does not match"):
+            self._make(sim_env, [comp])
+
+    def test_fire_undefined_device_id(self, sim_env, room1):
+        """Test that a fire referencing an undefined device raises ValueError."""
+        fire = Fires(
+            id="F1",
+            comp_id="ROOM1",
+            fire_id="PU",
+            location=[1.0, 1.0],
+            device_id="UNKNOWN",
+        )
+        with pytest.raises(ValueError, match="device_id='UNKNOWN' does not match"):
+            self._make(sim_env, [room1], fires=[fire])
+
+    @pytest.mark.parametrize(
+        ("vent_type", "vent"),
+        [
+            pytest.param(
+                "wall_vents",
+                WallVents(
+                    id="V1",
+                    comps_ids=["ROOM1", "ROOM2"],
+                    bottom=0,
+                    height=2,
+                    width=1,
+                    face="RIGHT",
+                    offset=0,
+                    open_close_criterion="TEMPERATURE",
+                    device_id="UNKNOWN",
+                ),
+                id="wall-vent",
+            ),
+            pytest.param(
+                "ceiling_floor_vents",
+                CeilingFloorVents(
+                    id="V1",
+                    comps_ids=["ROOM1", "ROOM2"],
+                    area=1.0,
+                    open_close_criterion="TEMPERATURE",
+                    device_id="UNKNOWN",
+                ),
+                id="ceiling-floor-vent",
+            ),
+            pytest.param(
+                "mechanical_vents",
+                MechanicalVents(
+                    id="V1",
+                    comps_ids=["ROOM1", "ROOM2"],
+                    offsets=[0.0, 0.0],
+                    open_close_criterion="TEMPERATURE",
+                    device_id="UNKNOWN",
+                ),
+                id="mechanical-vent",
+            ),
+        ],
+    )
+    def test_vent_undefined_device_id(self, sim_env, room1, room2, vent_type, vent):
+        """Test that a vent referencing an undefined device raises ValueError."""
+        with pytest.raises(ValueError, match="device_id='UNKNOWN' does not match"):
+            self._make(sim_env, [room1, room2], **{vent_type: [vent]})
+
+    def test_fire_location_outside_compartment_warning(self, sim_env, room1):
+        """Test that a fire outside compartment bounds raises UserWarning."""
+        fire = Fires(
+            id="F1",
+            comp_id="ROOM1",
+            fire_id="PU",
+            location=[10.0, 10.0],  # ROOM1 is 3x4
+        )
+        with pytest.warns(UserWarning, match="location=.* is outside compartment"):
+            self._make(sim_env, [room1], fires=[fire])
+
+    def test_device_location_outside_compartment_warning(self, sim_env, room1):
+        """Test that a device outside compartment bounds raises UserWarning."""
+        device = Devices.create_heat_detector(
+            "HD1",
+            "ROOM1",
+            [10.0, 10.0, 10.0],
+            70.0,
+            50.0,  # ROOM1 is 3x4x2.4
+        )
+        with pytest.warns(UserWarning, match="location=.* is outside compartment"):
+            self._make(sim_env, [room1], devices=[device])
