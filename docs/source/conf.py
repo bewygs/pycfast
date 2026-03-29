@@ -119,5 +119,6 @@ sphinx_gallery_conf = {
     "examples_dirs": "../../examples",
     "gallery_dirs": "auto_examples",
     # "subsection_order": "alphabetical",
-    "within_subsection_order": "FileNameSortKey"
+    "within_subsection_order": "FileNameSortKey",
+    'download_all_examples': False,
 }
