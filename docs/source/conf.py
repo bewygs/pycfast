@@ -73,6 +73,7 @@ add_function_parentheses = False
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 html_title = "PyCFAST"
 html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 templates_path = ["_templates"]
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
