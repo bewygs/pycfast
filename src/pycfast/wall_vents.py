@@ -7,6 +7,7 @@ that connect compartments horizontally, such as doors, windows, and openings.
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 from .utils.namelist import NamelistRecord
@@ -156,6 +157,42 @@ class WallVents:
         if self.time is not None and self.fraction is not None:
             if len(self.time) != len(self.fraction):
                 raise ValueError("Time and fraction lists must be of equal length")
+
+        for dim, val in (
+            ("height", self.height),
+            ("width", self.width),
+            ("bottom", self.bottom),
+        ):
+            if val is not None and val < 0:
+                raise ValueError(
+                    f"WallVents '{self.id}': {dim} must be non-negative, got {val}."
+                )
+
+        for label, val in (
+            ("pre_fraction", self.pre_fraction),
+            ("post_fraction", self.post_fraction),
+        ):
+            if val is not None and not 0.0 <= val <= 1.0:
+                raise ValueError(
+                    f"WallVents '{self.id}': {label}={val} must be in [0, 1]."
+                )
+
+        if self.fraction is not None:
+            for i, f in enumerate(self.fraction):
+                if not 0.0 <= f <= 1.0:
+                    raise ValueError(
+                        f"WallVents '{self.id}': fraction[{i}]={f} must be in [0, 1]."
+                    )
+
+        if (self.height is not None and self.height == 0) or (
+            self.width is not None and self.width == 0
+        ):
+            warnings.warn(
+                f"WallVents '{self.id}': height or width is 0, meaning no flow will occur "
+                "through this vent.",
+                UserWarning,
+                stacklevel=2,
+            )
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the WallVents."""
