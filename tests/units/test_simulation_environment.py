@@ -240,6 +240,30 @@ class TestSimulationEnvironment:
 
         assert "VERSION = 7700" in result
 
+    def test_init_time_simulation_zero_or_negative(self):
+        """Test that initialization fails with zero or negative time_simulation."""
+        with pytest.raises(ValueError, match="time_simulation must be positive"):
+            SimulationEnvironment(title="Test", time_simulation=0)
+
+    def test_init_time_simulation_exceeds_max_warning(self):
+        """Test that a warning is raised when time_simulation exceeds 86400 s."""
+        with pytest.warns(UserWarning, match="exceeds 86400 s"):
+            SimulationEnvironment(title="Test", time_simulation=90000)
+
+    def test_init_invalid_relative_humidity_warning(self):
+        """Test that a warning is raised for relative_humidity outside [0, 100]."""
+        with pytest.warns(UserWarning, match="relative_humidity.*is outside"):
+            SimulationEnvironment(title="Test", relative_humidity=110)
+
+    @pytest.mark.parametrize(
+        "param",
+        ["interior_temperature", "exterior_temperature"],
+    )
+    def test_init_temperature_below_absolute_zero_warning(self, param: str):
+        """Test that a warning is raised for temperatures below absolute zero."""
+        with pytest.warns(UserWarning, match="below absolute zero"):
+            SimulationEnvironment(title="Test", **{param: -300.0})  # type: ignore[arg-type]
+
     def test_long_title_handling(self):
         """Test handling of titles approaching 50 character limit."""
         # Test 50 character title (at limit)
@@ -247,9 +271,10 @@ class TestSimulationEnvironment:
         sim_env = SimulationEnvironment(title=long_title, time_simulation=300)
         assert sim_env.title == long_title
 
-        # Test longer than 50 characters (should still work, but may be truncated by CFAST)
+        # Test longer than 50 characters issues a warning (CFAST truncates to 50)
         very_long_title = "A" * 100
-        sim_env = SimulationEnvironment(title=very_long_title, time_simulation=300)
+        with pytest.warns(UserWarning, match="CFAST truncates titles to 50 characters"):
+            sim_env = SimulationEnvironment(title=very_long_title, time_simulation=300)
         assert sim_env.title == very_long_title
 
     def test_parameter_types(self):
