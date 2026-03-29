@@ -31,12 +31,11 @@ class TestSurfaceConnections:
             conn_type="FLOOR",
             comp_id="UPPER",
             comp_ids="LOWER",
-            fraction=0.0,
         )
         assert conn.conn_type == "FLOOR"
         assert conn.comp_id == "UPPER"
         assert conn.comp_ids == "LOWER"
-        assert conn.fraction == 0.0
+        assert conn.fraction is None
 
     def test_to_input_string_wall_connection(self):
         """Test input string generation for wall connection."""
@@ -61,7 +60,6 @@ class TestSurfaceConnections:
             conn_type="FLOOR",
             comp_id="UPPER_ROOM",
             comp_ids="LOWER_ROOM",
-            fraction=0.0,  # Fraction not used for floor connections
         )
         result = conn.to_input_string()
         assert result.startswith("&CONN")
@@ -117,14 +115,40 @@ class TestSurfaceConnections:
         assert "COMP_ID = 'COMP_A'" in result
         assert "COMP_IDS = 'COMP_B'" in result
 
+    def test_init_invalid_conn_type(self):
+        """Test that initialization fails with an invalid conn_type."""
+        with pytest.raises(ValueError, match="must be one of"):
+            SurfaceConnections(conn_type="CEILING", comp_id="ROOM1", comp_ids="ROOM2")
+
+    def test_init_wall_missing_fraction(self):
+        """Test that WALL connection fails without a fraction value."""
+        with pytest.raises(ValueError, match="WALL connection requires a fraction"):
+            SurfaceConnections(conn_type="WALL", comp_id="ROOM1", comp_ids="ROOM2")
+
+    @pytest.mark.parametrize("fraction", [-0.1, 1.1])
+    def test_init_wall_fraction_out_of_range(self, fraction: float):
+        """Test that WALL connection fails with fraction outside [0, 1]."""
+        with pytest.raises(ValueError, match=r"must be in \[0, 1\]"):
+            SurfaceConnections(
+                conn_type="WALL", comp_id="ROOM1", comp_ids="ROOM2", fraction=fraction
+            )
+
+    def test_init_floor_with_fraction_warning(self):
+        """Test that a warning is raised when fraction is provided for a FLOOR connection."""
+        with pytest.warns(UserWarning, match="fraction should be None for FLOOR"):
+            SurfaceConnections(
+                conn_type="FLOOR", comp_id="ROOM1", comp_ids="ROOM2", fraction=0.5
+            )
+
     def test_to_input_string_floor_no_fraction(self):
-        """Test that floor connections don't include fraction in output."""
-        conn = SurfaceConnections(
-            conn_type="FLOOR",
-            comp_id="TOP",
-            comp_ids="BOTTOM",
-            fraction=0.5,  # Should be ignored for floor connections
-        )
+        """Test that floor connections warn when fraction is provided and don't include it in output."""
+        with pytest.warns(UserWarning, match="fraction should be None for FLOOR"):
+            conn = SurfaceConnections(
+                conn_type="FLOOR",
+                comp_id="TOP",
+                comp_ids="BOTTOM",
+                fraction=0.5,  # Should be ignored for floor connections
+            )
         result = conn.to_input_string()
         assert "F =" not in result
         assert "/\n" in result
