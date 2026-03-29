@@ -7,6 +7,7 @@ conditions and simulation time for the CFAST input file.
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 from .utils.namelist import NamelistRecord
@@ -32,8 +33,9 @@ class SimulationEnvironment:
         symbols and may be up to 50 characters. All output files will be tagged with
         this character string.
     time_simulation : int, optional
-        The length of time over which the simulation takes place. The maximum value
-        for this input is 86400 s (1 day). Default units: s, default value: 900 s.
+        The length of time over which the simulation takes place. Values above
+        86400 s (1 day) are allowed but will trigger a warning, as this exceeds
+        the documented CFAST maximum. Default units: s, default value: 900 s.
     print : int, optional
         The time interval between each printing of the output data. If equal to zero,
         no output values will appear. Default units: s, default value: 60 s.
@@ -131,6 +133,59 @@ class SimulationEnvironment:
         self.max_time_step = max_time_step
         self.lower_oxygen_limit = lower_oxygen_limit
         self.extra_custom = extra_custom
+
+        self._validate()
+
+    def _validate(self) -> None:
+        """Validate the current state of the simulation environment attributes.
+
+        Raises
+        ------
+        ValueError
+            If any attribute violates the constraints.
+        """
+        if self.time_simulation is not None and self.time_simulation <= 0:
+            raise ValueError(
+                f"time_simulation must be positive, got {self.time_simulation}."
+            )
+
+        if self.time_simulation is not None and self.time_simulation > 86400:
+            warnings.warn(
+                f"time_simulation={self.time_simulation} s exceeds 86400 s (1 day), "
+                "which is the documented CFAST maximum. The simulation may fail.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+        if len(self.title) > 50:
+            warnings.warn(
+                f"title has {len(self.title)} characters; CFAST truncates titles to 50 characters.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+        if (
+            self.relative_humidity is not None
+            and not 0.0 <= self.relative_humidity <= 100.0
+        ):
+            warnings.warn(
+                f"relative_humidity={self.relative_humidity} is outside [0, 100] %. "
+                "This may cause inaccurate results.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+        for label, temp in (
+            ("interior_temperature", self.interior_temperature),
+            ("exterior_temperature", self.exterior_temperature),
+        ):
+            if temp is not None and temp < -273.15:
+                warnings.warn(
+                    f"{label}={temp} °C is below absolute zero (-273.15 °C). "
+                    "This may cause CFAST to crash or produce invalid results.",
+                    UserWarning,
+                    stacklevel=2,
+                )
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the SimulationEnvironment."""
