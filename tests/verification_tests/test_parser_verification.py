@@ -42,6 +42,8 @@ def get_test_parameters():
     return test_params
 
 
+@pytest.mark.slow
+@pytest.mark.local
 @pytest.mark.parametrize("input_file,parent_dir,file_prefix", get_test_parameters())
 def test_parser_verification(input_file, parent_dir, file_prefix, tmp_path):
     """

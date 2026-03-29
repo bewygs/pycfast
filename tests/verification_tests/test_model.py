@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from pycfast import (
     CeilingFloorVents,
     CFASTModel,
@@ -12,6 +14,8 @@ from pycfast import (
     SurfaceConnections,
     WallVents,
 )
+
+pytestmark = [pytest.mark.slow, pytest.mark.local]
 
 
 def test_run_returns_results(tmp_path):
