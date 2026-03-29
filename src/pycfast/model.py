@@ -1792,14 +1792,185 @@ class CFASTModel:
 
     def _validate_dependencies(self) -> None:
         """
-        Validate that all required components are present and correctly configured.
+        Validate all component dependencies and CFAST compatibility constraints.
 
-        This method checks that the model has (e.g. at least one compartment defined),
-        and that all components are compatible with CFAST requirements.
+        - Duplicate ``id`` within any component list (compartments, fires, devices,
+          wall/ceiling-floor/mechanical vents, material properties).
+        - More than 100 compartments (hard CFAST limit).
+        - ``comp_id`` of a fire, device, vent, or surface connection referencing an
+          undefined compartment (``"OUTSIDE"`` is accepted as second compartment for
+          wall vents).
+        - ``material_id`` of a device or compartment surface (ceiling/wall/floor)
+          referencing an undefined material.
+        - ``device_id`` of a fire or vent referencing an undefined device.
+        - Fire or device ``location`` outside the bounds of its compartment.
 
         Raises
         ------
-        ValueError:
-            If any required components are missing or invalid
+        ValueError
+            If any cross-component constraint is violated (would crash CFAST).
+
+        Warns
+        -----
+        UserWarning
+            If a fire or device position is outside its compartment's dimensions
+            (suspicious but not always wrong).
         """
-        pass
+        if len(self.compartments) > 100:
+            raise ValueError(
+                f"CFAST supports a maximum of 100 compartments, got {len(self.compartments)}."
+            )
+
+        # Duplicate IDs within each component type
+        check_lists: list[tuple[str, list[Any]]] = [
+            ("compartments", self.compartments),
+            ("fires", self.fires),
+            ("devices", self.devices),
+            ("wall_vents", self.wall_vents),
+            ("ceiling_floor_vents", self.ceiling_floor_vents),
+            ("mechanical_vents", self.mechanical_vents),
+            ("material_properties", self.material_properties),
+        ]
+        for label, items in check_lists:
+            seen: set[str] = set()
+            for item in items:
+                if item.id in seen:
+                    raise ValueError(f"Duplicate id '{item.id}' found in {label}.")
+                seen.add(item.id)
+
+        comp_ids = {c.id for c in self.compartments}
+        material_ids = {m.id for m in self.material_properties}
+        device_ids = {d.id for d in self.devices}
+
+        # comp_id of Fire/Device must exist in compartments
+        for fire in self.fires:
+            if fire.comp_id not in comp_ids:
+                raise ValueError(
+                    f"Fire '{fire.id}': comp_id='{fire.comp_id}' does not match any defined compartment."
+                )
+
+        for device in self.devices:
+            if device.comp_id not in comp_ids:
+                raise ValueError(
+                    f"Device '{device.id}': comp_id='{device.comp_id}' does not match any defined compartment."
+                )
+
+        # comps_ids of vents must exist in compartments ("OUTSIDE" is valid as second comp for WallVents)
+        for vent in self.wall_vents:
+            if vent.comps_ids[0] not in comp_ids:
+                raise ValueError(
+                    f"WallVents '{vent.id}': comps_ids[0]='{vent.comps_ids[0]}' does not match any defined compartment."
+                )
+            if vent.comps_ids[1] != "OUTSIDE" and vent.comps_ids[1] not in comp_ids:
+                raise ValueError(
+                    f"WallVents '{vent.id}': comps_ids[1]='{vent.comps_ids[1]}' does not match any defined compartment."
+                )
+
+        for cf_vent in self.ceiling_floor_vents:
+            for i, cid in enumerate(cf_vent.comps_ids):
+                if cid != "OUTSIDE" and cid not in comp_ids:
+                    raise ValueError(
+                        f"CeilingFloorVents '{cf_vent.id}': comps_ids[{i}]='{cid}' does not match any defined compartment."
+                    )
+
+        for m_vent in self.mechanical_vents:
+            for i, cid in enumerate(m_vent.comps_ids):
+                if cid != "OUTSIDE" and cid not in comp_ids:
+                    raise ValueError(
+                        f"MechanicalVents '{m_vent.id}': comps_ids[{i}]='{cid}' does not match any defined compartment."
+                    )
+
+        # comp_id of SurfaceConnections must exist in compartments
+        for sc in self.surface_connections:
+            if sc.comp_id not in comp_ids:
+                raise ValueError(
+                    f"SurfaceConnections: comp_id='{sc.comp_id}' does not match any defined compartment."
+                )
+            if sc.comp_ids not in comp_ids:
+                raise ValueError(
+                    f"SurfaceConnections: comp_ids='{sc.comp_ids}' does not match any defined compartment."
+                )
+
+        # material_id of Device/Compartment must exist in material_properties
+        for device in self.devices:
+            mid = getattr(device, "material_id", None)
+            if mid is not None and mid not in material_ids:
+                raise ValueError(
+                    f"Device '{device.id}': material_id='{mid}' does not match any defined material."
+                )
+
+        for comp in self.compartments:
+            for attr in ("ceiling_mat_id", "wall_mat_id", "floor_mat_id"):
+                mid = getattr(comp, attr, None)
+                if mid is not None and mid != "OFF" and mid not in material_ids:
+                    raise ValueError(
+                        f"Compartment '{comp.id}': {attr}='{mid}' does not match any defined material."
+                    )
+
+        # device_id referenced in Fire or Vent must exist in devices
+        for fire in self.fires:
+            if fire.device_id is not None and fire.device_id not in device_ids:
+                raise ValueError(
+                    f"Fire '{fire.id}': device_id='{fire.device_id}' does not match any defined device."
+                )
+
+        for vent in self.wall_vents:
+            if vent.device_id is not None and vent.device_id not in device_ids:
+                raise ValueError(
+                    f"WallVents '{vent.id}': device_id='{vent.device_id}' does not match any defined device."
+                )
+
+        for cf_vent in self.ceiling_floor_vents:
+            if cf_vent.device_id is not None and cf_vent.device_id not in device_ids:
+                raise ValueError(
+                    f"CeilingFloorVents '{cf_vent.id}': device_id='{cf_vent.device_id}' does not match any defined device."
+                )
+
+        for m_vent in self.mechanical_vents:
+            if m_vent.device_id is not None and m_vent.device_id not in device_ids:
+                raise ValueError(
+                    f"MechanicalVents '{m_vent.id}': device_id='{m_vent.device_id}' does not match any defined device."
+                )
+
+        comp_map = {c.id: c for c in self.compartments}
+
+        # Fire position outside compartment dimensions
+        for fire in self.fires:
+            fire_comp = comp_map.get(fire.comp_id)
+            if (
+                fire_comp is not None
+                and fire_comp.width is not None
+                and fire_comp.depth is not None
+                and len(fire.location) == 2
+            ):
+                x, y = fire.location
+                if not (0 <= x <= fire_comp.width) or not (0 <= y <= fire_comp.depth):
+                    warnings.warn(
+                        f"Fire '{fire.id}': location={fire.location} is outside compartment "
+                        f"'{fire_comp.id}' dimensions ({fire_comp.width} x {fire_comp.depth}).",
+                        UserWarning,
+                        stacklevel=2,
+                    )
+
+        # Device position outside compartment dimensions
+        for device in self.devices:
+            dev_comp = comp_map.get(device.comp_id)
+            if (
+                dev_comp is not None
+                and dev_comp.width is not None
+                and dev_comp.depth is not None
+                and dev_comp.height is not None
+                and len(device.location) == 3
+            ):
+                x, y, z = device.location
+                if (
+                    not (0 <= x <= dev_comp.width)
+                    or not (0 <= y <= dev_comp.depth)
+                    or not (0 <= z <= dev_comp.height)
+                ):
+                    warnings.warn(
+                        f"Device '{device.id}': location={device.location} is outside compartment "
+                        f"'{dev_comp.id}' dimensions ({dev_comp.width} x {dev_comp.depth} x {dev_comp.height}).",
+                        UserWarning,
+                        stacklevel=2,
+                    )
