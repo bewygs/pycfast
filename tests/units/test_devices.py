@@ -197,6 +197,89 @@ class TestDevices:
                 temperature_depth=0.0005,
             )
 
+    def test_init_invalid_temperature_depth(self):
+        """Test that target initialization fails with invalid temperature_depth."""
+        with pytest.raises(ValueError, match=r"must be in \[0, 1\]\."):
+            Devices(
+                id="TARGET1",
+                comp_id="ROOM1",
+                location=[1.0, 2.0, 1.5],
+                type="PLATE",
+                material_id="STEEL",
+                normal=[0, 0, -1],
+                temperature_depth=1.5,  # Invalid value
+            )
+
+    @pytest.mark.parametrize(
+        ("device_type", "extra_kwargs"),
+        [
+            pytest.param("HEAT_DETECTOR", {"setpoint": 70.0}, id="heat-detector"),
+            pytest.param(
+                "SPRINKLER", {"setpoint": 70.0, "spray_density": 0.003}, id="sprinkler"
+            ),
+        ],
+    )
+    def test_init_rti_zero_or_negative(self, device_type: str, extra_kwargs: dict):
+        """Test that detector/sprinkler initialization fails with zero or negative RTI."""
+        with pytest.raises(ValueError, match="rti must be positive"):
+            Devices(
+                id="D1",
+                comp_id="ROOM1",
+                location=[1.5, 1.5, 2.3],
+                type=device_type,
+                material_id="",
+                rti=0.0,
+                **extra_kwargs,
+            )
+
+    @pytest.mark.parametrize(
+        ("device_type", "extra_kwargs"),
+        [
+            pytest.param("HEAT_DETECTOR", {"rti": 1.0}, id="heat-detector"),
+            pytest.param(
+                "SPRINKLER", {"rti": 1.0, "spray_density": 0.003}, id="sprinkler"
+            ),
+        ],
+    )
+    def test_init_setpoint_zero_or_negative(self, device_type: str, extra_kwargs: dict):
+        """Test that detector/sprinkler initialization fails with zero or negative setpoint."""
+        with pytest.raises(ValueError, match="setpoint must be positive"):
+            Devices(
+                id="D1",
+                comp_id="ROOM1",
+                location=[1.5, 1.5, 2.3],
+                type=device_type,
+                material_id="",
+                setpoint=0.0,
+                **extra_kwargs,
+            )
+
+    def test_init_sprinkler_spray_density_zero_or_negative(self):
+        """Test that sprinkler initialization fails with zero or negative spray density."""
+        with pytest.raises(ValueError, match="spray_density must be positive"):
+            Devices(
+                id="HD1",
+                comp_id="ROOM1",
+                location=[1.5, 1.5, 2.3],
+                type="SPRINKLER",
+                material_id="",
+                setpoint=70.0,
+                rti=1.0,
+                spray_density=0.0,  # Invalid spray density
+            )
+
+    def test_init_smoke_detector_invalid_obscuration_value(self):
+        """Test that smoke detector initialization fails with invalid obscuration value (out of [0, 100])."""
+        with pytest.warns(UserWarning, match="This may cause inaccurate results"):
+            Devices(
+                id="SD1",
+                comp_id="ROOM1",
+                location=[2.0, 2.0, 2.3],
+                type="SMOKE_DETECTOR",
+                material_id="",
+                obscuration=-5.0,  # Invalid obscuration
+            )
+
     def test_init_heat_detector_missing_parameters(self):
         """Test that heat detector initialization fails without required parameters."""
         with pytest.raises(ValueError, match="HEAT_DETECTOR requires setpoint and rti"):
