@@ -8,6 +8,7 @@ or to/from the exterior.
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 from .utils.namelist import NamelistRecord
@@ -80,7 +81,7 @@ class MechanicalVents:
     filter_efficiency : float
         Flow through mechanical vents may include filtering that removes a
         user-specified portion of soot and trace species mass from the flow through
-        the vent. Specified as a fraction (0-1). Default value: 0 (no filtering).
+        the vent. Specified as a percentage (0-100). Default value: 0 (no filtering).
     open_close_criterion : str, optional
         The opening/closing can be controlled by a user-specified time, or by a
         user-specified target's surface temperature or incident heat flux.
@@ -124,7 +125,7 @@ class MechanicalVents:
     ...     cutoffs=[200, 300],           # Standard pressure cutoffs
     ...     offsets=[0, 1.0],             # Positions along walls
     ...     filter_time=0,                # Start filtering immediately
-    ...     filter_efficiency=0.0         # No filtration
+    ...     filter_efficiency=0.0,        # No filtration (0%)
     ... )
 
     Create an exhaust fan with time-based control:
@@ -227,6 +228,36 @@ class MechanicalVents:
         if self.time is not None and self.fraction is not None:
             if len(self.time) != len(self.fraction):
                 raise ValueError("Time and fraction lists must be of equal length")
+
+        for i, a in enumerate(self.area):
+            if a < 0:
+                raise ValueError(
+                    f"MechanicalVents '{self.id}': area[{i}]={a} must be non-negative."
+                )
+
+        if (
+            self.filter_efficiency is not None
+            and not 0.0 <= self.filter_efficiency <= 100.0
+        ):
+            raise ValueError(
+                f"MechanicalVents '{self.id}': filter_efficiency={self.filter_efficiency} "
+                "must be in [0, 100] (percentage)."
+            )
+
+        if self.fraction is not None:
+            for i, f in enumerate(self.fraction):
+                if not 0.0 <= f <= 1.0:
+                    raise ValueError(
+                        f"MechanicalVents '{self.id}': fraction[{i}]={f} must be in [0, 1]."
+                    )
+
+        if self.filter_time is not None and self.filter_time < 0:
+            warnings.warn(
+                f"MechanicalVents '{self.id}': filter_time={self.filter_time} is negative. "
+                "This may cause unexpected behaviour.",
+                UserWarning,
+                stacklevel=2,
+            )
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the MechanicalVents."""
