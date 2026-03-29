@@ -134,6 +134,39 @@ class SurfaceConnections:
         self.comp_ids = comp_ids
         self.fraction = fraction
 
+        self._validate()
+
+    def _validate(self) -> None:
+        """Validate the current state of the surface connection attributes.
+
+        Raises
+        ------
+        ValueError
+            If any attribute violates the constraints.
+        """
+        valid_types = {"WALL", "FLOOR"}
+        if self.conn_type not in valid_types:
+            raise ValueError(
+                f"SurfaceConnections: conn_type='{self.conn_type}' must be one of {valid_types}."
+            )
+
+        if self.conn_type == "WALL":
+            if self.fraction is None:
+                raise ValueError(
+                    "SurfaceConnections: WALL connection requires a fraction value."
+                )
+            if not 0.0 <= self.fraction <= 1.0:
+                raise ValueError(
+                    f"SurfaceConnections: fraction={self.fraction} must be in [0, 1] for WALL connections."
+                )
+
+        if self.conn_type == "FLOOR" and self.fraction is not None:
+            warnings.warn(
+                "SurfaceConnections: fraction should be None for FLOOR connections.",
+                UserWarning,
+                stacklevel=2,
+            )
+
     def __repr__(self) -> str:
         """Return a detailed string representation of the SurfaceConnections."""
         return (
@@ -230,12 +263,6 @@ class SurfaceConnections:
 
         if self.conn_type == "WALL":
             rec.add_field("F", self.fraction)
-        elif self.conn_type == "FLOOR" and self.fraction is not None:
-            warnings.warn(
-                "Fraction should be None for FLOOR connections.",
-                UserWarning,
-                stacklevel=2,
-            )
 
         return rec.build()
 
