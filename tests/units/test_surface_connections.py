@@ -238,12 +238,14 @@ class TestSurfaceConnections:
         conn["fraction"] = 0.9
         assert conn.fraction == 0.9
 
-    def test_setitem_none_fraction(self) -> None:
-        """Test __setitem__ method with None fraction."""
+    def test_setitem_invalid_does_not_mutate_state(self) -> None:
+        """Test that a failed __setitem__ rolls back to the previous value."""
         conn = SurfaceConnections("WALL", "A", "B", 0.5)
 
-        conn["fraction"] = None
-        assert conn.fraction is None
+        with pytest.raises(ValueError):
+            conn["conn_type"] = "INNVALID_CONN_TYPE"
+
+        assert conn.conn_type == "WALL"
 
     def test_setitem_invalid_key(self) -> None:
         """Test __setitem__ method with invalid key."""

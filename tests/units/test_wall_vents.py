@@ -593,6 +593,7 @@ class TestWallVentsSetItemValidation:
         assert vent.bottom == 0.5
 
     def test_setitem_invalid_does_not_mutate_state(self, make_wall_vent):
+        """Test that a failed __setitem__ rolls back to the previous value."""
         vent = make_wall_vent(comps_ids=["ROOM1", "OUTSIDE"])
         before = vent.comps_ids.copy()
 

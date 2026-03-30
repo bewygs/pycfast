@@ -257,12 +257,30 @@ class SimulationEnvironment:
         return getattr(self, key)
 
     def __setitem__(self, key: str, value: Any) -> None:
-        """Set environment property by name for dictionary-like assignment."""
+        """Set simulation environment property by name for dictionary-like assignment.
+
+        Validate the object state after setting the attribute to ensure
+        all constraints are still satisfied.
+
+        Raises
+        ------
+        KeyError
+            If the property does not exist.
+        ValueError
+            If setting this value would violate object constraints.
+
+        """
         if not hasattr(self, key):
             raise KeyError(
                 f"Cannot set '{key}'. Property does not exist in SimulationEnvironment."
             )
+        old_value = getattr(self, key)
         setattr(self, key, value)
+        try:
+            self._validate()
+        except Exception:
+            setattr(self, key, old_value)
+            raise
 
     def to_input_string(self) -> str:
         """

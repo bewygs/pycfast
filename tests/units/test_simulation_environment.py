@@ -458,6 +458,15 @@ class TestSimulationEnvironment:
         with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
             sim_env["invalid_key"] = "value"
 
+    def test_setitem_invalid_does_not_mutate_state(self) -> None:
+        """Test that a failed __setitem__ rolls back to the previous value."""
+        sim_env = SimulationEnvironment(title="Test", time_simulation=600)
+
+        with pytest.raises(ValueError):
+            sim_env["time_simulation"] = -100
+
+        assert sim_env.time_simulation == 600
+
     def test_repr_html(self) -> None:
         """Test _repr_html_ method."""
         sim_env = SimulationEnvironment(
