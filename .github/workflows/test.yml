@@ -223,7 +223,7 @@ jobs:
       run: uv run pytest --cov=src/pycfast --cov-report=xml --cov-report=term-missing
 
     - name: Upload results to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         flags: cfast-${{ matrix.cfast-version }}-py${{ matrix.python-version }}-${{ matrix.os }}
