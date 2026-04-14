@@ -4,6 +4,8 @@
 #   - Linux: compile CFAST from source with gcc (versions 7.7.5 and latest commit)
 #   - Windows: extract pre-built binary from official CFAST installer (versions 7.7.0 to 7.7.5) compile from source with gcc for latest commit
 #
+# Latest commit is included for both Windows and Linux in the test matrix but allowed to fail since it may include breaking changes
+#
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
 name: Test
@@ -91,6 +93,7 @@ jobs:
             cfast-version: "7.7.0"
             installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST7.7.0/CFAST_7.7.0_SMV_6.7.17.exe"
 
+    # latest commit may include breaking changes so we allow failures for that configuration
     continue-on-error: ${{ matrix.cfast-version == 'latest' }}
 
     env:
