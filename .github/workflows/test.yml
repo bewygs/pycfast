@@ -2,7 +2,9 @@
 #
 # Strategy:
 #   - Linux: compile CFAST from source with gcc (versions 7.7.5 and latest commit)
-#   - Windows: extract pre-built binary from official CFAST installer (versions 7.7.0 to 7.7.5)
+#   - Windows: extract pre-built binary from official CFAST installer (versions 7.7.0 to 7.7.5) compile from source with gcc for latest commit
+#
+# Latest commit is included for both Windows and Linux in the test matrix but allowed to fail since it may include breaking changes
 #
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
@@ -38,10 +40,8 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         cfast-version: ["7.7.0", "7.7.1", "7.7.2", "7.7.3", "7.7.4", "7.7.5", "latest"]
         exclude:
-          # Windows: no latest (no pre-built installer available)
-          - os: windows-latest
-            cfast-version: "latest"
           # Linux: only tested on version 7.7.5 and latest commit due to issue with gcc issue with CFAST older version
+          # binary with older versions of CFAST are not available for Linux
           - os: ubuntu-latest
             cfast-version: "7.7.0"
           - os: ubuntu-latest
@@ -66,9 +66,14 @@ jobs:
             build-dir: gnu_linux
             build-script: make_cfast.sh
             binary-name: cfast7_linux
-          # Windows: tested across version 7.7.0 to 7.7.5 version without the latest commit because it needs
-          # to use the official installer (we can't compile from source with gnu_win due to CFAST running
-          # issue with gfortran on windows see issue #16)
+          - os: windows-latest
+            cfast-version: "latest"
+            cfast-tag: ""
+            build-dir: gnu_win
+            build-script: make_cfast.bat
+            binary-name: cfast7_win.exe
+          # Windows: versions 7.7.0 to 7.7.5 use official pre-built installer,
+          # latest commit is compiled from source with gcc (issue #16 fixed upstream)
           - os: windows-latest
             cfast-version: "7.7.5"
             installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST-7.7.5/CFAST-7.7.5_SMV-6.10.1.exe"
@@ -87,6 +92,9 @@ jobs:
           - os: windows-latest
             cfast-version: "7.7.0"
             installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST7.7.0/CFAST_7.7.0_SMV_6.7.17.exe"
+
+    # latest commit may include breaking changes so we allow failures for that configuration
+    continue-on-error: ${{ matrix.cfast-version == 'latest' }}
 
     env:
       CFAST_VERSION: ${{ matrix.cfast-version }}
@@ -115,7 +123,7 @@ jobs:
         key: cfast-${{ matrix.cfast-version }}-linux-gcc-${{ hashFiles('.github/workflows/test.yml') }}
 
     - name: Install gfortran
-      if: runner.os == 'Linux' && steps.cache-cfast-linux.outputs.cache-hit != 'true'
+      if: (runner.os == 'Linux' && steps.cache-cfast-linux.outputs.cache-hit != 'true') || (runner.os == 'Windows' && matrix.cfast-version == 'latest')
       uses: fortran-lang/setup-fortran@v1
       with:
         compiler: gcc
@@ -144,6 +152,17 @@ jobs:
         cp ${{ matrix.binary-name }} ~/cfast-cache/cfast-latest-linux-gcc
         chmod +x ~/cfast-cache/cfast-latest-linux-gcc
 
+    - name: Build CFAST from source (Windows - latest)
+      if: runner.os == 'Windows' && matrix.cfast-version == 'latest'
+      shell: pwsh
+      run: |
+        git clone --depth 1 https://github.com/firemodels/cfast.git cfast-src
+        cd cfast-src\Build\CFAST\${{ matrix.build-dir }}
+        cmd /c ${{ matrix.build-script }}
+        $cacheDir = "$env:USERPROFILE\cfast-cache"
+        if (-not (Test-Path $cacheDir)) { New-Item -ItemType Directory -Path $cacheDir }
+        Copy-Item ${{ matrix.binary-name }} "$cacheDir\cfast-latest-windows"
+
     - name: Install CFAST to system path (Linux)
       if: runner.os == 'Linux'
       run: |
@@ -151,7 +170,7 @@ jobs:
         sudo chmod +x /usr/bin/cfast
 
     - name: Cache CFAST binary (Windows)
-      if: runner.os == 'Windows'
+      if: runner.os == 'Windows' && matrix.cfast-version != 'latest'
       id: cache-cfast-windows
       uses: actions/cache@v5
       with:
@@ -159,7 +178,7 @@ jobs:
         key: cfast-installer-${{ matrix.cfast-version }}-windows-${{ hashFiles('.github/workflows/test.yml') }}
 
     - name: Download and extract CFAST installer (Windows)
-      if: runner.os == 'Windows' && steps.cache-cfast-windows.outputs.cache-hit != 'true'
+      if: runner.os == 'Windows' && matrix.cfast-version != 'latest' && steps.cache-cfast-windows.outputs.cache-hit != 'true'
       shell: pwsh
       run: |
         # Download the installer
