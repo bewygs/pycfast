@@ -92,11 +92,15 @@ class Fires:
     radiative_fraction : float
         The fraction of the combustion energy that is emitted in the form of thermal
         radiation. Default units: none, default value: 0.35.
-    data_table : list[list[float]], np.ndarray, or pd.DataFrame
+    data_table : list[list[float]], dict, np.ndarray, or pd.DataFrame
         Time-dependent fire properties with columns for TIME, HRR, HEIGHT, AREA,
         CO_YIELD, SOOT_YIELD, HCN_YIELD, HCL_YIELD, TRACE_YIELD. Properties are linearly
         interpolated between specified points. Each row must contain exactly 9 values
         corresponding to the LABELS columns.
+
+        A dict format is also supported where keys are column names and values
+        are either a list (one entry per timestep) or a scalar (repeated for
+        all timesteps). All list-valued columns must have the same length.
 
     Examples
     --------
@@ -163,7 +167,11 @@ class Fires:
         oxygen: float = 0,
         heat_of_combustion: float = 50000,
         radiative_fraction: float = 0.35,
-        data_table: list[list[float]] | np.ndarray | pd.DataFrame | None = None,
+        data_table: list[list[float]]
+        | dict[str, list[float] | float]
+        | np.ndarray
+        | pd.DataFrame
+        | None = None,
     ):
         self.id = id
         self.comp_id = comp_id
@@ -460,17 +468,28 @@ class Fires:
         return pd.DataFrame(self.data_table, columns=self.LABELS)
 
     def _process_data_table(
-        self, data_table: list[list[float]] | np.ndarray | pd.DataFrame | None
+        self,
+        data_table: list[list[float]]
+        | dict[str, list[float] | float]
+        | np.ndarray
+        | pd.DataFrame
+        | None,
     ) -> list[list[float]]:
         """
         Process and validate data_table input from various formats.
 
         Parameters
         ----------
-        data_table : list[list[float]], np.ndarray, pd.DataFrame, or None
-            Fire data in various formats. Must have shape (n_rows, 9) where columns
-            correspond to LABELS: ["TIME", "HRR", "HEIGHT", "AREA", "CO_YIELD",
-            "SOOT_YIELD", "HCN_YIELD", "HCL_YIELD", "TRACE_YIELD"].
+        data_table : list[list[float]], dict, np.ndarray, pd.DataFrame, or None
+            Fire data in various formats. Must have columns corresponding to
+            LABELS: ["TIME", "HRR", "HEIGHT", "AREA", "CO_YIELD", "SOOT_YIELD",
+            "HCN_YIELD", "HCL_YIELD", "TRACE_YIELD"].
+
+            When using a dict, keys must be valid LABELS and values can be:
+            - A list of floats (one per timestep)
+            - A scalar float (repeated for all timesteps)
+
+            All list-valued columns must have the same length.
 
         Returns
         -------
@@ -479,6 +498,9 @@ class Fires:
         """
         if data_table is None:
             return [[0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+        if isinstance(data_table, dict):
+            return self._process_dict_data_table(data_table)
 
         if isinstance(data_table, pd.DataFrame):
             if list(data_table.columns) == self.LABELS:
@@ -508,7 +530,8 @@ class Fires:
 
         else:
             raise TypeError(
-                "data_table must be a list of lists, NumPy array, pandas DataFrame, or None."
+                "data_table must be a list of lists, dict, NumPy array, "
+                "pandas DataFrame, or None."
             )
 
         if array_data.shape[1] != len(self.LABELS):
@@ -524,5 +547,83 @@ class Fires:
             raise ValueError("All values in data_table must be numeric.") from e
 
         # Type cast to satisfy mypy - we know this is list[list[float]] due to validation above
+        result: list[list[float]] = array_data.tolist()
+        return result
+
+    def _process_dict_data_table(
+        self, data_table: dict[str, list[float] | float]
+    ) -> list[list[float]]:
+        """
+        Convert a dict-format data_table to the standard list-of-lists format.
+
+        Parameters
+        ----------
+        data_table : dict[str, list[float] | float]
+            Keys are column names from LABELS. Values are either a list
+            (one entry per timestep) or a scalar (repeated for all timesteps).
+
+        Returns
+        -------
+        list[list[float]]
+            Standardized data table as list of lists.
+        """
+        # Validate keys
+        invalid_keys = set(data_table.keys()) - set(self.LABELS)
+        if invalid_keys:
+            raise ValueError(
+                f"Invalid data_table keys: {invalid_keys}. "
+                f"Valid keys are: {self.LABELS}"
+            )
+
+        missing_keys = set(self.LABELS) - set(data_table.keys())
+        if missing_keys:
+            raise ValueError(
+                f"Missing required data_table keys: {missing_keys}. "
+                f"All columns are required: {self.LABELS}"
+            )
+
+        # Determine number of rows from list-valued columns
+        list_lengths: list[int] = []
+        for value in data_table.values():
+            if isinstance(value, list):
+                list_lengths.append(len(value))
+
+        if not list_lengths:
+            raise ValueError(
+                "data_table dict must have at least one list-valued column."
+            )
+
+        n_rows = list_lengths[0]
+        if not all(length == n_rows for length in list_lengths):
+            raise ValueError(
+                "All list-valued columns in data_table must have the same length. "
+                f"Got lengths: {dict(zip([k for k, v in data_table.items() if isinstance(v, list)], list_lengths, strict=False))}"
+            )
+
+        if n_rows < 1:
+            raise ValueError("List-valued columns must contain at least one element.")
+
+        # Build array in LABELS order, expanding scalars
+        columns: list[list[float]] = []
+        for label in self.LABELS:
+            value = data_table[label]
+            if isinstance(value, list):
+                columns.append(value)
+            else:
+                try:
+                    scalar = float(value)
+                except (ValueError, TypeError) as e:
+                    raise ValueError(
+                        f"All values in data_table must be numeric. "
+                        f"Got non-numeric value for '{label}': {value!r}"
+                    ) from e
+                columns.append([scalar] * n_rows)
+
+        # Validate all list values are numeric
+        try:
+            array_data = np.array(columns, dtype=float).T
+        except (ValueError, TypeError) as e:
+            raise ValueError("All values in data_table must be numeric.") from e
+
         result: list[list[float]] = array_data.tolist()
         return result
