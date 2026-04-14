@@ -151,13 +151,14 @@ jobs:
 
     - name: Build CFAST from source (Windows - latest)
       if: runner.os == 'Windows' && matrix.cfast-version == 'latest'
-      shell: cmd
+      shell: pwsh
       run: |
         git clone --depth 1 https://github.com/firemodels/cfast.git cfast-src
         cd cfast-src\Build\CFAST\${{ matrix.build-dir }}
-        ${{ matrix.build-script }}
-        mkdir "%USERPROFILE%\cfast-cache"
-        copy ${{ matrix.binary-name }} "%USERPROFILE%\cfast-cache\cfast-latest-windows"
+        cmd /c ${{ matrix.build-script }}
+        $cacheDir = "$env:USERPROFILE\cfast-cache"
+        if (-not (Test-Path $cacheDir)) { New-Item -ItemType Directory -Path $cacheDir }
+        Copy-Item ${{ matrix.binary-name }} "$cacheDir\cfast-latest-windows"
 
     - name: Install CFAST to system path (Linux)
       if: runner.os == 'Linux'
