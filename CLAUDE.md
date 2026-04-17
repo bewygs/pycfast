@@ -63,7 +63,6 @@ Each component implements:
 - `to_input_string()` → Fortran namelist fragment via `NamelistRecord`
 - `_validate()` → raises on invalid config
 - `__getitem__` / `__setitem__` → dict-like parameter access
-- `__repr_html__()` → Jupyter card rendering
 
 ### CFASTModel (`model.py`)
 

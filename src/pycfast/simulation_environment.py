@@ -11,7 +11,6 @@ import warnings
 
 from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
-from .utils.theme import build_card
 
 
 class SimulationEnvironment(CFASTComponent):
@@ -206,46 +205,6 @@ class SimulationEnvironment(CFASTComponent):
             f"duration={self.time_simulation}s, "
             f"temp_in={self.interior_temperature}°C, "
             f"temp_out={self.exterior_temperature}°C"
-        )
-
-    def _repr_html_(self) -> str:
-        """Return an HTML representation for Jupyter/interactive environments."""
-        duration_str = (
-            f"{self.time_simulation / 60:.0f} min"
-            if self.time_simulation is not None and self.time_simulation >= 60
-            else f"{self.time_simulation} s"
-        )
-
-        body_html = f"""
-            <div class="pycfast-card-grid" style="margin-bottom: 10px;">
-                <div><strong>Duration:</strong> {duration_str}</div>
-                <div><strong>Print interval:</strong> {getattr(self, "print", "N/A")} s</div>
-                <div><strong>Interior temp:</strong> {getattr(self, "interior_temperature", "N/A")}°C</div>
-                <div><strong>Exterior temp:</strong> {getattr(self, "exterior_temperature", "N/A")}°C</div>
-                <div><strong>Pressure:</strong> {getattr(self, "init_pressure", "N/A")} Pa</div>
-                <div><strong>Humidity:</strong> {getattr(self, "relative_humidity", "N/A")}%</div>
-            </div>
-            <details class="pycfast-inline-detail">
-                <summary>Advanced Settings</summary>
-                <div class="pycfast-detail-content">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 5px;">
-                        <div>Smokeview: {getattr(self, "smokeview", "N/A")} s</div>
-                        <div>Spreadsheet: {getattr(self, "spreadsheet", "N/A")} s</div>
-                        <div>Max timestep: {getattr(self, "max_time_step", "N/A")} s</div>
-                        <div>O₂ limit: {getattr(self, "lower_oxygen_limit", "N/A")}</div>
-                        <div>Adiabatic: {getattr(self, "adiabatic", False)}</div>
-                    </div>
-                </div>
-            </details>
-        """
-
-        return build_card(
-            icon="⚙️",
-            gradient="linear-gradient(135deg, #00b894, #00cec9)",
-            title="Simulation Environment",
-            subtitle=f"<strong>{getattr(self, 'title', 'Untitled Simulation')}</strong>",
-            accent_color="#00b894",
-            body_html=body_html,
         )
 
     def to_input_string(self) -> str:

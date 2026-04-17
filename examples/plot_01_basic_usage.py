@@ -47,11 +47,6 @@ simulation_env = SimulationEnvironment(
     max_time_step=10,  # Maximum time step in seconds
 )
 # %%
-# You can expand the simulation environment diagram below to see all the available parameters and their descriptions.
-
-simulation_env
-
-# %%
 # Step 3: Define Material Properties
 # ----------------------------------
 # Material properties define the thermal characteristics of surfaces in our compartments. The :class:`~pycfast.Material` class is the equivalent of the CEdit simulation settings tab but programmatically defined.
@@ -72,11 +67,6 @@ gypsum_board = Material(
     thickness=0.015,  # Default thickness in meters
     emissivity=0.9,  # Surface emissivity for radiation
 )
-
-# %%
-# You can see the properties of the gypsum board on the material card below.
-
-gypsum_board
 
 # %%
 # Step 4: Create Compartment
@@ -121,11 +111,6 @@ upper_level = Compartment(
     origin_y=0,
     origin_z=10,  # Positioned above first compartment
 )
-
-# %%
-# You can see the properties of the compartments on the compartment cards below (we display only the first compartment as an example).
-
-ground_level
 
 # %%
 # Step 5: Define Ventilation Systems
@@ -186,11 +171,6 @@ mechanical_vents = MechanicalVent(
     filter_time=1.2,  # Filter time constant
     filter_efficiency=5,  # Filter efficiency percentage
 )
-
-# %%
-# You can see the properties of the wall vent on the wall vent card below (we display only the wall vent as an example).
-
-wall_vent
 
 # %%
 # Step 6: Define Fire Sources
@@ -278,11 +258,6 @@ target = Device.create_target(
 )
 
 # %%
-# You can see the properties of the target device on the device card below.
-
-target
-
-# %%
 # Step 8: Configure Surface Connections
 # -------------------------------------
 # Surface connections define thermal connections between compartments through shared surfaces. The :class:`~pycfast.SurfaceConnection` class is the equivalent of the CEdit surface connections tab but programmatically defined.
@@ -299,11 +274,6 @@ ceiling_floor_connection = SurfaceConnection.ceiling_floor_connection(
     comp_id="Comp 1",  # Source compartment
     comp_ids="Comp 2",  # Target compartment
 )
-
-# %%
-# You can see the properties of the surface connection on the surface connection card below.
-
-ceiling_floor_connection
 
 # %%
 # Step 9: Create and Run the CFAST Model
@@ -326,12 +296,7 @@ model = CFASTModel(
 )
 
 # %%
-# You can view the complete model with the card below
-
-model
-
-# %%
-# Or use the :meth:`~pycfast.CFASTModel.summary` method to print a summary of the model configuration.
+# Use the :meth:`~pycfast.CFASTModel.summary` method to print a summary of the model configuration.
 
 print(model.summary())
 

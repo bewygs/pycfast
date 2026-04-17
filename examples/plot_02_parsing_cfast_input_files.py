@@ -41,11 +41,6 @@ print(f"\nView of the input file parsed: \n{model.view_cfast_input_file()}")
 #    will be parsed, but ``Material/1 '1/4' in`` is not).
 
 # %%
-# You can inspect the parsed model with the card below.
-
-model
-
-# %%
 # Step 3: Explore Parsed Components
 # ----------------------------------
 # Once parsed, you can easily inspect all model components using their
@@ -77,16 +72,6 @@ new_material = Material(
     emissivity=0.7,
 )
 updated_model = updated_model.add_material(new_material)
-
-# %%
-# The new material properties can be inspected below.
-
-new_material
-
-# %%
-# And the updated model with the new material and modified simulation parameters:
-
-updated_model
 
 # %%
 # Step 5: Save Modified Model

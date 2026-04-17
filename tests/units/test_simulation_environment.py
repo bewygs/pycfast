@@ -466,35 +466,3 @@ class TestSimulationEnvironment:
             sim_env["time_simulation"] = -100
 
         assert sim_env.time_simulation == 600
-
-    def test_repr_html(self) -> None:
-        """Test _repr_html_ method."""
-        sim_env = SimulationEnvironment(
-            title="Fire Test Simulation",
-            time_simulation=1800,
-            print=30,
-            smokeview=10,
-            init_pressure=101000,
-            relative_humidity=65,
-            interior_temperature=22,
-            exterior_temperature=18,
-        )
-
-        html_str = sim_env._repr_html_()
-
-        # Check that it returns valid HTML string
-        assert isinstance(html_str, str)
-        assert len(html_str) > 0
-
-        # Check for expected HTML structure
-        assert '<div class="pycfast-card' in html_str
-        assert "Simulation Environment" in html_str  # Matches actual implementation
-        assert "Fire Test Simulation" in html_str
-
-        # Check simulation properties
-        assert "30 min" in html_str  # time_simulation formatted
-        assert "30 s" in html_str  # print interval
-        assert "10 s" in html_str  # smokeview
-        assert "65%" in html_str  # relative_humidity
-        assert "22°C" in html_str  # interior_temperature
-        assert "18°C" in html_str  # exterior_temperature

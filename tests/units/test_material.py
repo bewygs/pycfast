@@ -391,57 +391,6 @@ class TestMaterial:
         with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
             mat["invalid_key"] = "value"
 
-    def test_repr_html(self) -> None:
-        """Test _repr_html_ method."""
-        mat = Material(
-            id="GYPSUM",
-            material="Gypsum Wallboard",
-            conductivity=0.17,
-            density=930,
-            specific_heat=1.09,
-            thickness=0.016,
-            emissivity=0.9,
-        )
-
-        html_str = mat._repr_html_()
-
-        # Check that it returns valid HTML string
-        assert isinstance(html_str, str)
-        assert len(html_str) > 0
-
-        # Check for expected HTML structure
-        assert '<div class="pycfast-card' in html_str
-        assert "Material: GYPSUM" in html_str
-        assert "Gypsum Wallboard" in html_str
-
-        # Check for property values
-        assert "0.17 W/m·K" in html_str
-        assert "930 kg/m³" in html_str
-        assert "1.09 kJ/kg·K" in html_str
-        assert "0.016 m" in html_str
-        assert "0.9" in html_str
-
-        # Check for proper HTML elements
-        assert '<div class="pycfast-card-grid">' in html_str
-        assert "<strong>Conductivity:</strong>" in html_str
-        assert "<strong>Density:</strong>" in html_str
-        assert "<strong>Specific Heat:</strong>" in html_str
-        assert "<strong>Thickness:</strong>" in html_str
-        assert "<strong>Emissivity:</strong>" in html_str
-
-    def test_repr_html_with_none_values(self) -> None:
-        """Test _repr_html_ method handles None values properly."""
-        mat = Material(id="TEST", material="Test Material")
-        mat.conductivity = None
-        mat.density = None
-
-        html_str = mat._repr_html_()
-
-        # Should handle None values without errors
-        assert isinstance(html_str, str)
-        assert "Material: TEST" in html_str
-        assert "None W/m·K" in html_str  # getattr shows None for None values
-
 
 class TestMaterialSetItemValidation:
     """Test validation in __setitem__ to ensure data integrity."""

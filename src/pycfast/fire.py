@@ -15,7 +15,6 @@ import pandas as pd
 
 from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
-from .utils.theme import build_card
 
 
 class Fire(CFASTComponent):
@@ -319,69 +318,6 @@ class Fire(CFASTComponent):
         details_str = f" ({', '.join(details)})" if details else ""
 
         return f"{fire_info} in '{self.comp_id}' at {location_str}{details_str}"
-
-    def _repr_html_(self) -> str:
-        """Return an HTML representation for Jupyter/interactive environments."""
-        location_str = f"({self.location[0]}, {self.location[1]})"
-
-        # Calculate peak HRR and duration for display
-        peak_hrr = 0.0
-        duration = 0.0
-        data_points = 0
-        if self.data_table:
-            hrr_values = [row[1] for row in self.data_table if len(row) > 1]
-            time_values = [row[0] for row in self.data_table if len(row) > 0]
-            peak_hrr = max(hrr_values) if hrr_values else 0
-            duration = max(time_values) if time_values else 0
-            data_points = len(self.data_table)
-
-        # Format HRR display
-        if peak_hrr >= 1000000:  # >= 1 MW
-            hrr_display = f"{peak_hrr / 1000000:.1f} MW"
-        elif peak_hrr >= 1000:  # >= 1 kW
-            hrr_display = f"{peak_hrr / 1000:.0f} kW"
-        else:
-            hrr_display = f"{peak_hrr:.0f} W"
-
-        # Format duration display
-        if duration >= 3600:  # >= 1 hour
-            duration_display = f"{duration / 3600:.1f}h"
-        elif duration >= 60:  # >= 1 minute
-            duration_display = f"{duration / 60:.0f}min"
-        else:
-            duration_display = f"{duration:.0f}s"
-
-        body_html = f"""
-            <div class="pycfast-card-grid">
-                <div><strong>Peak HRR:</strong> {hrr_display}</div>
-                <div><strong>Duration:</strong> {duration_display}</div>
-                <div><strong>Location:</strong> {location_str}</div>
-                <div><strong>χᵣ:</strong> {self.radiative_fraction}</div>
-                <div><strong>ΔHc:</strong> {self.heat_of_combustion} kJ/kg</div>
-                <div><strong>Data points:</strong> {data_points}</div>
-            </div>
-            <details class="pycfast-inline-detail">
-                <summary>Chemical Composition</summary>
-                <div class="pycfast-detail-content">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 5px;">
-                        <div>C: {getattr(self, "carbon", 0)}</div>
-                        <div>H: {getattr(self, "hydrogen", 0)}</div>
-                        <div>O: {getattr(self, "oxygen", 0)}</div>
-                        <div>N: {getattr(self, "nitrogen", 0)}</div>
-                        <div>Cl: {getattr(self, "chlorine", 0)}</div>
-                    </div>
-                </div>
-            </details>
-        """
-
-        return build_card(
-            icon="🔥",
-            gradient="linear-gradient(135deg, #ff4757, #ff3838)",
-            title=f"Fire: {self.id}",
-            subtitle=f"<strong>{self.fire_id}</strong> in compartment <strong>{self.comp_id}</strong>",
-            accent_color="#ff4757",
-            body_html=body_html,
-        )
 
     def to_input_string(self) -> str:
         """

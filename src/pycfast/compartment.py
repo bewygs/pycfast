@@ -10,7 +10,6 @@ from __future__ import annotations
 
 from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
-from .utils.theme import build_card
 
 
 class Compartment(CFASTComponent):
@@ -249,95 +248,6 @@ class Compartment(CFASTComponent):
         return (
             f"Compartment '{self.id}': "
             f"{self.width}x{self.depth}x{self.height} m{volume_str}{material_str}"
-        )
-
-    def _repr_html_(self) -> str:
-        """Return an HTML representation for Jupyter/interactive environments."""
-        volume = None
-        if (
-            self.width is not None
-            and self.depth is not None
-            and self.height is not None
-        ):
-            volume = self.width * self.depth * self.height
-
-        # Build materials info
-        materials_info = []
-        if self.ceiling_mat_id:
-            thickness_str = (
-                f" ({self.ceiling_thickness:.3f}m)"
-                if hasattr(self, "ceiling_thickness") and self.ceiling_thickness
-                else ""
-            )
-            materials_info.append(
-                f"<div><strong>Ceiling:</strong> {self.ceiling_mat_id}{thickness_str}</div>"
-            )
-        if self.wall_mat_id:
-            thickness_str = (
-                f" ({self.wall_thickness:.3f}m)"
-                if hasattr(self, "wall_thickness") and self.wall_thickness
-                else ""
-            )
-            materials_info.append(
-                f"<div><strong>Walls:</strong> {self.wall_mat_id}{thickness_str}</div>"
-            )
-        if self.floor_mat_id:
-            thickness_str = (
-                f" ({self.floor_thickness:.3f}m)"
-                if hasattr(self, "floor_thickness") and self.floor_thickness
-                else ""
-            )
-            materials_info.append(
-                f"<div><strong>Floor:</strong> {self.floor_mat_id}{thickness_str}</div>"
-            )
-
-        materials_html = (
-            "".join(materials_info)
-            if materials_info
-            else "<div><em>No materials specified</em></div>"
-        )
-
-        # Special properties
-        special_props = []
-        if getattr(self, "shaft", False):
-            special_props.append("Shaft")
-        if getattr(self, "hall", False):
-            special_props.append("Hall")
-        special_str = (
-            f"<div><strong>Type:</strong> {', '.join(special_props)}</div>"
-            if special_props
-            else ""
-        )
-
-        body_html = f"""
-            <div class="pycfast-card-grid" style="margin-bottom: 10px;">
-                <div><strong>Width:</strong> {self.width} m</div>
-                <div><strong>Depth:</strong> {self.depth} m</div>
-                <div><strong>Height:</strong> {self.height} m</div>
-                {f"<div><strong>Volume:</strong> {volume:.1f} m³</div>" if volume else ""}
-            </div>
-            <div style="margin-bottom: 10px; font-size: 0.85em;">
-                <strong>Origin:</strong> ({self.origin_x}, {self.origin_y}, {self.origin_z}) m
-            </div>
-            {special_str}
-            <details class="pycfast-inline-detail">
-                <summary>Materials & Construction</summary>
-                <div class="pycfast-detail-content">{materials_html}</div>
-            </details>
-        """
-
-        subtitle = (
-            f"<strong>{self.width}×{self.depth}×{self.height} m</strong>"
-            f"{f' • {volume:.1f} m³' if volume else ''}"
-        )
-
-        return build_card(
-            icon="🏠",
-            gradient="linear-gradient(135deg, #5f27cd, #741b47)",
-            title=f"Compartment: {self.id}",
-            subtitle=subtitle,
-            accent_color="#5f27cd",
-            body_html=body_html,
         )
 
     def to_input_string(self) -> str:

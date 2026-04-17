@@ -12,7 +12,6 @@ import warnings
 
 from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
-from .utils.theme import build_card
 
 
 class MechanicalVent(CFASTComponent):
@@ -275,48 +274,6 @@ class MechanicalVent(CFASTComponent):
         connection = f"{self.comps_ids[0]} -> {self.comps_ids[1]}"
         flow_str = f"flow: {self.flow} m³/s"
         return f"Mechanical Vent '{self.id}': {connection}, {flow_str}"
-
-    def _repr_html_(self) -> str:
-        """Return an HTML representation for Jupyter/interactive environments."""
-        flow_val = getattr(self, "flow", 0)
-        if flow_val > 0:
-            flow_str = f"+{flow_val} m³/s (Supply)"
-            flow_color = "#00b894"
-        elif flow_val < 0:
-            flow_str = f"{flow_val} m³/s (Exhaust)"
-            flow_color = "#e17055"
-        else:
-            flow_str = "0 m³/s (Off)"
-            flow_color = "#636e72"
-
-        filter_info = ""
-        if hasattr(self, "filter_time") and self.filter_time:
-            eff = getattr(self, "filter_efficiency", 0)
-            filter_info = (
-                f"<div><strong>Filter:</strong> {eff}% eff, τ={self.filter_time}s</div>"
-            )
-
-        body_html = f"""
-            <div style="font-size: 0.9em; margin-bottom: 8px; font-weight: bold; color: {flow_color};">
-                {flow_str}
-            </div>
-            <div class="pycfast-card-grid">
-                <div><strong>Areas:</strong> {getattr(self, "area", "N/A")} m²</div>
-                <div><strong>Heights:</strong> {getattr(self, "heights", "N/A")} m</div>
-                <div><strong>Orientations:</strong> {getattr(self, "orientations", "N/A")}</div>
-                <div><strong>Cutoffs:</strong> {getattr(self, "cutoffs", "N/A")} Pa</div>
-                {filter_info}
-            </div>
-        """
-
-        return build_card(
-            icon="🌀",
-            gradient=f"linear-gradient(135deg, {flow_color}, {flow_color}aa)",
-            title=f"Mechanical Vent: {self.id}",
-            subtitle=f"<strong>{self.comps_ids[0]} → {self.comps_ids[1]}</strong>",
-            accent_color=flow_color,
-            body_html=body_html,
-        )
 
     def to_input_string(self) -> str:
         """
