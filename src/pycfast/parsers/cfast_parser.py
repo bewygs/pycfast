@@ -7,8 +7,8 @@ back to CFASTModel objects using the various PyCFAST object.
 
 from __future__ import annotations
 
-import logging
 import re
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -24,8 +24,6 @@ from ..model import CFASTModel
 from ..simulation_environment import SimulationEnvironment
 from ..surface_connection import SurfaceConnection
 from ..wall_vent import WallVent
-
-logger = logging.getLogger("pycfast")
 
 # CFAST namelist block type constants
 BLOCK_TYPE_HEAD = "HEAD"
@@ -242,10 +240,11 @@ class CFASTParser:
                 uppercase_data = {k.upper(): v for k, v in block_data.items()}
                 block_handlers[block_name_lower](uppercase_data)
             else:
-                logger.warning(
-                    "Unknown block type '%s' encountered, skipping.", block_name
+                warnings.warn(
+                    f"Unknown block type '{block_name}' encountered, skipping.",
+                    UserWarning,
+                    stacklevel=2,
                 )
-
         # Process fire hash map after all blocks are parsed
         self._finalize_fire_parsing()
 

@@ -196,7 +196,7 @@ class CeilingFloorVent(CFASTComponent):
             f"comps_ids={self.comps_ids}, "
             f"area={self.area}, type='{self.type}', shape='{self.shape}', "
             f"width={self.width}, offsets={self.offsets}"
-            f")"
+            ")"
         )
 
     def __str__(self) -> str:

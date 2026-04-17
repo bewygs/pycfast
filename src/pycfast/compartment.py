@@ -221,7 +221,7 @@ class Compartment(CFASTComponent):
             f"ceiling_mat_id='{self.ceiling_mat_id}', wall_mat_id='{self.wall_mat_id}', "
             f"floor_mat_id='{self.floor_mat_id}', "
             f"origin=({self.origin_x}, {self.origin_y}, {self.origin_z})"
-            f")"
+            ")"
         )
 
     def __str__(self) -> str:

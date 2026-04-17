@@ -232,7 +232,7 @@ class Fire(CFASTComponent):
             f"heat_of_combustion={self.heat_of_combustion}, "
             f"radiative_fraction={self.radiative_fraction}, "
             f"data_rows={data_rows}"
-            f")"
+            ")"
         )
 
     def __str__(self) -> str:
@@ -449,6 +449,11 @@ class Fire(CFASTComponent):
             Standardized data table as list of lists.
         """
         if data_table is None:
+            warnings.warn(
+                "data_table is None: will use default data with values set to 0.",
+                UserWarning,
+                stacklevel=2,
+            )
             return [[0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
         if isinstance(data_table, pd.DataFrame):
