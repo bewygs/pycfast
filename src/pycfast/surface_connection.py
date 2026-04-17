@@ -175,7 +175,7 @@ class SurfaceConnection(CFASTComponent):
             f"comp_id='{self.comp_id}', "
             f"comp_ids='{self.comp_ids}', "
             f"fraction={self.fraction}"
-            f")"
+            ")"
         )
 
     def __str__(self) -> str:

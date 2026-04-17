@@ -248,7 +248,7 @@ class Device(CFASTComponent):
                 f"id='{self.id}', type='{self.type}', comp_id='{self.comp_id}', "
                 f"location={location_str}, material_id='{self.material_id}', "
                 f"thickness={self.thickness}, temperature_depth={self.temperature_depth}"
-                f")"
+                ")"
             )
         else:  # Detectors
             detector_params = []
@@ -265,7 +265,7 @@ class Device(CFASTComponent):
                 f"Device("
                 f"id='{self.id}', type='{self.type}', comp_id='{self.comp_id}', "
                 f"location={location_str}{detector_str}"
-                f")"
+                ")"
             )
 
     def __str__(self) -> str:
@@ -387,7 +387,7 @@ class Device(CFASTComponent):
             ):
                 raise ValueError(
                     f"Target type '{self.type}' requires either normal or "
-                    f"surface_orientation (but not both)"
+                    "surface_orientation (but not both)"
                 )
             if self.normal is not None and self.surface_orientation is None:
                 if (
@@ -574,7 +574,7 @@ class Device(CFASTComponent):
         ):
             raise ValueError(
                 f"Target type '{type}' requires either normal or "
-                f"surface_orientation (but not both)"
+                "surface_orientation (but not both)"
             )
 
         return cls(

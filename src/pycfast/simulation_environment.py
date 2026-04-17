@@ -198,7 +198,7 @@ class SimulationEnvironment(CFASTComponent):
             f"relative_humidity={self.relative_humidity}, "
             f"interior_temperature={self.interior_temperature}, "
             f"exterior_temperature={self.exterior_temperature}"
-            f")"
+            ")"
         )
 
     def __str__(self) -> str:

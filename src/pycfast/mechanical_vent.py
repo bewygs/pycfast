@@ -268,7 +268,7 @@ class MechanicalVent(CFASTComponent):
             f"flow={self.flow}, "
             f"area={self.area}, "
             f"heights={self.heights}"
-            f")"
+            ")"
         )
 
     def __str__(self) -> str:

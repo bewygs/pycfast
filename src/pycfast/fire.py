@@ -232,7 +232,7 @@ class Fire(CFASTComponent):
             f"heat_of_combustion={self.heat_of_combustion}, "
             f"radiative_fraction={self.radiative_fraction}, "
             f"data_rows={data_rows}"
-            f")"
+            ")"
         )
 
     def __str__(self) -> str:

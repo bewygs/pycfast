@@ -202,7 +202,7 @@ class WallVent(CFASTComponent):
             f"comps_ids={self.comps_ids}, "
             f"bottom={self.bottom}, height={self.height}, width={self.width}, "
             f"face='{self.face}', offset={self.offset}"
-            f")"
+            ")"
         )
 
     def __str__(self) -> str:
