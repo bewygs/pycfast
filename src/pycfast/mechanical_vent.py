@@ -253,8 +253,7 @@ class MechanicalVent(CFASTComponent):
 
         if self.filter_time is not None and self.filter_time < 0:
             warnings.warn(
-                f"MechanicalVent '{self.id}': filter_time={self.filter_time} is negative. "
-                "This may cause unexpected behaviour.",
+                f"MechanicalVent '{self.id}': filter_time={self.filter_time} is negative.",
                 UserWarning,
                 stacklevel=2,
             )
@@ -268,7 +267,7 @@ class MechanicalVent(CFASTComponent):
             f"flow={self.flow}, "
             f"area={self.area}, "
             f"heights={self.heights}"
-            f")"
+            ")"
         )
 
     def __str__(self) -> str:

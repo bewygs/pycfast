@@ -127,7 +127,7 @@ class Material(CFASTComponent):
             f"conductivity={self.conductivity}, density={self.density}, "
             f"specific_heat={self.specific_heat}, thickness={self.thickness}, "
             f"emissivity={self.emissivity}"
-            f")"
+            ")"
         )
 
     def __str__(self) -> str:
