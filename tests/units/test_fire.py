@@ -4,18 +4,18 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pycfast.fires import Fires
+from pycfast.fire import Fire
 
 """
-Tests for the Fires class.
+Tests for the Fire class.
 """
 
 
 @pytest.fixture()
 def make_fire():
-    """Create a Fires instance with sensible defaults."""
+    """Create a Fire instance with sensible defaults."""
 
-    def _make(**kwargs: object) -> Fires:
+    def _make(**kwargs: object) -> Fire:
         defaults: dict[str, object] = {
             "id": "FIRE1",
             "comp_id": "ROOM1",
@@ -23,17 +23,17 @@ def make_fire():
             "location": [2.0, 3.0],
         }
         defaults.update(kwargs)
-        return Fires(**defaults)  # type: ignore[arg-type]
+        return Fire(**defaults)  # type: ignore[arg-type]
 
     return _make
 
 
-class TestFires:
-    """Test class for Fires."""
+class TestFire:
+    """Test class for Fire."""
 
     def test_init_basic(self):
         """Test basic initialization with required parameters."""
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="POLYURETHANE",
@@ -61,7 +61,7 @@ class TestFires:
             [0, 100, 0.5, 0.1, 0.01, 0.01, 0, 0, 0],
             [60, 500, 1.0, 0.5, 0.01, 0.01, 0, 0, 0],
         ]
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="POLYURETHANE",
@@ -104,7 +104,7 @@ class TestFires:
     def test_init_invalid_location_length(self, location: list[float]):
         """Test that initialization fails with wrong location dimensions."""
         with pytest.raises(ValueError, match="Location must be a list of two floats"):
-            Fires(
+            Fire(
                 id="FIRE1",
                 comp_id="ROOM1",
                 fire_id="POLYURETHANE",
@@ -141,7 +141,7 @@ class TestFires:
             [0, 100, 0.5],  # Only 3 columns instead of 9
         ]
         with pytest.raises(ValueError, match="data_table must have exactly 9 columns"):
-            Fires(
+            Fire(
                 id="FIRE1",
                 comp_id="ROOM1",
                 fire_id="POLYURETHANE",
@@ -151,7 +151,7 @@ class TestFires:
 
     def test_to_input_string_basic(self):
         """Test basic input string generation."""
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="POLYURETHANE",
@@ -248,7 +248,7 @@ class TestFires:
             [60, 100000, 1.0, 0.5, 0.01, 0.01, 0, 0, 0],
             [300, 500000, 1.5, 1.0, 0.01, 0.01, 0, 0, 0],
         ]
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="POLYURETHANE",
@@ -268,7 +268,7 @@ class TestFires:
 
     def test_to_input_string_with_custom_chemistry(self):
         """Test input string generation with custom chemistry parameters."""
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="METHANE",
@@ -294,7 +294,7 @@ class TestFires:
         with pytest.raises(
             ValueError, match="data_table must contain at least one row"
         ):
-            Fires(
+            Fire(
                 id="FIRE1",
                 comp_id="ROOM1",
                 fire_id="POLYURETHANE",
@@ -304,7 +304,7 @@ class TestFires:
 
     def test_init_no_ignition_criterion_with_setpoint(self):
         """Test initialization with setpoint but no ignition criterion."""
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="POLYURETHANE",
@@ -321,7 +321,7 @@ class TestFires:
 
     def test_init_with_device_id_only(self):
         """Test initialization with device_id but no ignition criterion."""
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="POLYURETHANE",
@@ -342,7 +342,7 @@ class TestFires:
             [0, 100, 0.5, 0.1, 0.01, 0.01, 0, 0, 0],
             [60, 500, 1.0, 0.5, 0.01, 0.01, 0, 0, 0],
         ]
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="POLYURETHANE",
@@ -353,7 +353,7 @@ class TestFires:
         )
 
         repr_str = repr(fire)
-        assert "Fires(" in repr_str
+        assert "Fire(" in repr_str
         assert "id='FIRE1'" in repr_str
         assert "comp_id='ROOM1'" in repr_str
         assert "fire_id='POLYURETHANE'" in repr_str
@@ -419,7 +419,7 @@ class TestFires:
     def test_getitem(self) -> None:
         """Test __getitem__ method."""
         data_table = [[0, 100, 0.5, 0.1, 0.01, 0.01, 0, 0, 0]]
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="WOOD",
@@ -443,14 +443,14 @@ class TestFires:
 
     def test_getitem_invalid_key(self) -> None:
         """Test __getitem__ method with invalid key."""
-        fire = Fires(id="FIRE1", comp_id="ROOM1", fire_id="WOOD", location=[1.0, 2.0])
+        fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="WOOD", location=[1.0, 2.0])
 
-        with pytest.raises(KeyError, match="Property 'invalid_key' not found in Fires"):
+        with pytest.raises(KeyError, match="Property 'invalid_key' not found in Fire"):
             fire["invalid_key"]
 
     def test_setitem(self) -> None:
         """Test __setitem__ method."""
-        fire = Fires(id="FIRE1", comp_id="ROOM1", fire_id="WOOD", location=[1.0, 2.0])
+        fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="WOOD", location=[1.0, 2.0])
 
         # Test setting various properties
         fire["id"] = "NEW_FIRE"
@@ -470,14 +470,14 @@ class TestFires:
 
     def test_setitem_invalid_key(self) -> None:
         """Test __setitem__ method with invalid key."""
-        fire = Fires(id="FIRE1", comp_id="ROOM1", fire_id="WOOD", location=[1.0, 2.0])
+        fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="WOOD", location=[1.0, 2.0])
 
         with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
             fire["invalid_key"] = "value"
 
 
-class TestFiresDataTableFormats:
-    """Test class for Fires data_table format handling."""
+class TestFireDataTableFormats:
+    """Test class for Fire data_table format handling."""
 
     def test_data_table_list_of_lists(self):
         """Test data_table with list of lists (original format)."""
@@ -486,7 +486,7 @@ class TestFiresDataTableFormats:
             [60, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0],
             [300, 500, 1.0, 1.0, 0.01, 0.01, 0, 0, 0],
         ]
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="WOOD",
@@ -504,7 +504,7 @@ class TestFiresDataTableFormats:
                 [300, 500, 1.0, 1.0, 0.01, 0.01, 0, 0, 0],
             ]
         )
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="WOOD",
@@ -529,7 +529,7 @@ class TestFiresDataTableFormats:
                 "TRACE_YIELD": [0, 0, 0],
             }
         )
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="WOOD",
@@ -547,7 +547,7 @@ class TestFiresDataTableFormats:
             [300, 500, 1.0, 1.0, 0.01, 0.01, 0, 0, 0],
         ]
         df = pd.DataFrame(data)  # Will have columns 0, 1, 2, ..., 8
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="WOOD",
@@ -560,7 +560,7 @@ class TestFiresDataTableFormats:
         """Test that 1D NumPy array raises error."""
         data_array = np.array([0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0])  # 1D array
         with pytest.raises(ValueError, match="NumPy array must be 2-dimensional"):
-            Fires(
+            Fire(
                 id="FIRE1",
                 comp_id="ROOM1",
                 fire_id="WOOD",
@@ -577,7 +577,7 @@ class TestFiresDataTableFormats:
             ]
         )
         with pytest.raises(ValueError, match="NumPy array must have exactly 9 columns"):
-            Fires(
+            Fire(
                 id="FIRE1",
                 comp_id="ROOM1",
                 fire_id="WOOD",
@@ -595,7 +595,7 @@ class TestFiresDataTableFormats:
             }
         )
         with pytest.raises(ValueError, match="DataFrame must have 9 columns"):
-            Fires(
+            Fire(
                 id="FIRE1",
                 comp_id="ROOM1",
                 fire_id="WOOD",
@@ -609,7 +609,7 @@ class TestFiresDataTableFormats:
             TypeError,
             match="data_table must be a list of lists, NumPy array, pandas DataFrame, or None",
         ):
-            Fires(
+            Fire(
                 id="FIRE1",
                 comp_id="ROOM1",
                 fire_id="WOOD",
@@ -625,7 +625,7 @@ class TestFiresDataTableFormats:
         with pytest.raises(
             ValueError, match="All values in data_table must be numeric"
         ):
-            Fires(
+            Fire(
                 id="FIRE1",
                 comp_id="ROOM1",
                 fire_id="WOOD",
@@ -638,7 +638,7 @@ class TestFiresDataTableFormats:
         with pytest.raises(
             ValueError, match="data_table must contain at least one row"
         ):
-            Fires(
+            Fire(
                 id="FIRE1",
                 comp_id="ROOM1",
                 fire_id="WOOD",
@@ -653,7 +653,7 @@ class TestFiresDataTableFormats:
             [60, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0],
             [300, 500, 1.0, 1.0, 0.01, 0.01, 0, 0, 0],
         ]
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="WOOD",
@@ -667,7 +667,7 @@ class TestFiresDataTableFormats:
         assert isinstance(df, pd.DataFrame)
 
         # Check column names
-        assert list(df.columns) == Fires.LABELS
+        assert list(df.columns) == Fire.LABELS
 
         # Check data content
         assert df.values.tolist() == data_table
@@ -694,7 +694,7 @@ class TestFiresDataTableFormats:
         )
 
         # Create Fire from DataFrame
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="WOOD",
@@ -715,7 +715,7 @@ class TestFiresDataTableFormats:
             [0, 0, 0.5, 0.1, 0.01, 0.01, 0, 0, 0],  # mix of int and float
             [60.0, 1000, 0.5, 1, 0.01, 0.01, 0, 0, 0],  # mix of float and int
         ]
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="WOOD",
@@ -734,7 +734,7 @@ class TestFiresDataTableFormats:
             [0, 100, 0.5, 0.1, 0.01, 0.01, 0, 0, 0],
             [60, 500, 1.0, 0.5, 0.01, 0.01, 0, 0, 0],
         ]
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="POLYURETHANE",
@@ -763,7 +763,7 @@ class TestFiresDataTableFormats:
         assert "2" in html_str  # data rows count - more flexible check
 
 
-class TestFiresSetItemValidation:
+class TestFireSetItemValidation:
     """Test validation in __setitem__ to ensure data integrity."""
 
     def test_setitem_invalid_location_too_few(self, make_fire):

@@ -13,32 +13,32 @@ import logging
 from importlib.metadata import version
 
 from . import datasets
-from .ceiling_floor_vents import CeilingFloorVents
-from .compartments import Compartments
-from .devices import Devices
-from .fires import Fires
-from .material_properties import MaterialProperties
-from .mechanical_vents import MechanicalVents
+from .ceiling_floor_vent import CeilingFloorVent
+from .compartment import Compartment
+from .device import Device
+from .fire import Fire
+from .material import Material
+from .mechanical_vent import MechanicalVent
 from .model import CFASTModel
 from .simulation_environment import SimulationEnvironment
-from .surface_connections import SurfaceConnections
-from .wall_vents import WallVents
+from .surface_connection import SurfaceConnection
+from .wall_vent import WallVent
 
 logging.getLogger("pycfast").addHandler(logging.NullHandler())
 
 __all__ = [
     "datasets",
     "CFAST_VERSION",
-    "CeilingFloorVents",
-    "Compartments",
-    "Devices",
-    "Fires",
-    "MaterialProperties",
-    "MechanicalVents",
+    "CeilingFloorVent",
+    "Compartment",
+    "Device",
+    "Fire",
+    "Material",
+    "MechanicalVent",
     "CFASTModel",
     "SimulationEnvironment",
-    "SurfaceConnections",
-    "WallVents",
+    "SurfaceConnection",
+    "WallVent",
 ]
 
 __version__ = version("pycfast")

@@ -1,7 +1,7 @@
 """
 Mechanical ventilation system definition module for CFAST simulations.
 
-This module provides the MechanicalVents class for defining HVAC systems,
+This module provides the MechanicalVent class for defining HVAC systems,
 fans, and forced ventilation that actively move air between compartments
 or to/from the exterior.
 """
@@ -15,7 +15,7 @@ from .utils.namelist import NamelistRecord
 from .utils.theme import build_card
 
 
-class MechanicalVents:
+class MechanicalVent:
     """
     Represents a mechanical ventilation system in a CFAST simulation.
 
@@ -115,7 +115,7 @@ class MechanicalVents:
     --------
     Create a supply air system:
 
-    >>> supply_fan = MechanicalVents(
+    >>> supply_fan = MechanicalVent(
     ...     id="SUPPLY_1",
     ...     comps_ids=["OUTSIDE", "ROOM1"],
     ...     area=[0.1, 0.1],              # 0.1 m² grilles
@@ -130,7 +130,7 @@ class MechanicalVents:
 
     Create an exhaust fan with time-based control:
 
-    >>> exhaust_fan = MechanicalVents(
+    >>> exhaust_fan = MechanicalVent(
     ...     id="EXHAUST_1",
     ...     comps_ids=["KITCHEN", "OUTSIDE"],
     ...     area=[0.05, 0.05],            # Smaller exhaust grilles
@@ -232,7 +232,7 @@ class MechanicalVents:
         for i, a in enumerate(self.area):
             if a < 0:
                 raise ValueError(
-                    f"MechanicalVents '{self.id}': area[{i}]={a} must be non-negative."
+                    f"MechanicalVent '{self.id}': area[{i}]={a} must be non-negative."
                 )
 
         if (
@@ -240,7 +240,7 @@ class MechanicalVents:
             and not 0.0 <= self.filter_efficiency <= 100.0
         ):
             raise ValueError(
-                f"MechanicalVents '{self.id}': filter_efficiency={self.filter_efficiency} "
+                f"MechanicalVent '{self.id}': filter_efficiency={self.filter_efficiency} "
                 "must be in [0, 100] (percentage)."
             )
 
@@ -248,21 +248,21 @@ class MechanicalVents:
             for i, f in enumerate(self.fraction):
                 if not 0.0 <= f <= 1.0:
                     raise ValueError(
-                        f"MechanicalVents '{self.id}': fraction[{i}]={f} must be in [0, 1]."
+                        f"MechanicalVent '{self.id}': fraction[{i}]={f} must be in [0, 1]."
                     )
 
         if self.filter_time is not None and self.filter_time < 0:
             warnings.warn(
-                f"MechanicalVents '{self.id}': filter_time={self.filter_time} is negative. "
+                f"MechanicalVent '{self.id}': filter_time={self.filter_time} is negative. "
                 "This may cause unexpected behaviour.",
                 UserWarning,
                 stacklevel=2,
             )
 
     def __repr__(self) -> str:
-        """Return a detailed string representation of the MechanicalVents."""
+        """Return a detailed string representation of the MechanicalVent."""
         return (
-            f"MechanicalVents("
+            f"MechanicalVent("
             f"id='{self.id}', "
             f"comps_ids={self.comps_ids}, "
             f"flow={self.flow}, "
@@ -272,7 +272,7 @@ class MechanicalVents:
         )
 
     def __str__(self) -> str:
-        """Return a user-friendly string representation of the MechanicalVents."""
+        """Return a user-friendly string representation of the MechanicalVent."""
         connection = f"{self.comps_ids[0]} -> {self.comps_ids[1]}"
         flow_str = f"flow: {self.flow} m³/s"
         return f"Mechanical Vent '{self.id}': {connection}, {flow_str}"
@@ -322,7 +322,7 @@ class MechanicalVents:
     def __getitem__(self, key: str) -> Any:
         """Get vent property by name for dictionary-like access."""
         if not hasattr(self, key):
-            raise KeyError(f"Property '{key}' not found in MechanicalVents.")
+            raise KeyError(f"Property '{key}' not found in MechanicalVent.")
         return getattr(self, key)
 
     def __setitem__(self, key: str, value: Any) -> None:
@@ -340,7 +340,7 @@ class MechanicalVents:
         """
         if not hasattr(self, key):
             raise KeyError(
-                f"Cannot set '{key}'. Property does not exist in MechanicalVents."
+                f"Cannot set '{key}'. Property does not exist in MechanicalVent."
             )
         old_value = getattr(self, key)
         setattr(self, key, value)
@@ -361,7 +361,7 @@ class MechanicalVents:
 
         Examples
         --------
-        >>> vent = MechanicalVents("FAN1", ["OUT", "RM1"], [0.1, 0.1],
+        >>> vent = MechanicalVent("FAN1", ["OUT", "RM1"], [0.1, 0.1],
         ...                       [3, 2.8], ["HORIZ", "HORIZ"], 0.5,
         ...                       [100, 100], [0, 1], 0, 0)
         >>> print(vent.to_input_string())

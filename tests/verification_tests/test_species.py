@@ -6,11 +6,11 @@ import pytest
 
 from pycfast import (
     CFASTModel,
-    Compartments,
-    Devices,
-    Fires,
-    MaterialProperties,
-    MechanicalVents,
+    Compartment,
+    Device,
+    Fire,
+    Material,
+    MechanicalVent,
     SimulationEnvironment,
 )
 
@@ -43,7 +43,7 @@ def test_species_test_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Room_1",
             depth=5,
             height=5,
@@ -59,7 +59,7 @@ def test_species_test_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="Methane_Fire",
             comp_id="Room_1",
             fire_id="Species_Fire",
@@ -125,7 +125,7 @@ def test_methane_flame_simple_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Room_1",
             depth=5,
             height=5,
@@ -141,7 +141,7 @@ def test_methane_flame_simple_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="Methane_Fire",
             comp_id="Room_1",
             fire_id="Methane_Fire",
@@ -205,7 +205,7 @@ def test_gas_tenability_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="Steel",
             material="Steel",
             conductivity=54,
@@ -217,7 +217,7 @@ def test_gas_tenability_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=5,
             height=5,
@@ -236,7 +236,7 @@ def test_gas_tenability_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="CO",
             comp_id="Comp 1",
             fire_id="CO_Fire",
@@ -258,7 +258,7 @@ def test_gas_tenability_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="Comp 1",
             location=[2.5, 2.5, 4.9],
@@ -314,7 +314,7 @@ def test_heat_tenability_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="Steel",
             material="Steel",
             conductivity=54,
@@ -326,7 +326,7 @@ def test_heat_tenability_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=5,
             height=5,
@@ -342,7 +342,7 @@ def test_heat_tenability_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="Comp 1",
             location=[2.5, 2.5, 2.5],
@@ -398,7 +398,7 @@ def test_trace_species_1_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Room_1",
             depth=5,
             height=5,
@@ -414,7 +414,7 @@ def test_trace_species_1_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="Methane_Fire",
             comp_id="Room_1",
             fire_id="Methane_Fire",
@@ -479,7 +479,7 @@ def test_trace_species_2_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Room_1",
             depth=10,
             height=2,
@@ -492,7 +492,7 @@ def test_trace_species_2_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Room_2",
             depth=10,
             height=2,
@@ -508,7 +508,7 @@ def test_trace_species_2_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["Room_1", "Room_2"],
             area=[1, 1],
@@ -521,7 +521,7 @@ def test_trace_species_2_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_2",
             comps_ids=["Room_2", "Room_1"],
             area=[1, 1],
@@ -537,7 +537,7 @@ def test_trace_species_2_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="Methane_Fire",
             comp_id="Room_1",
             fire_id="Methane_Fire",
@@ -602,7 +602,7 @@ def test_trace_species_3_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Room_1",
             depth=10,
             height=2,
@@ -615,7 +615,7 @@ def test_trace_species_3_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Room_2",
             depth=10,
             height=2,
@@ -631,7 +631,7 @@ def test_trace_species_3_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["Room_1", "Room_2"],
             area=[1, 1],
@@ -644,7 +644,7 @@ def test_trace_species_3_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=100,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_2",
             comps_ids=["Room_2", "Room_1"],
             area=[1, 1],
@@ -660,7 +660,7 @@ def test_trace_species_3_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="Methane_Fire",
             comp_id="Room_1",
             fire_id="Methane_Fire",

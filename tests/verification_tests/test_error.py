@@ -4,11 +4,11 @@ import pytest
 
 from pycfast import (
     CFASTModel,
-    Compartments,
-    MaterialProperties,
-    MechanicalVents,
+    Compartment,
+    Material,
+    MechanicalVent,
     SimulationEnvironment,
-    WallVents,
+    WallVent,
 )
 
 
@@ -28,7 +28,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
         exterior_temperature=20,
     )
     material_properties = [
-        MaterialProperties(
+        Material(
             id="GYPS000",
             material="Gypsum for DOE sample problem",
             conductivity=0.2,
@@ -37,7 +37,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
             thickness=0.016,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="CONC003",
             material="Concrete for DOE sample problem",
             conductivity=1.75,
@@ -48,7 +48,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
         ),
     ]
     compartments = [
-        Compartments(
+        Compartment(
             id="Process Room",
             depth=3,
             height=2.6,
@@ -63,7 +63,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Airlock",
             depth=2,
             height=2.44,
@@ -78,7 +78,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
             origin_y=1,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Corridor",
             depth=3,
             height=2.44,
@@ -95,7 +95,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
         ),
     ]
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Process Room", "Airlock"],
             bottom=0,
@@ -104,7 +104,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
             face="RIGHT",
             offset=1.2,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_2",
             comps_ids=["Process Room", "Airlock"],
             bottom=0,
@@ -116,7 +116,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
             time=[0, 0],
             fraction=[0, 0],
         ),
-        WallVents(
+        WallVent(
             id="WallVent_3",
             comps_ids=["Process Room", "Corridor"],
             bottom=0.9,
@@ -128,7 +128,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
             time=[0, 0],
             fraction=[0, 0],
         ),
-        WallVents(
+        WallVent(
             id="WallVent_4",
             comps_ids=["Process Room", "Corridor"],
             bottom=2.3,
@@ -137,7 +137,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
             face="REAR",
             offset=1,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_5",
             comps_ids=["Airlock", "Corridor"],
             bottom=0,
@@ -146,7 +146,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
             face="REAR",
             offset=0.2,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_6",
             comps_ids=["Airlock", "Corridor"],
             bottom=0,
@@ -158,7 +158,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
             time=[0, 0],
             fraction=[0, 0],
         ),
-        WallVents(
+        WallVent(
             id="WallVent_7",
             comps_ids=["Corridor", "OUTSIDE"],
             bottom=0,
@@ -167,7 +167,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
             face="REAR",
             offset=13.5,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_8",
             comps_ids=["Corridor", "OUTSIDE"],
             bottom=0,
@@ -181,7 +181,7 @@ def test_doe201_no_fire_simulation_with_error(tmp_path):
         ),
     ]
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["Invalid Room", "OUTSIDE"],  # misspelled compartment name
             area=[0.05, 0.05],

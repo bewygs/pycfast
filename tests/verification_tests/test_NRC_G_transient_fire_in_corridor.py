@@ -7,13 +7,13 @@ import pytest
 
 from pycfast import (
     CFASTModel,
-    Compartments,
-    Devices,
-    Fires,
-    MaterialProperties,
-    MechanicalVents,
+    Compartment,
+    Device,
+    Fire,
+    Material,
+    MechanicalVent,
     SimulationEnvironment,
-    WallVents,
+    WallVent,
 )
 
 from .verification import (
@@ -46,7 +46,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="CorConcrete",
             material="Corridor Concrete (User''s Guide)",
             conductivity=1.6,
@@ -55,7 +55,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             thickness=0.5,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="CorXPE",
             material="Corridor XPE Cable (NUREG 1824)",
             conductivity=0.21,
@@ -67,7 +67,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Compartment 1",
             depth=4.1,
             height=6.1,
@@ -83,7 +83,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Compartment 2",
             depth=23.4,
             height=6.1,
@@ -98,7 +98,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Compartment 3",
             depth=4.1,
             height=6.1,
@@ -113,7 +113,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Compartment 4",
             depth=6,
             height=6.1,
@@ -128,7 +128,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             origin_y=4.1,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Compartment 5",
             depth=6.6,
             height=6.1,
@@ -143,7 +143,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             origin_y=10.1,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Compartment 6",
             depth=6.6,
             height=6.1,
@@ -158,7 +158,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             origin_y=16.7,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Compartment 7",
             depth=8.2,
             height=6.1,
@@ -173,7 +173,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Compartment 8",
             depth=15.2,
             height=6.1,
@@ -192,7 +192,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
 
     wall_vents = [
         # Inter-compartment connections
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Compartment 1", "Compartment 2"],
             bottom=0,
@@ -201,7 +201,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             face="RIGHT",
             offset=0,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_2",
             comps_ids=["Compartment 2", "Compartment 3"],
             bottom=0,
@@ -210,7 +210,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             face="RIGHT",
             offset=0,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_3",
             comps_ids=["Compartment 3", "Compartment 4"],
             bottom=0,
@@ -219,7 +219,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             face="REAR",
             offset=10.6,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_4",
             comps_ids=["Compartment 4", "Compartment 5"],
             bottom=0,
@@ -228,7 +228,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             face="REAR",
             offset=0,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_5",
             comps_ids=["Compartment 5", "Compartment 6"],
             bottom=0,
@@ -237,7 +237,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             face="REAR",
             offset=4.2,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_6",
             comps_ids=["Compartment 3", "Compartment 7"],
             bottom=0,
@@ -246,7 +246,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             face="RIGHT",
             offset=0,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_7",
             comps_ids=["Compartment 7", "Compartment 8"],
             bottom=0,
@@ -256,7 +256,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             offset=9.2,
         ),
         # External leakage vents
-        WallVents(
+        WallVent(
             id="WallVent_8",
             comps_ids=["Compartment 1", "OUTSIDE"],
             bottom=0,
@@ -265,7 +265,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             face="LEFT",
             offset=0,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_9",
             comps_ids=["Compartment 2", "OUTSIDE"],
             bottom=0,
@@ -274,7 +274,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             face="REAR",
             offset=0,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_10",
             comps_ids=["Compartment 8", "OUTSIDE"],
             bottom=0,
@@ -286,7 +286,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["OUTSIDE", "Compartment 1"],
             area=[1, 1],
@@ -297,7 +297,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_2",
             comps_ids=["Compartment 7", "OUTSIDE"],
             area=[1, 1],
@@ -311,7 +311,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="Transient Combustibles",
             comp_id="Compartment 8",
             fire_id="Pallets",
@@ -342,7 +342,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="Compartment 2",
             location=[1, 0.45, 4.8],
@@ -352,7 +352,7 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             temperature_depth=0.0015,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2",
             comp_id="Compartment 6",
             location=[5.2, 4.15, 4.8],
@@ -362,56 +362,56 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
             temperature_depth=0.0015,
             depth_units="M",
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_1",
             comp_id="Compartment 1",
             location=[1.5, 1.6, 6.039],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_2",
             comp_id="Compartment 3",
             location=[2.6, 2.05, 6.039],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_3",
             comp_id="Compartment 3",
             location=[11.9, 2.05, 6.039],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_4",
             comp_id="Compartment 3",
             location=[39.9, 2.05, 6.039],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_5",
             comp_id="Compartment 5",
             location=[5.15, 3.3, 6.039],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_6",
             comp_id="Compartment 6",
             location=[5.3, 3.3, 6.039],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_7",
             comp_id="Compartment 7",
             location=[6.1, 4.1, 6.039],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_8",
             comp_id="Compartment 8",
             location=[1.5, 10.2, 6.039],

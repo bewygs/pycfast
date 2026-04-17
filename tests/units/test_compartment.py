@@ -2,19 +2,19 @@ from __future__ import annotations
 
 import pytest
 
-from pycfast.compartments import Compartments
+from pycfast.compartment import Compartment
 
 """
-Tests for the Compartments class.
+Tests for the Compartment class.
 """
 
 
-class TestCompartments:
-    """Test class for Compartments."""
+class TestCompartment:
+    """Test class for Compartment."""
 
     def test_init_default(self):
         """Test default initialization."""
-        comp = Compartments()
+        comp = Compartment()
         assert comp.id == "Comp 1"
         assert comp.width == 3.6
         assert comp.depth == 2.4
@@ -33,7 +33,7 @@ class TestCompartments:
 
     def test_init_with_all_parameters(self):
         """Test initialization with all parameters."""
-        comp = Compartments(
+        comp = Compartment(
             id="BEDROOM",
             width=3.5,
             depth=4.0,
@@ -75,12 +75,12 @@ class TestCompartments:
     def test_init_shaft_and_hall_both_true(self):
         """Test that initialization fails when both shaft and hall are True."""
         with pytest.raises(ValueError, match="shaft and hall cannot both be True"):
-            Compartments(id="ROOM1", shaft=True, hall=True)
+            Compartment(id="ROOM1", shaft=True, hall=True)
 
     def test_init_mismatched_cross_sect_arrays(self):
         """Test that initialization fails with mismatched cross-section arrays."""
         with pytest.raises(ValueError, match="must have the same length"):
-            Compartments(
+            Compartment(
                 id="ROOM1",
                 cross_sect_areas=[10.0, 15.0],
                 cross_sect_heights=[1.0],
@@ -96,23 +96,23 @@ class TestCompartments:
     def test_init_invalid_leak_area_ratio_length(self, leak_area_ratio: list[float]):
         """Test that initialization fails with wrong leak area ratio length."""
         with pytest.raises(ValueError, match="must contain exactly 2 values"):
-            Compartments(id="ROOM1", leak_area_ratio=leak_area_ratio)
+            Compartment(id="ROOM1", leak_area_ratio=leak_area_ratio)
 
     @pytest.mark.parametrize("param", ["width", "depth", "height"])
     def test_negative_dimension(self, param: str):
         """Test that initialization fails with negative dimensions."""
         with pytest.raises(ValueError, match="must be positive"):
-            Compartments(id="ROOM1", **{param: -1.0})  # type: ignore[arg-type]
+            Compartment(id="ROOM1", **{param: -1.0})  # type: ignore[arg-type]
 
     @pytest.mark.parametrize("param", ["origin_x", "origin_y", "origin_z"])
     def test_negative_location(self, param: str):
         """Test that initialization fails with negative origin coordinates."""
         with pytest.raises(ValueError, match=r"must be >= 0"):
-            Compartments(id="ROOM1", width=3.0, depth=4.0, height=2.4, **{param: -1.0})  # type: ignore[arg-type]
+            Compartment(id="ROOM1", width=3.0, depth=4.0, height=2.4, **{param: -1.0})  # type: ignore[arg-type]
 
     def test_to_input_string_basic(self):
         """Test basic input string generation."""
-        comp = Compartments(id="ROOM1", width=3.0, depth=4.0, height=2.4)
+        comp = Compartment(id="ROOM1", width=3.0, depth=4.0, height=2.4)
         result = comp.to_input_string()
         assert result.startswith("&COMP")
         assert result.endswith("/\n")
@@ -125,7 +125,7 @@ class TestCompartments:
 
     def test_to_input_string_with_materials(self):
         """Test input string generation with materials."""
-        comp = Compartments(
+        comp = Compartment(
             id="ROOM1",
             width=3.0,
             depth=4.0,
@@ -180,14 +180,14 @@ class TestCompartments:
         self, prop: str, kwargs: dict, expected: str, unexpected: str
     ):
         """Test input string generation with shaft or hall option."""
-        comp = Compartments(**kwargs)  # type: ignore[arg-type]
+        comp = Compartment(**kwargs)  # type: ignore[arg-type]
         result = comp.to_input_string()
         assert expected in result
         assert unexpected not in result
 
     def test_to_input_string_with_cross_sections(self):
         """Test input string generation with variable cross-sections."""
-        comp = Compartments(
+        comp = Compartment(
             id="ROOM1",
             width=3.0,
             depth=4.0,
@@ -201,7 +201,7 @@ class TestCompartments:
 
     def test_to_input_string_with_leak_area_ratio(self):
         """Test input string generation with leak area ratios."""
-        comp = Compartments(
+        comp = Compartment(
             id="ROOM1",
             width=3.0,
             depth=4.0,
@@ -213,7 +213,7 @@ class TestCompartments:
 
     def test_to_input_string_custom_origin(self):
         """Test input string generation with custom origin."""
-        comp = Compartments(
+        comp = Compartment(
             id="ROOM2",
             width=3.0,
             depth=4.0,
@@ -227,7 +227,7 @@ class TestCompartments:
 
     def test_to_input_string_partial_origin(self):
         """Test input string generation with partial origin specification."""
-        comp = Compartments(
+        comp = Compartment(
             id="ROOM2",
             width=3.0,
             depth=4.0,
@@ -241,7 +241,7 @@ class TestCompartments:
 
     def test_to_input_string_materials_without_thickness(self):
         """Test input string generation with materials but without thickness."""
-        comp = Compartments(
+        comp = Compartment(
             id="ROOM1",
             width=3.0,
             depth=4.0,
@@ -260,7 +260,7 @@ class TestCompartments:
 
     def test_to_input_string_none_dimensions(self):
         """Test input string generation with None dimensions."""
-        comp = Compartments(id="ROOM1", width=None, depth=None, height=None)
+        comp = Compartment(id="ROOM1", width=None, depth=None, height=None)
         result = comp.to_input_string()
         assert "WIDTH" not in result
         assert "DEPTH" not in result
@@ -268,20 +268,20 @@ class TestCompartments:
 
     def test_init_cross_sect_areas_only(self):
         """Test initialization with cross_sect_areas but no heights."""
-        comp = Compartments(id="ROOM1", cross_sect_areas=[10.0, 15.0])
+        comp = Compartment(id="ROOM1", cross_sect_areas=[10.0, 15.0])
         assert comp.cross_sect_areas == [10.0, 15.0]
         assert comp.cross_sect_heights is None
 
     def test_init_cross_sect_heights_only(self):
         """Test initialization with cross_sect_heights but no areas."""
-        comp = Compartments(id="ROOM1", cross_sect_heights=[1.0, 2.0])
+        comp = Compartment(id="ROOM1", cross_sect_heights=[1.0, 2.0])
         assert comp.cross_sect_heights == [1.0, 2.0]
         assert comp.cross_sect_areas is None
 
     # Tests for dunder methods
     def test_repr(self) -> None:
         """Test __repr__ method."""
-        comp = Compartments(
+        comp = Compartment(
             id="BEDROOM",
             width=3.5,
             depth=4.0,
@@ -291,7 +291,7 @@ class TestCompartments:
         )
 
         repr_str = repr(comp)
-        assert "Compartments(" in repr_str
+        assert "Compartment(" in repr_str
         assert "id='BEDROOM'" in repr_str
         assert "width=3.5" in repr_str
         assert "depth=4.0" in repr_str
@@ -299,7 +299,7 @@ class TestCompartments:
 
     def test_str(self) -> None:
         """Test __str__ method."""
-        comp = Compartments(
+        comp = Compartment(
             id="LIVING_ROOM",
             width=5.0,
             depth=4.0,
@@ -317,7 +317,7 @@ class TestCompartments:
 
     def test_str_with_shaft_and_hall(self) -> None:
         """Test __str__ method with shaft property only."""
-        comp = Compartments(
+        comp = Compartment(
             id="CORRIDOR",
             width=2.0,
             depth=10.0,
@@ -332,7 +332,7 @@ class TestCompartments:
 
     def test_getitem(self) -> None:
         """Test __getitem__ method."""
-        comp = Compartments(
+        comp = Compartment(
             id="TEST_ROOM",
             width=4.0,
             depth=3.0,
@@ -360,7 +360,7 @@ class TestCompartments:
 
     def test_getitem_invalid_key(self) -> None:
         """Test __getitem__ method with invalid key."""
-        comp = Compartments(id="ROOM1")
+        comp = Compartment(id="ROOM1")
 
         with pytest.raises(
             KeyError, match="Property 'invalid_key' not found in Compartment"
@@ -369,7 +369,7 @@ class TestCompartments:
 
     def test_setitem(self) -> None:
         """Test __setitem__ method."""
-        comp = Compartments(id="ROOM1")
+        comp = Compartment(id="ROOM1")
 
         # Test setting various properties
         comp["id"] = "NEW_ROOM"
@@ -404,7 +404,7 @@ class TestCompartments:
 
     def test_setitem_list_properties(self) -> None:
         """Test __setitem__ method with list properties."""
-        comp = Compartments(id="ROOM1")
+        comp = Compartment(id="ROOM1")
 
         comp["leak_area_ratio"] = [0.001, 0.002]
         assert comp.leak_area_ratio == [0.001, 0.002]
@@ -417,14 +417,14 @@ class TestCompartments:
 
     def test_setitem_invalid_key(self) -> None:
         """Test __setitem__ method with invalid key."""
-        comp = Compartments(id="ROOM1")
+        comp = Compartment(id="ROOM1")
 
         with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
             comp["invalid_key"] = "value"
 
     def test_repr_html(self) -> None:
         """Test _repr_html_ method."""
-        comp = Compartments(
+        comp = Compartment(
             id="BEDROOM",
             width=3.5,
             depth=4.0,
@@ -463,7 +463,7 @@ class TestCompartments:
 
     def test_repr_html_with_special_properties(self) -> None:
         """Test _repr_html_ method with shaft/hall properties."""
-        comp_shaft = Compartments(
+        comp_shaft = Compartment(
             id="SHAFT1", shaft=True, width=2.0, depth=2.0, height=10.0
         )
 
@@ -472,7 +472,7 @@ class TestCompartments:
         assert "Shaft" in html_str
         assert "<strong>Type:</strong> Shaft" in html_str
 
-        comp_hall = Compartments(
+        comp_hall = Compartment(
             id="HALL1", hall=True, width=10.0, depth=2.0, height=2.4
         )
 
@@ -483,19 +483,19 @@ class TestCompartments:
 
     def test_repr_html_no_materials(self) -> None:
         """Test _repr_html_ method with no materials specified."""
-        comp = Compartments(id="EMPTY", width=3.0, depth=3.0, height=3.0)
+        comp = Compartment(id="EMPTY", width=3.0, depth=3.0, height=3.0)
 
         html_str = comp._repr_html_()
 
         assert "<em>No materials specified</em>" in html_str
 
 
-class TestCompartmentsSetItemValidation:
+class TestCompartmentSetItemValidation:
     """Test validation in __setitem__ to ensure data integrity."""
 
     def test_setitem_shaft_and_hall_both_true(self):
         """Test that __setitem__ rejects shaft and hall both True."""
-        comp = Compartments(id="ROOM1", shaft=True)
+        comp = Compartment(id="ROOM1", shaft=True)
         with pytest.raises(ValueError, match="shaft and hall cannot both be True"):
             comp["hall"] = True
 
@@ -508,7 +508,7 @@ class TestCompartmentsSetItemValidation:
     )
     def test_setitem_invalid_leak_area_ratio_length(self, invalid_ratio):
         """Test that __setitem__ rejects leak_area_ratio with wrong length."""
-        comp = Compartments(id="ROOM1")
+        comp = Compartment(id="ROOM1")
         with pytest.raises(
             ValueError, match="leak_area_ratio must contain exactly 2 values"
         ):
@@ -516,7 +516,7 @@ class TestCompartmentsSetItemValidation:
 
     def test_setitem_mismatched_cross_sect_lengths(self):
         """Test that __setitem__ rejects mismatched cross section list lengths."""
-        comp = Compartments(
+        comp = Compartment(
             id="ROOM1",
             cross_sect_areas=[1.0, 2.0],
             cross_sect_heights=[0.0, 1.0],
@@ -529,7 +529,7 @@ class TestCompartmentsSetItemValidation:
 
     def test_setitem_valid_dimension_changes(self):
         """Test that __setitem__ accepts valid dimension changes."""
-        comp = Compartments(id="ROOM1")
+        comp = Compartment(id="ROOM1")
         comp["width"] = 5.0
         comp["height"] = 3.0
         assert comp.width == 5.0
@@ -537,7 +537,7 @@ class TestCompartmentsSetItemValidation:
 
     def test_setitem_invalid_does_not_mutate_state(self):
         """Test that a failed __setitem__ rolls back to the previous value."""
-        comp = Compartments(id="ROOM1", shaft=True)
+        comp = Compartment(id="ROOM1", shaft=True)
         assert comp.shaft is True
         assert comp.hall is None
 

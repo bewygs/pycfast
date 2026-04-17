@@ -2,18 +2,18 @@ from __future__ import annotations
 
 import pytest
 
-from pycfast.mechanical_vents import MechanicalVents
+from pycfast.mechanical_vent import MechanicalVent
 
 """
-Tests for the MechanicalVents class.
+Tests for the MechanicalVent class.
 """
 
 
 @pytest.fixture()
 def make_mechanical_vent():
-    """Create a MechanicalVents instance with sensible defaults."""
+    """Create a MechanicalVent instance with sensible defaults."""
 
-    def _make(**kwargs: object) -> MechanicalVents:
+    def _make(**kwargs: object) -> MechanicalVent:
         defaults: dict[str, object] = {
             "id": "FAN1",
             "comps_ids": ["OUTSIDE", "ROOM1"],
@@ -27,17 +27,17 @@ def make_mechanical_vent():
             "filter_efficiency": 0.0,
         }
         defaults.update(kwargs)
-        return MechanicalVents(**defaults)  # type: ignore[arg-type]
+        return MechanicalVent(**defaults)  # type: ignore[arg-type]
 
     return _make
 
 
-class TestMechanicalVents:
-    """Test class for MechanicalVents."""
+class TestMechanicalVent:
+    """Test class for MechanicalVent."""
 
     def test_init_basic(self):
         """Test basic initialization with minimal parameters."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="VENT_1",
             comps_ids=["ROOM1", "ROOM2"],
             area=[0.5, 0.5],
@@ -58,7 +58,7 @@ class TestMechanicalVents:
 
     def test_init_with_all_parameters(self):
         """Test initialization with all parameters."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="SUPPLY_1",
             comps_ids=["OUTSIDE", "ROOM1"],
             area=[0.1, 0.1],
@@ -105,7 +105,7 @@ class TestMechanicalVents:
     def test_init_invalid_comps_ids_length(self, comps_ids: list[str]):
         """Test that initialization fails with wrong number of compartments."""
         with pytest.raises(ValueError, match="exactly 2 compartment IDs"):
-            MechanicalVents(id="FAN1", comps_ids=comps_ids)
+            MechanicalVent(id="FAN1", comps_ids=comps_ids)
 
     @pytest.mark.parametrize(
         ("field", "bad_value", "match"),
@@ -137,7 +137,7 @@ class TestMechanicalVents:
     def test_init_invalid_list_length(self, field: str, bad_value: list, match: str):
         """Test that initialization fails with wrong list length."""
         with pytest.raises(ValueError, match=match):
-            MechanicalVents(
+            MechanicalVent(
                 id="FAN1",
                 comps_ids=["OUTSIDE", "ROOM1"],
                 **{field: bad_value},
@@ -153,7 +153,7 @@ class TestMechanicalVents:
     def test_init_negative_cutoffs(self, cutoffs: list[float]):
         """Test that initialization fails with negative cutoff values."""
         with pytest.raises(ValueError, match="cutoffs must be non-negative"):
-            MechanicalVents(
+            MechanicalVent(
                 id="FAN1",
                 comps_ids=["OUTSIDE", "ROOM1"],
                 cutoffs=cutoffs,
@@ -162,7 +162,7 @@ class TestMechanicalVents:
     def test_init_invalid_cutoffs_order(self):
         """Test that initialization fails when second cutoff is less than first."""
         with pytest.raises(ValueError, match="Zero flow pressure must be greater"):
-            MechanicalVents(
+            MechanicalVent(
                 id="FAN1",
                 comps_ids=["OUTSIDE", "ROOM1"],
                 cutoffs=[150.0, 100.0],  # Second cutoff less than first
@@ -197,7 +197,7 @@ class TestMechanicalVents:
 
     def test_to_input_string_basic(self):
         """Test basic input string generation."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="FAN1",
             comps_ids=["OUTSIDE", "ROOM1"],
             area=[0.1, 0.1],
@@ -255,7 +255,7 @@ class TestMechanicalVents:
 
     def test_to_input_string_exhaust_fan(self):
         """Test input string generation for exhaust fan (negative flow)."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="EXHAUST1",
             comps_ids=["ROOM1", "OUTSIDE"],
             area=[0.05, 0.05],
@@ -274,7 +274,7 @@ class TestMechanicalVents:
 
     def test_to_input_string_with_filtration(self):
         """Test input string generation with filtration parameters."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="FILTERED_SUPPLY",
             comps_ids=["OUTSIDE", "ROOM1"],
             area=[0.2, 0.2],
@@ -306,7 +306,7 @@ class TestMechanicalVents:
 
     def test_to_input_string_multiple_orientations(self):
         """Test input string generation with different orientations."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="MIXED_VENT",
             comps_ids=["ROOM1", "ROOM2"],
             area=[0.1, 0.2],
@@ -326,7 +326,7 @@ class TestMechanicalVents:
 
     def test_to_input_string_none_filter_params(self):
         """Test input string generation with None filter parameters."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="FAN1",
             comps_ids=["OUTSIDE", "ROOM1"],
             area=[0.1, 0.1],
@@ -345,7 +345,7 @@ class TestMechanicalVents:
 
     def test_default_values_initialization(self):
         """Test that default values are properly set during initialization."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="FAN1",
             comps_ids=["OUTSIDE", "ROOM1"],
             offsets=[0.0, 1.0],  # Required parameter
@@ -360,7 +360,7 @@ class TestMechanicalVents:
 
     def test_repr(self) -> None:
         """Test __repr__ method."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="SUPPLY_FAN",
             comps_ids=["OUTSIDE", "LOBBY"],
             area=[0.2, 0.2],
@@ -372,7 +372,7 @@ class TestMechanicalVents:
         )
 
         repr_str = repr(vent)
-        assert "MechanicalVents(" in repr_str
+        assert "MechanicalVent(" in repr_str
         assert "id='SUPPLY_FAN'" in repr_str
         assert "comps_ids=['OUTSIDE', 'LOBBY']" in repr_str
         assert "flow=1.2" in repr_str
@@ -381,7 +381,7 @@ class TestMechanicalVents:
 
     def test_str(self) -> None:
         """Test __str__ method."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="EXHAUST_01",
             comps_ids=["KITCHEN", "OUTSIDE"],
             area=[0.15, 0.15],
@@ -399,7 +399,7 @@ class TestMechanicalVents:
 
     def test_str_with_supply_flow(self) -> None:
         """Test __str__ method with positive supply flow."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="SUPPLY_02",
             comps_ids=["OUTSIDE", "BEDROOM"],
             area=[0.1, 0.1],
@@ -415,7 +415,7 @@ class TestMechanicalVents:
 
     def test_getitem(self) -> None:
         """Test __getitem__ method."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="TEST_VENT",
             comps_ids=["ROOM_A", "ROOM_B"],
             area=[0.25, 0.25],
@@ -449,7 +449,7 @@ class TestMechanicalVents:
 
     def test_getitem_with_none_values(self) -> None:
         """Test __getitem__ method with None values."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="MINIMAL_VENT", comps_ids=["ROOM1", "ROOM2"], offsets=[0.0, 0.0]
         )
 
@@ -462,18 +462,18 @@ class TestMechanicalVents:
 
     def test_getitem_invalid_key(self) -> None:
         """Test __getitem__ method with invalid key."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="VENT1", comps_ids=["ROOM1", "ROOM2"], offsets=[0.0, 0.0]
         )
 
         with pytest.raises(
-            KeyError, match="Property 'invalid_property' not found in MechanicalVents"
+            KeyError, match="Property 'invalid_property' not found in MechanicalVent"
         ):
             vent["invalid_property"]
 
     def test_setitem(self) -> None:
         """Test __setitem__ method."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="MODIFIABLE_VENT",
             comps_ids=["HALL", "OFFICE"],
             area=[0.12, 0.12],
@@ -501,7 +501,7 @@ class TestMechanicalVents:
 
     def test_setitem_compartment_lists(self) -> None:
         """Test __setitem__ method with compartment lists."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="LIST_VENT", comps_ids=["ROOM1", "ROOM2"], offsets=[0.0, 0.0]
         )
 
@@ -512,19 +512,19 @@ class TestMechanicalVents:
 
     def test_setitem_invalid_key(self) -> None:
         """Test __setitem__ method with invalid key."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="VENT1", comps_ids=["ROOM1", "ROOM2"], offsets=[0.0, 0.0]
         )
 
         with pytest.raises(
             KeyError,
-            match="Cannot set 'nonexistent_attr'. Property does not exist in MechanicalVents",
+            match="Cannot set 'nonexistent_attr'. Property does not exist in MechanicalVent",
         ):
             vent["nonexistent_attr"] = "some_value"
 
     def test_repr_html(self) -> None:
         """Test _repr_html_ method."""
-        vent = MechanicalVents(
+        vent = MechanicalVent(
             id="SUPPLY_FAN",
             comps_ids=["OUTSIDE", "LOBBY"],
             area=[0.2, 0.2],
@@ -552,7 +552,7 @@ class TestMechanicalVents:
         assert "0.2" in html_str  # area
 
 
-class TestMechanicalVentsSetItemValidation:
+class TestMechanicalVentSetItemValidation:
     """Test validation in __setitem__ to ensure data integrity."""
 
     @pytest.mark.parametrize(

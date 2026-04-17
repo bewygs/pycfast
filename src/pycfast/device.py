@@ -14,7 +14,7 @@ from .utils.namelist import NamelistRecord
 from .utils.theme import build_card
 
 
-class Devices:
+class Device:
     """
     Represents measurement and fire protection devices in a CFAST simulation.
 
@@ -111,7 +111,7 @@ class Devices:
     --------
     Create a plate target:
 
-    >>> target = Devices(
+    >>> target = Device(
     ...     id="WALL_TARGET",
     ...     comp_id="ROOM1",
     ...     location=[2.0, 3.0, 1.5],     # 2m from left, 3m from front, 1.5m high
@@ -123,7 +123,7 @@ class Devices:
 
     Create a heat detector:
 
-    >>> detector = Devices(
+    >>> detector = Device(
     ...     id="HEAT_DET_1",
     ...     comp_id="KITCHEN",
     ...     location=[2.5, 2.5, 2.4],     # Ceiling mounted
@@ -136,7 +136,7 @@ class Devices:
 
     Create a sprinkler:
 
-    >>> sprinkler = Devices(
+    >>> sprinkler = Device(
     ...     id="SPRINKLER_1",
     ...     comp_id="OFFICE",
     ...     location=[3.0, 3.0, 2.4],     # Ceiling mounted
@@ -150,7 +150,7 @@ class Devices:
 
     Create a smoke detector:
 
-    >>> smoke_det = Devices(
+    >>> smoke_det = Device(
     ...     id="SMOKE_DET_1",
     ...     comp_id="CORRIDOR",
     ...     location=[5.0, 1.0, 2.4],     # Ceiling mounted
@@ -239,12 +239,12 @@ class Devices:
         self._validate()
 
     def __repr__(self) -> str:
-        """Return a detailed string representation of the Devices."""
+        """Return a detailed string representation of the Device."""
         location_str = f"[{', '.join(map(str, self.location))}]"
 
         if self.type in {"PLATE", "CYLINDER"}:
             return (
-                f"Devices("
+                f"Device("
                 f"id='{self.id}', type='{self.type}', comp_id='{self.comp_id}', "
                 f"location={location_str}, material_id='{self.material_id}', "
                 f"thickness={self.thickness}, temperature_depth={self.temperature_depth}"
@@ -262,14 +262,14 @@ class Devices:
             detector_str = f", {', '.join(detector_params)}" if detector_params else ""
 
             return (
-                f"Devices("
+                f"Device("
                 f"id='{self.id}', type='{self.type}', comp_id='{self.comp_id}', "
                 f"location={location_str}{detector_str}"
                 f")"
             )
 
     def __str__(self) -> str:
-        """Return a user-friendly string representation of the Devices."""
+        """Return a user-friendly string representation of the Device."""
         location_str = f"({self.location[0]}, {self.location[1]}, {self.location[2]})"
 
         if self.type in {"PLATE", "CYLINDER"}:
@@ -363,7 +363,7 @@ class Devices:
     def __getitem__(self, key: str) -> Any:
         """Get device property by name for dictionary-like access."""
         if not hasattr(self, key):
-            raise KeyError(f"Property '{key}' not found in Devices.")
+            raise KeyError(f"Property '{key}' not found in Device.")
         return getattr(self, key)
 
     def __setitem__(self, key: str, value: Any) -> None:
@@ -380,7 +380,7 @@ class Devices:
             If setting this value would violate object constraints.
         """
         if not hasattr(self, key):
-            raise KeyError(f"Cannot set '{key}'. Property does not exist in Devices.")
+            raise KeyError(f"Cannot set '{key}'. Property does not exist in Device.")
         old_value = getattr(self, key)
         setattr(self, key, value)
         try:
@@ -496,7 +496,7 @@ class Devices:
 
         Examples
         --------
-        >>> target = Devices.create_target(
+        >>> target = Device.create_target(
         ...     id="WALL_TARGET",
         ...     comp_id="ROOM1",
         ...     location=[2.0, 3.0, 1.5],
@@ -559,7 +559,7 @@ class Devices:
         depth_units: str = "M",
         adiabatic: bool = False,
         convection_coefficients: list[float] | None = None,
-    ) -> Devices:
+    ) -> Device:
         """
         Create a target device.
 
@@ -588,7 +588,7 @@ class Devices:
 
         Returns
         -------
-        Devices
+        Device
             Device instance configured as a target
 
         Raises
@@ -629,7 +629,7 @@ class Devices:
         location: list[float | int],
         setpoint: float,
         rti: float,
-    ) -> Devices:
+    ) -> Device:
         """
         Create a heat detector.
 
@@ -648,7 +648,7 @@ class Devices:
 
         Returns
         -------
-        Devices
+        Device
             Device instance configured as a heat detector
         """
         return cls(
@@ -669,7 +669,7 @@ class Devices:
         location: list[float | int],
         setpoint: float,
         obscuration: float = 23.93,
-    ) -> Devices:
+    ) -> Device:
         """
         Create a smoke detector.
 
@@ -688,7 +688,7 @@ class Devices:
 
         Returns
         -------
-        Devices
+        Device
             Device instance configured as a smoke detector
         """
         return cls(
@@ -710,7 +710,7 @@ class Devices:
         setpoint: float,
         rti: float,
         spray_density: float,
-    ) -> Devices:
+    ) -> Device:
         """
         Create a sprinkler.
 
@@ -731,7 +731,7 @@ class Devices:
 
         Returns
         -------
-        Devices
+        Device
             Device instance configured as a sprinkler
         """
         return cls(

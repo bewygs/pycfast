@@ -1,7 +1,7 @@
 """
 Fire definition module for CFAST simulations.
 
-This module provides the Fires class for defining fire sources in a
+This module provides the Fire class for defining fire sources in a
 compartment. Fires are characterized by their heat release rate over time,
 chemical composition, and physical properties.
 """
@@ -18,7 +18,7 @@ from .utils.namelist import NamelistRecord
 from .utils.theme import build_card
 
 
-class Fires:
+class Fire:
     """
     Represents a fire source in a CFAST simulation.
 
@@ -107,7 +107,7 @@ class Fires:
     ...     [60, 100, 0.5, 0.5, 0.01, 0.01, 0, 0, 0],   # t=60s, 100 kW
     ...     [300, 500, 1.0, 1.0, 0.01, 0.01, 0, 0, 0]   # t=300s, 500 kW peak
     ... ]
-    >>> fire = Fires(
+    >>> fire = Fire(
     ...     id="FIRE1",
     ...     comp_id="ROOM1",
     ...     fire_id="POLYURETHANE",
@@ -120,7 +120,7 @@ class Fires:
 
     Create a fire with target-based ignition:
 
-    >>> steady_fire = Fires(
+    >>> steady_fire = Fire(
     ...     id="IGNITED_FIRE",
     ...     comp_id="BEDROOM",
     ...     fire_id="WOOD",
@@ -221,12 +221,12 @@ class Fires:
             )
 
     def __repr__(self) -> str:
-        """Return a detailed string representation of the Fires."""
+        """Return a detailed string representation of the Fire."""
         location_str = f"[{', '.join(map(str, self.location))}]"
         data_rows = len(self.data_table) if self.data_table else 0
 
         return (
-            f"Fires("
+            f"Fire("
             f"id='{self.id}', comp_id='{self.comp_id}', fire_id='{self.fire_id}', "
             f"location={location_str}, "
             f"heat_of_combustion={self.heat_of_combustion}, "
@@ -236,7 +236,7 @@ class Fires:
         )
 
     def __str__(self) -> str:
-        """Return a user-friendly string representation of the Fires."""
+        """Return a user-friendly string representation of the Fire."""
         location_str = f"({self.location[0]}, {self.location[1]})"
 
         peak_hrr: float = 0
@@ -342,7 +342,7 @@ class Fires:
     def __getitem__(self, key: str) -> Any:
         """Get fire property by name for dictionary-like access."""
         if not hasattr(self, key):
-            raise KeyError(f"Property '{key}' not found in Fires.")
+            raise KeyError(f"Property '{key}' not found in Fire.")
         return getattr(self, key)
 
     def __setitem__(self, key: str, value: Any) -> None:
@@ -359,7 +359,7 @@ class Fires:
             If setting this value would violate object constraints.
         """
         if not hasattr(self, key):
-            raise KeyError(f"Cannot set '{key}'. Property does not exist in Fires.")
+            raise KeyError(f"Cannot set '{key}'. Property does not exist in Fire.")
         old_value = getattr(self, key)
         setattr(self, key, value)
         try:
@@ -379,7 +379,7 @@ class Fires:
 
         Examples
         --------
-        >>> fire = Fires(id="FIRE1", comp_id="ROOM1", fire_id="WOOD",
+        >>> fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="WOOD",
         ...               location=[1.0, 1.0], data_table=[[0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]])
         >>> print(fire.to_input_string())
         &FIRE ID = 'FIRE1' COMP_ID = 'ROOM1' FIRE_ID = 'WOOD' LOCATION = 1.0, 1.0 /
@@ -450,7 +450,7 @@ class Fires:
 
         Examples
         --------
-        >>> fire = Fires(id="FIRE1", comp_id="ROOM1", fire_id="WOOD",
+        >>> fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="WOOD",
         ...               location=[1.0, 1.0],
         ...               data_table=[[0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]])
         >>> df = fire.to_dataframe()

@@ -1,7 +1,7 @@
 """
 Ceiling/Floor Vents definition module for CFAST simulations.
 
-This module provides the CeilingFloorVents class for defining vertical
+This module provides the CeilingFloorVent class for defining vertical
 flow vent connections between compartments.
 """
 
@@ -14,7 +14,7 @@ from .utils.namelist import NamelistRecord
 from .utils.theme import build_card
 
 
-class CeilingFloorVents:
+class CeilingFloorVent:
     """
     Represents vertical flow vent connections between compartments.
 
@@ -97,7 +97,7 @@ class CeilingFloorVents:
     --------
     Create a ceiling/floor vent connection:
 
-    >>> vent = CeilingFloorVents(
+    >>> vent = CeilingFloorVent(
     ...     id="HOLE1",
     ...     comps_ids=["UPPER_RM", "LOWER_RM"],  # top, bottom
     ...     area=1.0,           # 1.0 m² cross-sectional area
@@ -162,7 +162,7 @@ class CeilingFloorVents:
 
         if self.area < 0:
             raise ValueError(
-                f"CeilingFloorVents '{self.id}': area must be non-negative, got {self.area}."
+                f"CeilingFloorVent '{self.id}': area must be non-negative, got {self.area}."
             )
 
         for label, val in (
@@ -171,27 +171,27 @@ class CeilingFloorVents:
         ):
             if val is not None and not 0.0 <= val <= 1.0:
                 raise ValueError(
-                    f"CeilingFloorVents '{self.id}': {label}={val} must be in [0, 1]."
+                    f"CeilingFloorVent '{self.id}': {label}={val} must be in [0, 1]."
                 )
 
         if self.fraction is not None:
             for i, f in enumerate(self.fraction):
                 if not 0.0 <= f <= 1.0:
                     raise ValueError(
-                        f"CeilingFloorVents '{self.id}': fraction[{i}]={f} must be in [0, 1]."
+                        f"CeilingFloorVent '{self.id}': fraction[{i}]={f} must be in [0, 1]."
                     )
 
         if self.area == 0:
             warnings.warn(
-                f"CeilingFloorVents '{self.id}': area=0 means no flow will occur through this vent.",
+                f"CeilingFloorVent '{self.id}': area=0 means no flow will occur through this vent.",
                 UserWarning,
                 stacklevel=2,
             )
 
     def __repr__(self) -> str:
-        """Return a detailed string representation of the CeilingFloorVents."""
+        """Return a detailed string representation of the CeilingFloorVent."""
         return (
-            f"CeilingFloorVents("
+            f"CeilingFloorVent("
             f"id='{self.id}', "
             f"comps_ids={self.comps_ids}, "
             f"area={self.area}, type='{self.type}', shape='{self.shape}', "
@@ -200,7 +200,7 @@ class CeilingFloorVents:
         )
 
     def __str__(self) -> str:
-        """Return a user-friendly string representation of the CeilingFloorVents."""
+        """Return a user-friendly string representation of the CeilingFloorVent."""
         connection = f"{self.comps_ids[0]} ↕ {self.comps_ids[1]}"
         area_info = f"area: {self.area} m²"
         shape_info = f"shape: {self.shape}"
@@ -248,7 +248,7 @@ class CeilingFloorVents:
     def __getitem__(self, key: str) -> Any:
         """Get vent property by name for dictionary-like access."""
         if not hasattr(self, key):
-            raise KeyError(f"Property '{key}' not found in CeilingFloorVents.")
+            raise KeyError(f"Property '{key}' not found in CeilingFloorVent.")
         return getattr(self, key)
 
     def __setitem__(self, key: str, value: Any) -> None:
@@ -266,7 +266,7 @@ class CeilingFloorVents:
         """
         if not hasattr(self, key):
             raise KeyError(
-                f"Cannot set '{key}'. Property does not exist in CeilingFloorVents."
+                f"Cannot set '{key}'. Property does not exist in CeilingFloorVent."
             )
         old_value = getattr(self, key)
         setattr(self, key, value)
@@ -287,7 +287,7 @@ class CeilingFloorVents:
 
         Examples
         --------
-        >>> vent = CeilingFloorVents("HOLE1", ["RM_UP", "RM_LOW"], 1.0, "ROUND")
+        >>> vent = CeilingFloorVent("HOLE1", ["RM_UP", "RM_LOW"], 1.0, "ROUND")
         >>> print(vent.to_input_string())
         &VENT TYPE = 'FLOOR' ID = 'HOLE1' COMP_IDS = 'RM_UP', 'RM_LOW' ...
         """
