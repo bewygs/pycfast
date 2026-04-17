@@ -169,8 +169,7 @@ class SimulationEnvironment(CFASTComponent):
             and not 0.0 <= self.relative_humidity <= 100.0
         ):
             warnings.warn(
-                f"relative_humidity={self.relative_humidity} is outside [0, 100] %. "
-                "This may cause inaccurate results.",
+                f"relative_humidity={self.relative_humidity} is outside [0, 100] %.",
                 UserWarning,
                 stacklevel=2,
             )
@@ -181,8 +180,7 @@ class SimulationEnvironment(CFASTComponent):
         ):
             if temp is not None and temp < -273.15:
                 warnings.warn(
-                    f"{label}={temp} °C is below absolute zero (-273.15 °C). "
-                    "This may cause CFAST to crash or produce invalid results.",
+                    f"{label}={temp} °C is below absolute zero (-273.15 °C).",
                     UserWarning,
                     stacklevel=2,
                 )

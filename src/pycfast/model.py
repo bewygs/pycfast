@@ -497,11 +497,17 @@ class CFASTModel:
                         dataframes[suffix] = pd.DataFrame()
                         continue
                     except Exception as e:
-                        logger.error("Error reading %s: %s", csv_file, e)
+                        warnings.warn(
+                            f"Failed to read CSV file: {csv_file}. Error: {e}",
+                            stacklevel=2,
+                        )
                         dataframes[suffix] = None
                 else:
                     if suffix not in optional_csvs:
-                        logger.warning("CSV file not found: %s", csv_file)
+                        warnings.warn(
+                            f"Expected output CSV file not found: {csv_file}",
+                            stacklevel=2,
+                        )
                     dataframes[suffix] = None
 
             return dataframes

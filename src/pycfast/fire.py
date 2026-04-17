@@ -449,6 +449,11 @@ class Fire(CFASTComponent):
             Standardized data table as list of lists.
         """
         if data_table is None:
+            warnings.warn(
+                "data_table is None: will use default data with values set to 0.",
+                UserWarning,
+                stacklevel=2,
+            )
             return [[0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
         if isinstance(data_table, pd.DataFrame):
