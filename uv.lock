@@ -2841,7 +2841,7 @@ wheels = [
 
 [[package]]
 name = "pycfast"
-version = "0.1.4.dev0"
+version = "0.1.5.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "f90nml" },
