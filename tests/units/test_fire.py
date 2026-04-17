@@ -607,7 +607,7 @@ class TestFireDataTableFormats:
         """Test that invalid data_table type raises error."""
         with pytest.raises(
             TypeError,
-            match="data_table must be a list of lists, NumPy array, pandas DataFrame, or None",
+            match="data_table must be a list of lists, dict, NumPy array, pandas DataFrame, or None",
         ):
             Fire(
                 id="FIRE1",
@@ -761,6 +761,183 @@ class TestFireDataTableFormats:
         assert "25000" in html_str  # heat of combustion
         assert "0.4" in html_str  # radiative fraction
         assert "2" in html_str  # data rows count - more flexible check
+
+
+class TestFireDictDataTable:
+    """Test dict-format data_table support."""
+
+    def test_dict_data_table_basic(self, make_fire):
+        """Test basic dict data_table with lists and scalars."""
+        fire = make_fire(
+            data_table={
+                "TIME": [0, 60, 120],
+                "HRR": [0, 500, 1000],
+                "HEIGHT": 0.5,
+                "AREA": 0.1,
+                "CO_YIELD": 0.01,
+                "SOOT_YIELD": 0.02,
+                "HCN_YIELD": 0,
+                "HCL_YIELD": 0,
+                "TRACE_YIELD": 0,
+            }
+        )
+        assert len(fire.data_table) == 3
+        assert fire.data_table[0] == [0, 0, 0.5, 0.1, 0.01, 0.02, 0, 0, 0]
+        assert fire.data_table[2] == [120, 1000, 0.5, 0.1, 0.01, 0.02, 0, 0, 0]
+
+    def test_dict_data_table_all_lists(self, make_fire):
+        """Test dict data_table where all values are lists."""
+        fire = make_fire(
+            data_table={
+                "TIME": [0, 60],
+                "HRR": [0, 500],
+                "HEIGHT": [0.5, 1.0],
+                "AREA": [0.1, 0.2],
+                "CO_YIELD": [0.01, 0.02],
+                "SOOT_YIELD": [0.01, 0.02],
+                "HCN_YIELD": [0, 0],
+                "HCL_YIELD": [0, 0],
+                "TRACE_YIELD": [0, 0],
+            }
+        )
+        assert len(fire.data_table) == 2
+        assert fire.data_table[1] == [60, 500, 1.0, 0.2, 0.02, 0.02, 0, 0, 0]
+
+    def test_dict_data_table_all_scalars_raises(self, make_fire):
+        """Test that dict with only scalar values raises an error."""
+        with pytest.raises(ValueError, match="at least one list-valued column"):
+            make_fire(
+                data_table={
+                    "TIME": 0,
+                    "HRR": 0,
+                    "HEIGHT": 0.5,
+                    "AREA": 0.1,
+                    "CO_YIELD": 0.01,
+                    "SOOT_YIELD": 0.02,
+                    "HCN_YIELD": 0,
+                    "HCL_YIELD": 0,
+                    "TRACE_YIELD": 0,
+                }
+            )
+
+    def test_dict_data_table_mismatched_lengths(self, make_fire):
+        """Test that lists with different lengths raise an error."""
+        with pytest.raises(ValueError, match="same length"):
+            make_fire(
+                data_table={
+                    "TIME": [0, 60, 120],
+                    "HRR": [0, 500],
+                    "HEIGHT": 0.5,
+                    "AREA": 0.1,
+                    "CO_YIELD": 0.01,
+                    "SOOT_YIELD": 0.02,
+                    "HCN_YIELD": 0,
+                    "HCL_YIELD": 0,
+                    "TRACE_YIELD": 0,
+                }
+            )
+
+    def test_dict_data_table_invalid_key(self, make_fire):
+        """Test that an invalid column name raises an error."""
+        with pytest.raises(ValueError, match="Invalid data_table keys"):
+            make_fire(
+                data_table={
+                    "TIME": [0],
+                    "HRR": [0],
+                    "HEIGHT": 0,
+                    "AREA": 0,
+                    "CO_YIELD": 0,
+                    "SOOT_YIELD": 0,
+                    "HCN_YIELD": 0,
+                    "HCL_YIELD": 0,
+                    "INVALID_COL": 0,
+                }
+            )
+
+    def test_dict_data_table_missing_key(self, make_fire):
+        """Test that a missing column raises an error."""
+        with pytest.raises(ValueError, match="Missing required data_table keys"):
+            make_fire(
+                data_table={
+                    "TIME": [0],
+                    "HRR": [0],
+                    "HEIGHT": 0,
+                }
+            )
+
+    def test_dict_data_table_non_numeric_value(self, make_fire):
+        """Test that non-numeric values raise an error."""
+        with pytest.raises(ValueError, match="non-numeric value"):
+            make_fire(
+                data_table={
+                    "TIME": [0],
+                    "HRR": [0],
+                    "HEIGHT": "invalid",
+                    "AREA": 0,
+                    "CO_YIELD": 0,
+                    "SOOT_YIELD": 0,
+                    "HCN_YIELD": 0,
+                    "HCL_YIELD": 0,
+                    "TRACE_YIELD": 0,
+                }
+            )
+
+    def test_dict_data_table_to_input_string(self, make_fire):
+        """Test that dict data_table produces correct CFAST input string."""
+        fire = make_fire(
+            data_table={
+                "TIME": [0, 60],
+                "HRR": [0, 1000],
+                "HEIGHT": 0,
+                "AREA": 0.1,
+                "CO_YIELD": 0.01,
+                "SOOT_YIELD": 0.02,
+                "HCN_YIELD": 0,
+                "HCL_YIELD": 0,
+                "TRACE_YIELD": 0,
+            }
+        )
+        output = fire.to_input_string()
+        assert "&TABL" in output
+        assert "DATA = 0" in output
+        assert "1000" in output
+
+    def test_dict_data_table_to_dataframe(self, make_fire):
+        """Test that dict data_table round-trips to DataFrame correctly."""
+        data = {
+            "TIME": [0, 60, 120],
+            "HRR": [0, 500, 1000],
+            "HEIGHT": 0.5,
+            "AREA": 0.1,
+            "CO_YIELD": 0.01,
+            "SOOT_YIELD": 0.02,
+            "HCN_YIELD": 0,
+            "HCL_YIELD": 0,
+            "TRACE_YIELD": 0,
+        }
+        fire = make_fire(data_table=data)
+        df = fire.to_dataframe()
+        assert list(df.columns) == Fire.LABELS
+        assert len(df) == 3
+        assert df["HRR"].tolist() == [0.0, 500.0, 1000.0]
+        assert df["HEIGHT"].tolist() == [0.5, 0.5, 0.5]
+
+    def test_dict_data_table_empty_list_value(self, make_fire):
+        """Test that an empty list value raises an error."""
+        with pytest.raises(ValueError, match="at least one element"):
+            make_fire(
+                data_table={
+                    "TIME": [],
+                    "HRR": [],
+                    "HEIGHT": 0,
+                    "AREA": 0,
+                    "CO_YIELD": 0,
+                    "SOOT_YIELD": 0,
+                    "HCN_YIELD": 0,
+                    "HCL_YIELD": 0,
+                    "TRACE_YIELD": 0,
+                }
+            )
 
 
 class TestFireSetItemValidation:
