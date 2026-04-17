@@ -5,12 +5,12 @@ from pathlib import Path
 import pytest
 
 from pycfast import (
-    CeilingFloorVents,
+    CeilingFloorVent,
     CFASTModel,
-    Compartments,
-    Fires,
+    Compartment,
+    Fire,
     SimulationEnvironment,
-    WallVents,
+    WallVent,
 )
 
 from .verification import (
@@ -40,7 +40,7 @@ def test_species_mass_1_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=5,
             height=6,
@@ -55,7 +55,7 @@ def test_species_mass_1_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="simple burner",
             comp_id="Comp 1",
             fire_id="simple burner_Fire",
@@ -117,7 +117,7 @@ def test_species_mass_2_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=5,
             height=8,
@@ -129,7 +129,7 @@ def test_species_mass_2_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 2",
             depth=3,
             height=8,
@@ -144,7 +144,7 @@ def test_species_mass_2_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Comp 1", "Comp 2"],
             bottom=0,
@@ -156,7 +156,7 @@ def test_species_mass_2_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="simple burner",
             comp_id="Comp 1",
             fire_id="simple burner_Fire",
@@ -218,7 +218,7 @@ def test_species_mass_3_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=5,
             height=4,
@@ -230,7 +230,7 @@ def test_species_mass_3_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 2",
             depth=5,
             height=2,
@@ -245,7 +245,7 @@ def test_species_mass_3_simulation(tmp_path):
     ]
 
     ceiling_floor_vents = [
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_1",
             comps_ids=["Comp 2", "Comp 1"],
             area=4,
@@ -256,7 +256,7 @@ def test_species_mass_3_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="simple burner",
             comp_id="Comp 1",
             fire_id="simple burner_Fire",
@@ -319,7 +319,7 @@ def test_species_mass_4_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=4,
             height=4,
@@ -332,7 +332,7 @@ def test_species_mass_4_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 2",
             depth=4,
             height=4,
@@ -345,7 +345,7 @@ def test_species_mass_4_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 3",
             depth=4,
             height=4,
@@ -358,7 +358,7 @@ def test_species_mass_4_simulation(tmp_path):
             origin_y=0,
             origin_z=4,
         ),
-        Compartments(
+        Compartment(
             id="Comp 4",
             depth=4,
             height=4,
@@ -374,7 +374,7 @@ def test_species_mass_4_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Comp 1", "Comp 2"],
             bottom=0,
@@ -386,7 +386,7 @@ def test_species_mass_4_simulation(tmp_path):
             time=[1000, 1001],
             fraction=[0, 1],
         ),
-        WallVents(
+        WallVent(
             id="WallVent_2",
             comps_ids=["Comp 3", "Comp 4"],
             bottom=0,
@@ -401,7 +401,7 @@ def test_species_mass_4_simulation(tmp_path):
     ]
 
     ceiling_floor_vents = [
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_1",
             comps_ids=["Comp 3", "Comp 2"],
             area=16,
@@ -412,7 +412,7 @@ def test_species_mass_4_simulation(tmp_path):
             time=[2500, 2501],
             fraction=[0, 1],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_2",
             comps_ids=["OUTSIDE", "Comp 4"],
             area=16,
@@ -426,7 +426,7 @@ def test_species_mass_4_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="simple burner",
             comp_id="Comp 1",
             fire_id="simple burner_Fire",

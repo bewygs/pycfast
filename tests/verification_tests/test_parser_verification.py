@@ -110,7 +110,7 @@ def test_parser_verification_file_discovery():
     expected_dirs = {
         "DOE_Guidance_Report",
         "Energy_Balance",
-        "Fires",
+        "Fire",
         "Mass_Balance",
         "NRC_Users_Guide" + os.sep + "A_Cabinet_Fire_in_MCR",
         "NRC_Users_Guide" + os.sep + "B_Cabinet_Fire_in_Switchgear",

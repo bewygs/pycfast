@@ -7,13 +7,13 @@ import pytest
 
 from pycfast import (
     CFASTModel,
-    Compartments,
-    Devices,
-    Fires,
-    MaterialProperties,
-    MechanicalVents,
+    Compartment,
+    Device,
+    Fire,
+    Material,
+    MechanicalVent,
     SimulationEnvironment,
-    WallVents,
+    WallVent,
 )
 
 from .verification import (
@@ -45,7 +45,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="MCROperator",
             material="MCR Operator (properties of water at 20 C)",
             conductivity=0.58,
@@ -54,7 +54,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
             thickness=0.2032,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="MCRConcrete",
             material="MCR Concrete Floor (user''s guide)",
             conductivity=1.6,
@@ -63,7 +63,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
             thickness=0.5,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="MCRConcreteW",
             material="MCR Concrete Wall (user''s guide)",
             conductivity=1.6,
@@ -72,7 +72,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
             thickness=0.9,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="MCRGypsum",
             material="MCR Gypsum Walls (user''s guide)",
             conductivity=0.17,
@@ -84,7 +84,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="MCR",
             depth=13.8,
             height=5.2,
@@ -102,7 +102,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["MCR", "OUTSIDE"],
             bottom=0,
@@ -114,7 +114,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["MCR", "OUTSIDE"],
             area=[0.36, 0.36],
@@ -129,7 +129,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_2",
             comps_ids=["MCR", "OUTSIDE"],
             area=[0.36, 0.36],
@@ -144,7 +144,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_3",
             comps_ids=["OUTSIDE", "MCR"],
             area=[0.36, 0.36],
@@ -159,7 +159,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_4",
             comps_ids=["OUTSIDE", "MCR"],
             area=[0.36, 0.36],
@@ -174,7 +174,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_5",
             comps_ids=["OUTSIDE", "MCR"],
             area=[0.36, 0.36],
@@ -189,7 +189,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_6",
             comps_ids=["OUTSIDE", "MCR"],
             area=[0.36, 0.36],
@@ -204,7 +204,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_7",
             comps_ids=["OUTSIDE", "MCR"],
             area=[0.36, 0.36],
@@ -219,7 +219,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_8",
             comps_ids=["OUTSIDE", "MCR"],
             area=[0.36, 0.36],
@@ -237,7 +237,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="XPE_Neoprene 702 kW",
             comp_id="MCR",
             fire_id="XPE_Neoprene 702 kW_Fire",
@@ -269,7 +269,7 @@ def test_cabinet_fire_in_mcr_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="MCR",
             location=[11.2, 5.5, 1.524],
@@ -323,7 +323,7 @@ def test_cabinet_fire_in_mcr_no_ventilation_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="MCROperator",
             material="MCR Operator (properties of water at 20 C)",
             conductivity=0.58,
@@ -332,7 +332,7 @@ def test_cabinet_fire_in_mcr_no_ventilation_simulation(tmp_path):
             thickness=0.2032,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="MCRConcrete",
             material="MCR Concrete Floor (user''s guide)",
             conductivity=1.6,
@@ -341,7 +341,7 @@ def test_cabinet_fire_in_mcr_no_ventilation_simulation(tmp_path):
             thickness=0.5,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="MCRConcreteW",
             material="MCR Concrete Wall (user''s guide)",
             conductivity=1.6,
@@ -350,7 +350,7 @@ def test_cabinet_fire_in_mcr_no_ventilation_simulation(tmp_path):
             thickness=0.9,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="MCRGypsum",
             material="MCR Gypsum Walls (user''s guide)",
             conductivity=0.17,
@@ -362,7 +362,7 @@ def test_cabinet_fire_in_mcr_no_ventilation_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="MCR",
             depth=13.8,
             height=5.2,
@@ -380,7 +380,7 @@ def test_cabinet_fire_in_mcr_no_ventilation_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["MCR", "OUTSIDE"],
             bottom=0,
@@ -392,7 +392,7 @@ def test_cabinet_fire_in_mcr_no_ventilation_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="XPE_Neoprene 702 kW",
             comp_id="MCR",
             fire_id="XPE_Neoprene 702 kW_Fire",
@@ -424,7 +424,7 @@ def test_cabinet_fire_in_mcr_no_ventilation_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="MCR",
             location=[11.2, 5.5, 1.524],

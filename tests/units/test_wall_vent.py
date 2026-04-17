@@ -2,18 +2,18 @@ from __future__ import annotations
 
 import pytest
 
-from pycfast.wall_vents import WallVents
+from pycfast.wall_vent import WallVent
 
 """
-Tests for the WallVents class.
+Tests for the WallVent class.
 """
 
 
 @pytest.fixture()
 def make_wall_vent():
-    """Create a WallVents instance with sensible defaults."""
+    """Create a WallVent instance with sensible defaults."""
 
-    def _make(**kwargs: object) -> WallVents:
+    def _make(**kwargs: object) -> WallVent:
         defaults: dict[str, object] = {
             "id": "DOOR1",
             "comps_ids": ["ROOM1", "ROOM2"],
@@ -24,17 +24,17 @@ def make_wall_vent():
             "offset": 1.0,
         }
         defaults.update(kwargs)
-        return WallVents(**defaults)  # type: ignore[arg-type]
+        return WallVent(**defaults)  # type: ignore[arg-type]
 
     return _make
 
 
-class TestWallVents:
-    """Test class for WallVents."""
+class TestWallVent:
+    """Test class for WallVent."""
 
     def test_init_basic(self):
         """Test basic initialization with required parameters."""
-        vent = WallVents(
+        vent = WallVent(
             id="DOOR1",
             comps_ids=["ROOM1", "ROOM2"],
             bottom=0.0,
@@ -60,7 +60,7 @@ class TestWallVents:
 
     def test_init_with_all_parameters(self):
         """Test initialization with all parameters."""
-        vent = WallVents(
+        vent = WallVent(
             id="DOOR1",
             comps_ids=["ROOM1", "ROOM2"],
             bottom=0.0,
@@ -94,7 +94,7 @@ class TestWallVents:
     def test_init_default_values(self):
         """Test initialization with default values (zero height/width warns about no flow)."""
         with pytest.warns(UserWarning, match="height or width is 0"):
-            vent = WallVents(id="DOOR1", comps_ids=["ROOM1", "ROOM2"])
+            vent = WallVent(id="DOOR1", comps_ids=["ROOM1", "ROOM2"])
         assert vent.bottom == 0
         assert vent.height == 0
         assert vent.width == 0
@@ -111,12 +111,12 @@ class TestWallVents:
     def test_init_invalid_comps_ids_length(self, comps_ids: list[str]):
         """Test that initialization fails with wrong number of compartments."""
         with pytest.raises(ValueError, match="exactly 2 compartments"):
-            WallVents(id="DOOR1", comps_ids=comps_ids)
+            WallVent(id="DOOR1", comps_ids=comps_ids)
 
     def test_init_outside_as_first_compartment(self):
         """Test error when OUTSIDE is the first compartment."""
         with pytest.raises(ValueError, match="Compartment order is incorrect"):
-            WallVents(id="DOOR1", comps_ids=["OUTSIDE", "ROOM1"])
+            WallVent(id="DOOR1", comps_ids=["OUTSIDE", "ROOM1"])
 
     @pytest.mark.parametrize("param", ["height", "width", "bottom"])
     def test_init_negative_dimension(self, make_wall_vent, param: str):
@@ -138,7 +138,7 @@ class TestWallVents:
     def test_init_mismatched_time_fraction_lists(self):
         """Test that initialization fails with mismatched time and fraction lists."""
         with pytest.raises(ValueError, match="equal length"):
-            WallVents(
+            WallVent(
                 id="DOOR1",
                 comps_ids=["ROOM1", "ROOM2"],
                 time=[0.0, 100.0],
@@ -163,7 +163,7 @@ class TestWallVents:
 
     def test_to_input_string_with_outside(self):
         """Test input string generation with outside compartment."""
-        vent = WallVents(
+        vent = WallVent(
             id="WINDOW1",
             comps_ids=["ROOM1", "OUTSIDE"],
             bottom=1.0,
@@ -295,7 +295,7 @@ class TestWallVents:
 
     def test_to_input_string_complex_scenario(self):
         """Test input string generation with all options combined."""
-        vent = WallVents(
+        vent = WallVent(
             id="COMPLEX_DOOR",
             comps_ids=["LIVING", "KITCHEN"],
             bottom=0.1,
@@ -331,7 +331,7 @@ class TestWallVents:
 
     def test_compartment_ids_formatting(self):
         """Test that compartment IDs are properly quoted in output."""
-        vent = WallVents(
+        vent = WallVent(
             id="TEST_VENT",
             comps_ids=["COMP_A", "COMP_B"],
             bottom=0.0,
@@ -346,7 +346,7 @@ class TestWallVents:
     # Tests for dunder methods
     def test_repr(self) -> None:
         """Test __repr__ method."""
-        vent = WallVents(
+        vent = WallVent(
             id="DOOR_MAIN",
             comps_ids=["LIVING_ROOM", "KITCHEN"],
             bottom=0.0,
@@ -359,7 +359,7 @@ class TestWallVents:
         )
 
         repr_str = repr(vent)
-        assert "WallVents(" in repr_str
+        assert "WallVent(" in repr_str
         assert "id='DOOR_MAIN'" in repr_str
         assert "comps_ids=['LIVING_ROOM', 'KITCHEN']" in repr_str
         assert "bottom=0.0" in repr_str
@@ -369,7 +369,7 @@ class TestWallVents:
 
     def test_str(self) -> None:
         """Test __str__ method."""
-        vent = WallVents(
+        vent = WallVent(
             id="WINDOW_01",
             comps_ids=["BEDROOM", "OUTSIDE"],
             bottom=1.0,
@@ -389,7 +389,7 @@ class TestWallVents:
 
     def test_getitem(self) -> None:
         """Test __getitem__ method."""
-        vent = WallVents(
+        vent = WallVent(
             id="TEST_VENT",
             comps_ids=["COMP1", "COMP2"],
             bottom=0.5,
@@ -419,7 +419,7 @@ class TestWallVents:
 
     def test_getitem_invalid_key(self) -> None:
         """Test __getitem__ method with invalid key."""
-        vent = WallVents(
+        vent = WallVent(
             id="VENT1",
             comps_ids=["A", "B"],
             bottom=0.0,
@@ -430,13 +430,13 @@ class TestWallVents:
         )
 
         with pytest.raises(
-            KeyError, match="Property 'invalid_key' not found in WallVents"
+            KeyError, match="Property 'invalid_key' not found in WallVent"
         ):
             vent["invalid_key"]
 
     def test_setitem(self) -> None:
         """Test __setitem__ method."""
-        vent = WallVents(
+        vent = WallVent(
             id="VENT1",
             comps_ids=["A", "B"],
             bottom=0.0,
@@ -470,7 +470,7 @@ class TestWallVents:
 
     def test_setitem_invalid_key(self) -> None:
         """Test __setitem__ method with invalid key."""
-        vent = WallVents(
+        vent = WallVent(
             id="VENT1",
             comps_ids=["A", "B"],
             bottom=0.0,
@@ -485,7 +485,7 @@ class TestWallVents:
 
     def test_repr_html(self) -> None:
         """Test _repr_html_ method."""
-        vent = WallVents(
+        vent = WallVent(
             id="DOOR_MAIN",
             comps_ids=["LIVING_ROOM", "KITCHEN"],
             bottom=0.0,
@@ -515,7 +515,7 @@ class TestWallVents:
         assert "1.5" in html_str  # offset
 
 
-class TestWallVentsSetItemValidation:
+class TestWallVentSetItemValidation:
     """Test validation in __setitem__ to ensure data integrity."""
 
     @pytest.mark.parametrize(

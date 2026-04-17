@@ -11,12 +11,12 @@ CFAST models are composed of various components that represent different aspects
    :nosignatures:
    :recursive:
 
-   CeilingFloorVents
-   Compartments
-   Devices
-   Fires
-   MaterialProperties
-   MechanicalVents
+   CeilingFloorVent
+   Compartment
+   Device
+   Fire
+   Material
+   MechanicalVent
    SimulationEnvironment
-   SurfaceConnections
-   WallVents
+   SurfaceConnection
+   WallVent

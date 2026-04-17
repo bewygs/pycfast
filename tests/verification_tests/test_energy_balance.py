@@ -6,8 +6,8 @@ import pytest
 
 from pycfast import (
     CFASTModel,
-    Compartments,
-    Fires,
+    Compartment,
+    Fire,
     SimulationEnvironment,
 )
 
@@ -41,7 +41,7 @@ def test_sealed_test_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Compartment 1",
             depth=5,
             height=5,
@@ -57,7 +57,7 @@ def test_sealed_test_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="100 kW",
             comp_id="Compartment 1",
             fire_id="100 kW_Fire",
@@ -117,7 +117,7 @@ def test_sealed_test_2_layers_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Compartment 1",
             depth=5,
             height=5,
@@ -133,7 +133,7 @@ def test_sealed_test_2_layers_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="100 kW",
             comp_id="Compartment 1",
             fire_id="100 kW_Fire",

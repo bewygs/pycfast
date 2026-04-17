@@ -52,12 +52,12 @@ Reverse: `CFASTParser` reads an existing `.in` file via `f90nml` and reconstruct
 
 All simulation elements are standalone classes (no shared base class):
 - `SimulationEnvironment` — title, duration, time step, initial conditions
-- `Compartments` — room geometry, materials, leakage
-- `MaterialProperties` — thermal properties referenced by ID from Compartments/Devices
-- `Fires` — heat release rate, chemistry, compartment placement
-- `WallVents` / `CeilingFloorVents` / `MechanicalVents` — connections between compartments by ID
-- `Devices` — targets (heat transfer probes) and detectors (heat/smoke/sprinkler)
-- `SurfaceConnections` — adjacent surface heat transfer
+- `Compartment` — room geometry, materials, leakage
+- `Material` — thermal properties referenced by ID from Compartment/Device
+- `Fire` — heat release rate, chemistry, compartment placement
+- `WallVent` / `CeilingFloorVent` / `MechanicalVent` — connections between compartments by ID
+- `Device` — targets (heat transfer probes) and detectors (heat/smoke/sprinkler)
+- `SurfaceConnection` — adjacent surface heat transfer
 
 Each component implements:
 - `to_input_string()` → Fortran namelist fragment via `NamelistRecord`

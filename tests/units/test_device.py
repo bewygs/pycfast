@@ -2,19 +2,19 @@ from __future__ import annotations
 
 import pytest
 
-from pycfast.devices import Devices
+from pycfast.device import Device
 
 """
-Tests for the Devices class.
+Tests for the Device class.
 """
 
 
-class TestDevices:
-    """Test class for Devices."""
+class TestDevice:
+    """Test class for Device."""
 
     def test_init_plate_target(self):
         """Test initialization of a PLATE target device."""
-        device = Devices(
+        device = Device(
             id="TARGET1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 1.5],
@@ -38,7 +38,7 @@ class TestDevices:
 
     def test_init_cylinder_target(self):
         """Test initialization of a CYLINDER target device."""
-        device = Devices(
+        device = Device(
             id="TARGET2",
             comp_id="ROOM1",
             location=[2.0, 3.0, 2.0],
@@ -56,7 +56,7 @@ class TestDevices:
 
     def test_init_heat_detector(self):
         """Test initialization of a HEAT_DETECTOR device."""
-        device = Devices(
+        device = Device(
             id="HD1",
             comp_id="ROOM1",
             location=[1.5, 1.5, 2.3],
@@ -72,7 +72,7 @@ class TestDevices:
 
     def test_init_smoke_detector(self):
         """Test initialization of a SMOKE_DETECTOR device."""
-        device = Devices(
+        device = Device(
             id="SD1",
             comp_id="ROOM1",
             location=[2.0, 2.0, 2.3],
@@ -86,7 +86,7 @@ class TestDevices:
 
     def test_init_sprinkler(self):
         """Test initialization of a SPRINKLER device."""
-        device = Devices(
+        device = Device(
             id="SPR1",
             comp_id="ROOM1",
             location=[3.0, 3.0, 2.4],
@@ -105,7 +105,7 @@ class TestDevices:
     def test_init_invalid_location_length(self):
         """Test that initialization fails with wrong location dimensions."""
         with pytest.raises(ValueError, match="location must be a list of 3 numbers"):
-            Devices(
+            Device(
                 id="DEV1",
                 comp_id="ROOM1",
                 location=[1.0, 2.0],  # Only 2 coordinates
@@ -120,7 +120,7 @@ class TestDevices:
         with pytest.raises(ValueError, match="location must be a list of 3 numbers"):
             # This should fail validation even though it passes type checking temporarily
             invalid_location = [1.0, "invalid", 1.5]  # type: ignore
-            Devices(
+            Device(
                 id="DEV1",
                 comp_id="ROOM1",
                 location=invalid_location,
@@ -133,7 +133,7 @@ class TestDevices:
     def test_init_target_missing_material_id(self):
         """Test that target initialization fails without material_id."""
         with pytest.raises(ValueError, match="requires material_id"):
-            Devices(
+            Device(
                 id="TARGET1",
                 comp_id="ROOM1",
                 location=[1.0, 2.0, 1.5],
@@ -145,7 +145,7 @@ class TestDevices:
 
     def test_init_target_with_default_temperature_depth(self):
         """Test that target initialization uses default temperature_depth when not specified."""
-        device = Devices(
+        device = Device(
             id="TARGET1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 1.5],
@@ -160,7 +160,7 @@ class TestDevices:
     def test_init_target_both_normal_and_orientation(self):
         """Test that target initialization fails with both normal and surface_orientation."""
         with pytest.raises(ValueError, match="either normal or surface_orientation"):
-            Devices(
+            Device(
                 id="TARGET1",
                 comp_id="ROOM1",
                 location=[1.0, 2.0, 1.5],
@@ -174,7 +174,7 @@ class TestDevices:
     def test_init_target_neither_normal_nor_orientation(self):
         """Test that target initialization fails without normal or surface_orientation."""
         with pytest.raises(ValueError, match="either normal or surface_orientation"):
-            Devices(
+            Device(
                 id="TARGET1",
                 comp_id="ROOM1",
                 location=[1.0, 2.0, 1.5],
@@ -187,7 +187,7 @@ class TestDevices:
     def test_init_target_invalid_normal(self):
         """Test that target initialization fails with invalid normal vector."""
         with pytest.raises(ValueError, match="normal must be a list of 3 numbers"):
-            Devices(
+            Device(
                 id="TARGET1",
                 comp_id="ROOM1",
                 location=[1.0, 2.0, 1.5],
@@ -200,7 +200,7 @@ class TestDevices:
     def test_init_invalid_temperature_depth(self):
         """Test that target initialization fails with invalid temperature_depth."""
         with pytest.raises(ValueError, match=r"must be in \[0, 1\]\."):
-            Devices(
+            Device(
                 id="TARGET1",
                 comp_id="ROOM1",
                 location=[1.0, 2.0, 1.5],
@@ -222,7 +222,7 @@ class TestDevices:
     def test_init_rti_zero_or_negative(self, device_type: str, extra_kwargs: dict):
         """Test that detector/sprinkler initialization fails with zero or negative RTI."""
         with pytest.raises(ValueError, match="rti must be positive"):
-            Devices(
+            Device(
                 id="D1",
                 comp_id="ROOM1",
                 location=[1.5, 1.5, 2.3],
@@ -244,7 +244,7 @@ class TestDevices:
     def test_init_setpoint_zero_or_negative(self, device_type: str, extra_kwargs: dict):
         """Test that detector/sprinkler initialization fails with zero or negative setpoint."""
         with pytest.raises(ValueError, match="setpoint must be positive"):
-            Devices(
+            Device(
                 id="D1",
                 comp_id="ROOM1",
                 location=[1.5, 1.5, 2.3],
@@ -257,7 +257,7 @@ class TestDevices:
     def test_init_sprinkler_spray_density_zero_or_negative(self):
         """Test that sprinkler initialization fails with zero or negative spray density."""
         with pytest.raises(ValueError, match="spray_density must be positive"):
-            Devices(
+            Device(
                 id="HD1",
                 comp_id="ROOM1",
                 location=[1.5, 1.5, 2.3],
@@ -271,7 +271,7 @@ class TestDevices:
     def test_init_smoke_detector_invalid_obscuration_value(self):
         """Test that smoke detector initialization fails with invalid obscuration value (out of [0, 100])."""
         with pytest.warns(UserWarning, match="This may cause inaccurate results"):
-            Devices(
+            Device(
                 id="SD1",
                 comp_id="ROOM1",
                 location=[2.0, 2.0, 2.3],
@@ -283,7 +283,7 @@ class TestDevices:
     def test_init_heat_detector_missing_parameters(self):
         """Test that heat detector initialization fails without required parameters."""
         with pytest.raises(ValueError, match="HEAT_DETECTOR requires setpoint and rti"):
-            Devices(
+            Device(
                 id="HD1",
                 comp_id="ROOM1",
                 location=[1.5, 1.5, 2.3],
@@ -295,7 +295,7 @@ class TestDevices:
 
     def test_init_smoke_detector_with_default_obscuration(self):
         """Test that smoke detector initialization uses default obscuration when not specified."""
-        device = Devices(
+        device = Device(
             id="SD1",
             comp_id="ROOM1",
             location=[2.0, 2.0, 2.3],
@@ -311,7 +311,7 @@ class TestDevices:
         with pytest.raises(
             ValueError, match="SPRINKLER requires setpoint, rti, and spray_density"
         ):
-            Devices(
+            Device(
                 id="SPR1",
                 comp_id="ROOM1",
                 location=[3.0, 3.0, 2.4],
@@ -325,7 +325,7 @@ class TestDevices:
     def test_init_unknown_device_type(self):
         """Test that initialization fails with unknown device type."""
         with pytest.raises(ValueError, match="Unknown device type"):
-            Devices(
+            Device(
                 id="DEV1",
                 comp_id="ROOM1",
                 location=[1.0, 2.0, 1.5],
@@ -335,7 +335,7 @@ class TestDevices:
 
     def test_to_input_string_plate_target_with_normal(self):
         """Test input string generation for plate target with normal vector."""
-        device = Devices(
+        device = Device(
             id="TARGET1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 1.5],
@@ -365,7 +365,7 @@ class TestDevices:
 
     def test_to_input_string_plate_target_with_surface_orientation(self):
         """Test input string generation for plate target with surface orientation."""
-        device = Devices(
+        device = Device(
             id="TARGET2",
             comp_id="ROOM1",
             location=[2.0, 3.0, 2.0],
@@ -380,7 +380,7 @@ class TestDevices:
 
     def test_to_input_string_heat_detector(self):
         """Test input string generation for heat detector."""
-        device = Devices(
+        device = Device(
             id="HD1",
             comp_id="ROOM1",
             location=[1.5, 1.5, 2.3],
@@ -402,7 +402,7 @@ class TestDevices:
 
     def test_to_input_string_smoke_detector(self):
         """Test input string generation for smoke detector."""
-        device = Devices(
+        device = Device(
             id="SD1",
             comp_id="ROOM1",
             location=[2.0, 2.0, 2.3],
@@ -416,7 +416,7 @@ class TestDevices:
 
     def test_to_input_string_sprinkler(self):
         """Test input string generation for sprinkler."""
-        device = Devices(
+        device = Device(
             id="SPR1",
             comp_id="ROOM1",
             location=[3.0, 3.0, 2.4],
@@ -438,7 +438,7 @@ class TestDevices:
 
     def test_to_input_string_with_adiabatic(self):
         """Test input string generation with adiabatic flag."""
-        device = Devices(
+        device = Device(
             id="DEV1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 1.5],
@@ -454,7 +454,7 @@ class TestDevices:
 
     def test_to_input_string_with_convection_coefficients(self):
         """Test input string generation with convection coefficients."""
-        device = Devices(
+        device = Device(
             id="DEV2",
             comp_id="ROOM1",
             location=[1.0, 2.0, 1.5],
@@ -471,7 +471,7 @@ class TestDevices:
     # Test class methods
     def test_create_target_classmethod(self):
         """Test the create_target class method."""
-        device = Devices.create_target(
+        device = Device.create_target(
             id="TARGET1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 1.5],
@@ -481,7 +481,7 @@ class TestDevices:
             temperature_depth=0.0005,
             thickness=0.001,
         )
-        assert isinstance(device, Devices)
+        assert isinstance(device, Device)
         assert device.type == "PLATE"
         assert device.material_id == "STEEL"
         assert device.normal == [0, 0, -1]
@@ -489,7 +489,7 @@ class TestDevices:
     def test_create_target_classmethod_validation(self):
         """Test that create_target class method validates inputs."""
         with pytest.raises(ValueError, match="either normal or surface_orientation"):
-            Devices.create_target(
+            Device.create_target(
                 id="TARGET1",
                 comp_id="ROOM1",
                 location=[1.0, 2.0, 1.5],
@@ -552,16 +552,16 @@ class TestDevices:
         extra_checks: dict,
     ):
         """Test device creation class methods."""
-        method = getattr(Devices, factory_method)
+        method = getattr(Device, factory_method)
         device = method(**factory_kwargs)
-        assert isinstance(device, Devices)
+        assert isinstance(device, Device)
         assert device.type == expected_type
         for attr, value in extra_checks.items():
             assert getattr(device, attr) == value
 
     def test_repr_target(self):
         """Test __repr__ method for target device."""
-        device = Devices(
+        device = Device(
             id="TEMP_01",
             comp_id="ROOM1",
             location=[1.0, 2.0, 1.5],
@@ -573,7 +573,7 @@ class TestDevices:
         )
 
         repr_str = repr(device)
-        assert "Devices(" in repr_str
+        assert "Device(" in repr_str
         assert "id='TEMP_01'" in repr_str
         assert "type='PLATE'" in repr_str
         assert "comp_id='ROOM1'" in repr_str
@@ -584,7 +584,7 @@ class TestDevices:
 
     def test_repr_detector(self):
         """Test __repr__ method for detector device."""
-        device = Devices.create_heat_detector(
+        device = Device.create_heat_detector(
             id="HD_01",
             comp_id="ROOM1",
             location=[2.0, 2.0, 2.4],
@@ -593,7 +593,7 @@ class TestDevices:
         )
 
         repr_str = repr(device)
-        assert "Devices(" in repr_str
+        assert "Device(" in repr_str
         assert "id='HD_01'" in repr_str
         assert "type='HEAT_DETECTOR'" in repr_str
         assert "setpoint=74.0" in repr_str
@@ -601,7 +601,7 @@ class TestDevices:
 
     def test_str_target(self):
         """Test __str__ method for target device."""
-        device = Devices(
+        device = Device(
             id="TEMP_01",
             comp_id="LIVING_ROOM",
             location=[1.0, 2.0, 1.5],
@@ -622,7 +622,7 @@ class TestDevices:
 
     def test_str_heat_detector(self):
         """Test __str__ method for heat detector."""
-        device = Devices.create_heat_detector(
+        device = Device.create_heat_detector(
             id="HD_01",
             comp_id="BEDROOM",
             location=[2.0, 2.0, 2.4],
@@ -639,7 +639,7 @@ class TestDevices:
 
     def test_str_smoke_detector(self):
         """Test __str__ method for smoke detector."""
-        device = Devices.create_smoke_detector(
+        device = Device.create_smoke_detector(
             id="SD_01",
             comp_id="HALLWAY",
             location=[3.0, 1.0, 2.4],
@@ -654,7 +654,7 @@ class TestDevices:
 
     def test_str_sprinkler(self):
         """Test __str__ method for sprinkler."""
-        device = Devices.create_sprinkler(
+        device = Device.create_sprinkler(
             id="SPR_01",
             comp_id="KITCHEN",
             location=[2.5, 2.5, 2.4],
@@ -675,7 +675,7 @@ class TestDevices:
 
     def test_getitem_target(self) -> None:
         """Test __getitem__ method for target device."""
-        device = Devices(
+        device = Device(
             id="TEMP_01",
             comp_id="ROOM1",
             location=[1.0, 2.0, 1.5],
@@ -697,7 +697,7 @@ class TestDevices:
 
     def test_getitem_detector(self) -> None:
         """Test __getitem__ method for detector device."""
-        device = Devices.create_heat_detector("HD1", "ROOM1", [1, 2, 3], 70.0, 50.0)
+        device = Device.create_heat_detector("HD1", "ROOM1", [1, 2, 3], 70.0, 50.0)
 
         assert device["id"] == "HD1"
         assert device["setpoint"] == 70.0
@@ -706,16 +706,16 @@ class TestDevices:
 
     def test_getitem_invalid_key(self) -> None:
         """Test __getitem__ method with invalid key."""
-        device = Devices.create_heat_detector("HD1", "ROOM1", [1, 2, 3], 70.0, 50.0)
+        device = Device.create_heat_detector("HD1", "ROOM1", [1, 2, 3], 70.0, 50.0)
 
         with pytest.raises(
-            KeyError, match="Property 'invalid_key' not found in Devices"
+            KeyError, match="Property 'invalid_key' not found in Device"
         ):
             device["invalid_key"]
 
     def test_setitem_common_properties(self) -> None:
         """Test __setitem__ method for common properties."""
-        device = Devices.create_heat_detector("HD1", "ROOM1", [1, 2, 3], 70.0, 50.0)
+        device = Device.create_heat_detector("HD1", "ROOM1", [1, 2, 3], 70.0, 50.0)
 
         device["id"] = "NEW_HD"
         assert device.id == "NEW_HD"
@@ -728,14 +728,14 @@ class TestDevices:
 
     def test_setitem_invalid_key(self) -> None:
         """Test __setitem__ method with invalid key."""
-        device = Devices.create_heat_detector("HD1", "ROOM1", [1, 2, 3], 70.0, 50.0)
+        device = Device.create_heat_detector("HD1", "ROOM1", [1, 2, 3], 70.0, 50.0)
 
         with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
             device["invalid_key"] = "value"
 
     def test_repr_html_detector(self) -> None:
         """Test _repr_html_ method for detector device."""
-        device = Devices.create_heat_detector(
+        device = Device.create_heat_detector(
             id="HD_01",
             comp_id="BEDROOM",
             location=[2.0, 2.0, 2.4],
@@ -762,7 +762,7 @@ class TestDevices:
 
     def test_repr_html_target(self) -> None:
         """Test _repr_html_ method for target device."""
-        device = Devices(
+        device = Device(
             id="TEMP_01",
             comp_id="ROOM1",
             location=[1.0, 2.0, 1.5],
@@ -788,7 +788,7 @@ class TestDevices:
 
     def test_repr_html_smoke_detector(self) -> None:
         """Test _repr_html_ method for smoke detector device."""
-        device = Devices.create_smoke_detector(
+        device = Device.create_smoke_detector(
             id="SD_01",
             comp_id="LIVING_ROOM",
             location=[3.0, 3.0, 2.4],
@@ -804,7 +804,7 @@ class TestDevices:
         assert "5.0" in html_str  # Check for setpoint value
 
 
-class TestDevicesSetItemValidation:
+class TestDeviceSetItemValidation:
     """Test validation in __setitem__ to ensure data integrity."""
 
     @pytest.mark.parametrize(
@@ -817,7 +817,7 @@ class TestDevicesSetItemValidation:
     )
     def test_setitem_invalid_location(self, invalid_location):
         """Test that __setitem__ rejects invalid location values."""
-        device = Devices(
+        device = Device(
             id="T1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 3.0],
@@ -830,7 +830,7 @@ class TestDevicesSetItemValidation:
 
     def test_setitem_target_empty_material_id(self):
         """Test that __setitem__ rejects empty material_id for target types."""
-        device = Devices(
+        device = Device(
             id="T1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 3.0],
@@ -843,7 +843,7 @@ class TestDevicesSetItemValidation:
 
     def test_setitem_target_both_normal_and_orientation(self):
         """Test that __setitem__ rejects both normal and surface_orientation set."""
-        device = Devices(
+        device = Device(
             id="T1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 3.0],
@@ -858,7 +858,7 @@ class TestDevicesSetItemValidation:
 
     def test_setitem_heat_detector_removes_setpoint(self):
         """Test that __setitem__ rejects None setpoint for heat detector."""
-        device = Devices.create_heat_detector(
+        device = Device.create_heat_detector(
             id="HD1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 3.0],
@@ -870,7 +870,7 @@ class TestDevicesSetItemValidation:
 
     def test_setitem_sprinkler_removes_spray_density(self):
         """Test that __setitem__ rejects None spray_density for sprinkler."""
-        device = Devices.create_sprinkler(
+        device = Device.create_sprinkler(
             id="SP1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 3.0],
@@ -885,7 +885,7 @@ class TestDevicesSetItemValidation:
 
     def test_setitem_valid_location_change(self):
         """Test that __setitem__ accepts valid location change."""
-        device = Devices.create_smoke_detector(
+        device = Device.create_smoke_detector(
             id="SD1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 3.0],
@@ -896,7 +896,7 @@ class TestDevicesSetItemValidation:
 
     def test_setitem_invalid_does_not_mutate_state(self):
         """Test that a failed __setitem__ rolls back to the previous value."""
-        device = Devices(
+        device = Device(
             id="T1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 3.0],

@@ -14,16 +14,16 @@ from typing import Any
 
 import f90nml  # type: ignore
 
-from ..ceiling_floor_vents import CeilingFloorVents
-from ..compartments import Compartments
-from ..devices import Devices
-from ..fires import Fires
-from ..material_properties import MaterialProperties
-from ..mechanical_vents import MechanicalVents
+from ..ceiling_floor_vent import CeilingFloorVent
+from ..compartment import Compartment
+from ..device import Device
+from ..fire import Fire
+from ..material import Material
+from ..mechanical_vent import MechanicalVent
 from ..model import CFASTModel
 from ..simulation_environment import SimulationEnvironment
-from ..surface_connections import SurfaceConnections
-from ..wall_vents import WallVents
+from ..surface_connection import SurfaceConnection
+from ..wall_vent import WallVent
 
 logger = logging.getLogger("pycfast")
 
@@ -62,22 +62,22 @@ class CFASTParser:
     ----------
     simulation_environment: SimulationEnvironment
         object containing simulation settings.
-    material_properties: List[MaterialProperties]
-        List of MaterialProperties objects.
-    compartments: List[Compartments]
-        List of Compartments objects.
-    wall_vents: List[WallVents]
-        List of WallVents objects.
-    ceiling_floor_vents: List[CeilingFloorVents]
-        List of CeilingFloorVents objects.
-    mechanical_vents: List[MechanicalVents]
-        List of MechanicalVents objects.
-    fires: List[Fires]
-        List of Fires objects.
-    devices: List[Devices]
-        List of Devices objects.
-    surface_connections: List[SurfaceConnections]
-        List of SurfaceConnections objects.
+    material_properties: List[Material]
+        List of Material objects.
+    compartments: List[Compartment]
+        List of Compartment objects.
+    wall_vents: List[WallVent]
+        List of WallVent objects.
+    ceiling_floor_vents: List[CeilingFloorVent]
+        List of CeilingFloorVent objects.
+    mechanical_vents: List[MechanicalVent]
+        List of MechanicalVent objects.
+    fires: List[Fire]
+        List of Fire objects.
+    devices: List[Device]
+        List of Device objects.
+    surface_connections: List[SurfaceConnection]
+        List of SurfaceConnection objects.
 
     Examples
     --------
@@ -99,17 +99,17 @@ class CFASTParser:
         self.simulation_environment: SimulationEnvironment = SimulationEnvironment(
             title=""
         )
-        self.material_properties: list[MaterialProperties] = []
-        self.compartments: list[Compartments] = []
-        self.wall_vents: list[WallVents] = []
-        self.ceiling_floor_vents: list[CeilingFloorVents] = []
-        self.mechanical_vents: list[MechanicalVents] = []
-        self.fires: list[Fires] = []
-        self.devices: list[Devices] = []
-        self.surface_connections: list[SurfaceConnections] = []
+        self.material_properties: list[Material] = []
+        self.compartments: list[Compartment] = []
+        self.wall_vents: list[WallVent] = []
+        self.ceiling_floor_vents: list[CeilingFloorVent] = []
+        self.mechanical_vents: list[MechanicalVent] = []
+        self.fires: list[Fire] = []
+        self.devices: list[Device] = []
+        self.surface_connections: list[SurfaceConnection] = []
 
         self._fire_hash_map: dict[
-            str, Fires
+            str, Fire
         ] = {}  # will be useful for merging chemistry, data tables, and fire
 
     def parse_file(
@@ -539,7 +539,7 @@ class CFASTParser:
             "emissivity": {"source": "EMISSIVITY", "required": True, "type": float},
         }
         material_params = self._extract_params(params, param_map)
-        material = MaterialProperties(**material_params)
+        material = Material(**material_params)
         self.material_properties.append(material)
 
     def _parse_compartment_block(self, params: dict[str, Any]) -> None:
@@ -583,7 +583,7 @@ class CFASTParser:
             {"origin_x": origin_x, "origin_y": origin_y, "origin_z": origin_z}
         )
 
-        compartment = Compartments(**compartment_params)
+        compartment = Compartment(**compartment_params)
         self.compartments.append(compartment)
 
     def _parse_vent_block(self, params: dict[str, Any]) -> None:
@@ -600,7 +600,7 @@ class CFASTParser:
             raise ValueError(f"Unknown vent type: {vent_type}")
 
     def _parse_wall_vent(self, params: dict[str, Any]) -> None:
-        """Parse wall vent parameters and create WallVents object."""
+        """Parse wall vent parameters and create WallVent object."""
         param_map = {
             "id": {"source": "ID", "required": True, "type": str},
             "comps_ids": {
@@ -624,11 +624,11 @@ class CFASTParser:
         }
 
         vent_params = self._extract_params(params, param_map)
-        vent = WallVents(**vent_params)
+        vent = WallVent(**vent_params)
         self.wall_vents.append(vent)
 
     def _parse_ceiling_floor_vent(self, params: dict[str, Any]) -> None:
-        """Parse ceiling/floor vent parameters and create CeilingFloorVents object."""
+        """Parse ceiling/floor vent parameters and create CeilingFloorVent object."""
         param_map = {
             "id": {"source": "ID", "required": True, "type": str},
             "comps_ids": {
@@ -651,11 +651,11 @@ class CFASTParser:
         }
 
         vent_params = self._extract_params(params, param_map)
-        vent = CeilingFloorVents(**vent_params)
+        vent = CeilingFloorVent(**vent_params)
         self.ceiling_floor_vents.append(vent)
 
     def _parse_mechanical_vent(self, params: dict[str, Any]) -> None:
-        """Parse mechanical vent parameters and create MechanicalVents object."""
+        """Parse mechanical vent parameters and create MechanicalVent object."""
         param_map = {
             "id": {"source": "ID", "required": True, "type": str},
             "comps_ids": {
@@ -686,7 +686,7 @@ class CFASTParser:
         }
 
         vent_params = self._extract_params(params, param_map)
-        vent = MechanicalVents(**vent_params)
+        vent = MechanicalVent(**vent_params)
         self.mechanical_vents.append(vent)
 
     def _parse_fire_block(self, params: dict[str, Any]) -> None:
@@ -702,7 +702,7 @@ class CFASTParser:
         }
 
         fire_params = self._extract_params(params, param_map)
-        fire = Fires(**fire_params)
+        fire = Fire(**fire_params)
 
         fire.data_table = []
 
@@ -797,7 +797,7 @@ class CFASTParser:
                 },
             }
             device_params = self._extract_params(params, param_map)
-            device = Devices(**device_params)
+            device = Device(**device_params)
 
         elif device_type == "HEAT_DETECTOR":
             param_map = {
@@ -808,7 +808,7 @@ class CFASTParser:
                 "rti": {"source": "RTI", "required": True, "type": float},
             }
             device_params = self._extract_params(params, param_map)
-            device = Devices.create_heat_detector(**device_params)
+            device = Device.create_heat_detector(**device_params)
 
         elif device_type == "SMOKE_DETECTOR":
             param_map = {
@@ -823,7 +823,7 @@ class CFASTParser:
                 },
             }
             device_params = self._extract_params(params, param_map)
-            device = Devices.create_smoke_detector(**device_params)
+            device = Device.create_smoke_detector(**device_params)
 
         elif device_type == "SPRINKLER":
             param_map = {
@@ -839,7 +839,7 @@ class CFASTParser:
                 },
             }
             device_params = self._extract_params(params, param_map)
-            device = Devices.create_sprinkler(**device_params)
+            device = Device.create_sprinkler(**device_params)
 
         else:
             raise ValueError(f"Unknown device type: {device_type}")
@@ -857,7 +857,7 @@ class CFASTParser:
                 "fraction": {"source": "F", "required": True, "type": float},
             }
             conn_params = self._extract_params(params, param_map)
-            surface_connection = SurfaceConnections.wall_connection(**conn_params)
+            surface_connection = SurfaceConnection.wall_connection(**conn_params)
 
         elif conn_type == "FLOOR":
             param_map = {
@@ -865,7 +865,7 @@ class CFASTParser:
                 "comp_ids": {"source": "COMP_IDS", "required": True, "type": str},
             }
             conn_params = self._extract_params(params, param_map)
-            surface_connection = SurfaceConnections.ceiling_floor_connection(
+            surface_connection = SurfaceConnection.ceiling_floor_connection(
                 **conn_params
             )
 
@@ -995,7 +995,7 @@ def parse_cfast_file(
     --------
     >>> model = parse_cfast_file("simulation.in")
     >>> print(f"Title: {model.simulation_environment.title}")
-    >>> print(f"Compartments: {len(model.compartments)}")
+    >>> print(f"Compartment: {len(model.compartments)}")
     """
     parser = CFASTParser()
     return parser.parse_file(file_path, output_path)

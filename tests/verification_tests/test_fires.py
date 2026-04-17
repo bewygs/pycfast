@@ -6,12 +6,12 @@ import pytest
 
 from pycfast import (
     CFASTModel,
-    Compartments,
-    Devices,
-    Fires,
-    MaterialProperties,
+    Compartment,
+    Device,
+    Fire,
+    Material,
     SimulationEnvironment,
-    WallVents,
+    WallVent,
 )
 
 from .verification import (
@@ -21,7 +21,7 @@ from .verification import (
 
 pytestmark = [pytest.mark.slow, pytest.mark.local]
 
-verification_data_dir = get_verification_data_dir(Path(__file__).parent, "Fires")
+verification_data_dir = get_verification_data_dir(Path(__file__).parent, "Fire")
 
 
 def test_ignition_test_simulation(tmp_path):
@@ -41,7 +41,7 @@ def test_ignition_test_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="HARDWOOD",
             material="Wood, Hardwoods (oak, maple) (3/4 in)",
             conductivity=0.16,
@@ -53,7 +53,7 @@ def test_ignition_test_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=5,
             height=5,
@@ -68,7 +68,7 @@ def test_ignition_test_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Comp 1", "OUTSIDE"],
             bottom=0,
@@ -80,7 +80,7 @@ def test_ignition_test_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ F2",
             comp_id="Comp 1",
             location=[2.5, 3.5, 1],
@@ -90,7 +90,7 @@ def test_ignition_test_simulation(tmp_path):
             temperature_depth=0.0095,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ F3",
             comp_id="Comp 1",
             location=[2.5, 4.5, 1],
@@ -103,7 +103,7 @@ def test_ignition_test_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="Initial Fire",
             comp_id="Comp 1",
             fire_id="Initial Fire_Fire",
@@ -141,7 +141,7 @@ def test_ignition_test_simulation(tmp_path):
                 [620, 0, 0, 0.3, 0.008021683, 0.02, 0, 0, 0],
             ],
         ),
-        Fires(
+        Fire(
             id="Second Fire",
             comp_id="Comp 1",
             fire_id="Second Fire_Fire",
@@ -161,7 +161,7 @@ def test_ignition_test_simulation(tmp_path):
                 [100, 2, 0, 0.09, 0.004747221, 0.01, 0, 0, 0],
             ],
         ),
-        Fires(
+        Fire(
             id="Third Fire",
             comp_id="Comp 1",
             fire_id="Third Fire_Fire",

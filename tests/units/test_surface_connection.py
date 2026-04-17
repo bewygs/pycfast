@@ -2,19 +2,19 @@ from __future__ import annotations
 
 import pytest
 
-from pycfast.surface_connections import SurfaceConnections
+from pycfast.surface_connection import SurfaceConnection
 
 """
-Tests for the SurfaceConnections class.
+Tests for the SurfaceConnection class.
 """
 
 
-class TestSurfaceConnections:
-    """Test class for SurfaceConnections."""
+class TestSurfaceConnection:
+    """Test class for SurfaceConnection."""
 
     def test_init_wall_connection(self):
         """Test initialization of a wall surface connection."""
-        conn = SurfaceConnections(
+        conn = SurfaceConnection(
             conn_type="WALL",
             comp_id="ROOM1",
             comp_ids="ROOM2",
@@ -27,7 +27,7 @@ class TestSurfaceConnections:
 
     def test_init_floor_connection(self):
         """Test initialization of a floor surface connection."""
-        conn = SurfaceConnections(
+        conn = SurfaceConnection(
             conn_type="FLOOR",
             comp_id="UPPER",
             comp_ids="LOWER",
@@ -39,7 +39,7 @@ class TestSurfaceConnections:
 
     def test_to_input_string_wall_connection(self):
         """Test input string generation for wall connection."""
-        conn = SurfaceConnections(
+        conn = SurfaceConnection(
             conn_type="WALL",
             comp_id="ROOM1",
             comp_ids="ROOM2",
@@ -56,7 +56,7 @@ class TestSurfaceConnections:
 
     def test_to_input_string_floor_connection(self):
         """Test input string generation for floor connection."""
-        conn = SurfaceConnections(
+        conn = SurfaceConnection(
             conn_type="FLOOR",
             comp_id="UPPER_ROOM",
             comp_ids="LOWER_ROOM",
@@ -71,12 +71,12 @@ class TestSurfaceConnections:
 
     def test_wall_connection_classmethod(self):
         """Test the wall_connection class method."""
-        conn = SurfaceConnections.wall_connection(
+        conn = SurfaceConnection.wall_connection(
             comp_id="LIVING",
             comp_ids="KITCHEN",
             fraction=0.8,
         )
-        assert isinstance(conn, SurfaceConnections)
+        assert isinstance(conn, SurfaceConnection)
         assert conn.conn_type == "WALL"
         assert conn.comp_id == "LIVING"
         assert conn.comp_ids == "KITCHEN"
@@ -84,11 +84,11 @@ class TestSurfaceConnections:
 
     def test_ceiling_floor_connection_classmethod(self):
         """Test the ceiling_floor_connection class method."""
-        conn = SurfaceConnections.ceiling_floor_connection(
+        conn = SurfaceConnection.ceiling_floor_connection(
             comp_id="SECOND_FLOOR",
             comp_ids="FIRST_FLOOR",
         )
-        assert isinstance(conn, SurfaceConnections)
+        assert isinstance(conn, SurfaceConnection)
         assert conn.conn_type == "FLOOR"
         assert conn.comp_id == "SECOND_FLOOR"
         assert conn.comp_ids == "FIRST_FLOOR"
@@ -99,13 +99,13 @@ class TestSurfaceConnections:
     )
     def test_to_input_string_wall_with_different_fractions(self, fraction: float):
         """Test input string generation for wall connections with various fraction values."""
-        conn = SurfaceConnections("WALL", "ROOM1", "ROOM2", fraction)
+        conn = SurfaceConnection("WALL", "ROOM1", "ROOM2", fraction)
         result = conn.to_input_string()
         assert f"F = {fraction}" in result
 
     def test_to_input_string_compartment_id_formatting(self):
         """Test that compartment IDs are properly quoted in output."""
-        conn = SurfaceConnections(
+        conn = SurfaceConnection(
             conn_type="WALL",
             comp_id="COMP_A",
             comp_ids="COMP_B",
@@ -118,32 +118,32 @@ class TestSurfaceConnections:
     def test_init_invalid_conn_type(self):
         """Test that initialization fails with an invalid conn_type."""
         with pytest.raises(ValueError, match="must be one of"):
-            SurfaceConnections(conn_type="CEILING", comp_id="ROOM1", comp_ids="ROOM2")
+            SurfaceConnection(conn_type="CEILING", comp_id="ROOM1", comp_ids="ROOM2")
 
     def test_init_wall_missing_fraction(self):
         """Test that WALL connection fails without a fraction value."""
         with pytest.raises(ValueError, match="WALL connection requires a fraction"):
-            SurfaceConnections(conn_type="WALL", comp_id="ROOM1", comp_ids="ROOM2")
+            SurfaceConnection(conn_type="WALL", comp_id="ROOM1", comp_ids="ROOM2")
 
     @pytest.mark.parametrize("fraction", [-0.1, 1.1])
     def test_init_wall_fraction_out_of_range(self, fraction: float):
         """Test that WALL connection fails with fraction outside [0, 1]."""
         with pytest.raises(ValueError, match=r"must be in \[0, 1\]"):
-            SurfaceConnections(
+            SurfaceConnection(
                 conn_type="WALL", comp_id="ROOM1", comp_ids="ROOM2", fraction=fraction
             )
 
     def test_init_floor_with_fraction_warning(self):
         """Test that a warning is raised when fraction is provided for a FLOOR connection."""
         with pytest.warns(UserWarning, match="fraction should be None for FLOOR"):
-            SurfaceConnections(
+            SurfaceConnection(
                 conn_type="FLOOR", comp_id="ROOM1", comp_ids="ROOM2", fraction=0.5
             )
 
     def test_to_input_string_floor_no_fraction(self):
         """Test that floor connections warn when fraction is provided and don't include it in output."""
         with pytest.warns(UserWarning, match="fraction should be None for FLOOR"):
-            conn = SurfaceConnections(
+            conn = SurfaceConnection(
                 conn_type="FLOOR",
                 comp_id="TOP",
                 comp_ids="BOTTOM",
@@ -156,12 +156,12 @@ class TestSurfaceConnections:
     # Tests for dunder methods
     def test_repr(self) -> None:
         """Test __repr__ method."""
-        conn = SurfaceConnections(
+        conn = SurfaceConnection(
             conn_type="WALL", comp_id="ROOM1", comp_ids="ROOM2", fraction=0.75
         )
 
         repr_str = repr(conn)
-        assert "SurfaceConnections(" in repr_str
+        assert "SurfaceConnection(" in repr_str
         assert "conn_type='WALL'" in repr_str
         assert "comp_id='ROOM1'" in repr_str
         assert "comp_ids='ROOM2'" in repr_str
@@ -169,18 +169,18 @@ class TestSurfaceConnections:
 
     def test_repr_floor_connection(self) -> None:
         """Test __repr__ method for floor connection."""
-        conn = SurfaceConnections(
+        conn = SurfaceConnection(
             conn_type="FLOOR", comp_id="UPPER", comp_ids="LOWER", fraction=None
         )
 
         repr_str = repr(conn)
-        assert "SurfaceConnections(" in repr_str
+        assert "SurfaceConnection(" in repr_str
         assert "conn_type='FLOOR'" in repr_str
         assert "fraction=None" in repr_str
 
     def test_str(self) -> None:
         """Test __str__ method."""
-        conn = SurfaceConnections(
+        conn = SurfaceConnection(
             conn_type="WALL", comp_id="LIVING_ROOM", comp_ids="KITCHEN", fraction=0.6
         )
 
@@ -190,7 +190,7 @@ class TestSurfaceConnections:
 
     def test_str_floor_connection(self) -> None:
         """Test __str__ method for floor connection."""
-        conn = SurfaceConnections(
+        conn = SurfaceConnection(
             conn_type="FLOOR",
             comp_id="SECOND_FLOOR",
             comp_ids="FIRST_FLOOR",
@@ -203,7 +203,7 @@ class TestSurfaceConnections:
 
     def test_getitem(self) -> None:
         """Test __getitem__ method."""
-        conn = SurfaceConnections(
+        conn = SurfaceConnection(
             conn_type="WALL", comp_id="ROOM_A", comp_ids="ROOM_B", fraction=0.8
         )
 
@@ -214,16 +214,16 @@ class TestSurfaceConnections:
 
     def test_getitem_invalid_key(self) -> None:
         """Test __getitem__ method with invalid key."""
-        conn = SurfaceConnections("WALL", "A", "B", 0.5)
+        conn = SurfaceConnection("WALL", "A", "B", 0.5)
 
         with pytest.raises(
-            KeyError, match="Property 'invalid_key' not found in SurfaceConnections"
+            KeyError, match="Property 'invalid_key' not found in SurfaceConnection"
         ):
             conn["invalid_key"]
 
     def test_setitem(self) -> None:
         """Test __setitem__ method."""
-        conn = SurfaceConnections("WALL", "A", "B", 0.5)
+        conn = SurfaceConnection("WALL", "A", "B", 0.5)
 
         # Test setting various properties
         conn["conn_type"] = "FLOOR"
@@ -240,7 +240,7 @@ class TestSurfaceConnections:
 
     def test_setitem_invalid_does_not_mutate_state(self) -> None:
         """Test that a failed __setitem__ rolls back to the previous value."""
-        conn = SurfaceConnections("WALL", "A", "B", 0.5)
+        conn = SurfaceConnection("WALL", "A", "B", 0.5)
 
         with pytest.raises(ValueError):
             conn["conn_type"] = "INNVALID_CONN_TYPE"
@@ -249,14 +249,14 @@ class TestSurfaceConnections:
 
     def test_setitem_invalid_key(self) -> None:
         """Test __setitem__ method with invalid key."""
-        conn = SurfaceConnections("WALL", "A", "B", 0.5)
+        conn = SurfaceConnection("WALL", "A", "B", 0.5)
 
         with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
             conn["invalid_key"] = "value"
 
     def test_repr_html(self) -> None:
         """Test _repr_html_ method."""
-        conn = SurfaceConnections(
+        conn = SurfaceConnection(
             conn_type="WALL", comp_id="ROOM1", comp_ids="ROOM2", fraction=0.75
         )
 
@@ -275,7 +275,7 @@ class TestSurfaceConnections:
 
     def test_repr_html_floor_connection(self) -> None:
         """Test _repr_html_ method for floor connection."""
-        conn = SurfaceConnections(
+        conn = SurfaceConnection(
             conn_type="FLOOR", comp_id="UPPER", comp_ids="LOWER", fraction=None
         )
 

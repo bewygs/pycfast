@@ -7,13 +7,13 @@ import pytest
 
 from pycfast import (
     CFASTModel,
-    Compartments,
-    Devices,
-    Fires,
-    MaterialProperties,
-    MechanicalVents,
+    Compartment,
+    Device,
+    Fire,
+    Material,
+    MechanicalVent,
     SimulationEnvironment,
-    WallVents,
+    WallVent,
 )
 
 from .verification import (
@@ -46,7 +46,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="CABSWConcrete",
             material="Cabinet Switchgear Concrete Floor (user''s guide)",
             conductivity=1.6,
@@ -55,7 +55,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
             thickness=0.5,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="CABSWSteel",
             material="Cabinet Switchgear Steel Cabinet (user''s guide)",
             conductivity=48,
@@ -64,7 +64,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
             thickness=0.0015,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="THIEF",
             material="Thief Cable (per NUREG CR 6931)",
             conductivity=0.2,
@@ -76,7 +76,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Switchgear Room",
             depth=18.5,
             height=6.1,
@@ -94,7 +94,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Switchgear Room", "OUTSIDE"],
             bottom=0,
@@ -106,7 +106,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["OUTSIDE", "Switchgear Room"],
             area=[0.3, 0.3],
@@ -118,7 +118,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_2",
             comps_ids=["OUTSIDE", "Switchgear Room"],
             area=[0.3, 0.3],
@@ -130,7 +130,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_3",
             comps_ids=["OUTSIDE", "Switchgear Room"],
             area=[0.3, 0.3],
@@ -142,7 +142,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_4",
             comps_ids=["Switchgear Room", "OUTSIDE"],
             area=[0.3, 0.3],
@@ -154,7 +154,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_5",
             comps_ids=["Switchgear Room", "OUTSIDE"],
             area=[0.3, 0.3],
@@ -166,7 +166,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_6",
             comps_ids=["Switchgear Room", "OUTSIDE"],
             area=[0.3, 0.3],
@@ -181,7 +181,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="PE_PVC 464 kW",
             comp_id="Switchgear Room",
             fire_id="PE_PVC 464 kW_Fire",
@@ -210,7 +210,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
                 [1930, 0, 2.4, 0.18, 0.147, 0.136, 0, 0.4026547, 0],
             ],
         ),
-        Fires(
+        Fire(
             id="MCC Cable Tray Secondary Fire",
             comp_id="Switchgear Room",
             fire_id="MCC Cable Tray Secondary Fire_Fire",
@@ -255,7 +255,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="Switchgear Room",
             location=[8.3, 7, 2.4],
@@ -265,7 +265,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
             temperature_depth=0.00075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2",
             comp_id="Switchgear Room",
             location=[8.3, 12, 2.4],
@@ -275,7 +275,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
             temperature_depth=0.00075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 3",
             comp_id="Switchgear Room",
             location=[8.3, 9.5, 3.9],
@@ -285,7 +285,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
             temperature_depth=0.003,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 4",
             comp_id="Switchgear Room",
             location=[8.3, 9.5, 4.4],
@@ -295,7 +295,7 @@ def test_cabinet_fire_in_switchgear_simulation(tmp_path):
             temperature_depth=0.003,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 5",
             comp_id="Switchgear Room",
             location=[8.3, 9.5, 4.9],
@@ -349,7 +349,7 @@ def test_initial_fire_only_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="CABSWConcrete",
             material="Cabinet Switchgear Concrete Floor (user''s guide)",
             conductivity=1.6,
@@ -358,7 +358,7 @@ def test_initial_fire_only_simulation(tmp_path):
             thickness=0.5,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="CABSWSteel",
             material="Cabinet Switchgear Steel Cabinet (user''s guide)",
             conductivity=48,
@@ -367,7 +367,7 @@ def test_initial_fire_only_simulation(tmp_path):
             thickness=0.0015,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="THIEF",
             material="Thief Cable (per NUREG CR 6931)",
             conductivity=0.2,
@@ -379,7 +379,7 @@ def test_initial_fire_only_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Switchgear Room",
             depth=18.5,
             height=6.1,
@@ -397,7 +397,7 @@ def test_initial_fire_only_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Switchgear Room", "OUTSIDE"],
             bottom=0,
@@ -409,7 +409,7 @@ def test_initial_fire_only_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["OUTSIDE", "Switchgear Room"],
             area=[0.3, 0.3],
@@ -421,7 +421,7 @@ def test_initial_fire_only_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_2",
             comps_ids=["OUTSIDE", "Switchgear Room"],
             area=[0.3, 0.3],
@@ -433,7 +433,7 @@ def test_initial_fire_only_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_3",
             comps_ids=["OUTSIDE", "Switchgear Room"],
             area=[0.3, 0.3],
@@ -445,7 +445,7 @@ def test_initial_fire_only_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_4",
             comps_ids=["Switchgear Room", "OUTSIDE"],
             area=[0.3, 0.3],
@@ -457,7 +457,7 @@ def test_initial_fire_only_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_5",
             comps_ids=["Switchgear Room", "OUTSIDE"],
             area=[0.3, 0.3],
@@ -469,7 +469,7 @@ def test_initial_fire_only_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_6",
             comps_ids=["Switchgear Room", "OUTSIDE"],
             area=[0.3, 0.3],
@@ -484,7 +484,7 @@ def test_initial_fire_only_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="PE_PVC 464 kW",
             comp_id="Switchgear Room",
             fire_id="PE_PVC 464 kW_Fire",
@@ -516,7 +516,7 @@ def test_initial_fire_only_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="Switchgear Room",
             location=[8.3, 7, 2.4],
@@ -526,7 +526,7 @@ def test_initial_fire_only_simulation(tmp_path):
             temperature_depth=0.00075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2",
             comp_id="Switchgear Room",
             location=[8.3, 12, 2.4],
@@ -536,7 +536,7 @@ def test_initial_fire_only_simulation(tmp_path):
             temperature_depth=0.00075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 3",
             comp_id="Switchgear Room",
             location=[8.3, 9.5, 3.9],
@@ -546,7 +546,7 @@ def test_initial_fire_only_simulation(tmp_path):
             temperature_depth=0.003,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 4",
             comp_id="Switchgear Room",
             location=[8.3, 9.5, 4.4],
@@ -556,7 +556,7 @@ def test_initial_fire_only_simulation(tmp_path):
             temperature_depth=0.003,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 5",
             comp_id="Switchgear Room",
             location=[8.3, 9.5, 4.9],

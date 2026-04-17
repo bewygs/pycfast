@@ -24,13 +24,13 @@ PyCFAST can be seen as an alternative to the CFAST graphical interface, CEdit. I
 <td align="center"><strong>PyCFAST (Python)</strong></td>
 </tr>
 <tr>
-<td><img src="docs/source/_static/images/cedit-compartments-tab.png" alt="CEdit Compartments Tab" width="400"></td>
+<td><img src="docs/source/_static/images/cedit-compartments-tab.png" alt="CEdit Compartment Tab" width="400"></td>
 <td>
 
 ```python
-from pycfast import Compartments
+from pycfast import Compartment
 
-room = Compartments(
+room = Compartment(
     id="Comp 1",
     width=10.0,
     depth=10.0,
@@ -52,11 +52,11 @@ room = Compartments(
 This minimal model runs with just a title and one compartment with default values:
 
 ```python
-from pycfast import CFASTModel, Compartments, SimulationEnvironment
+from pycfast import CFASTModel, Compartment, SimulationEnvironment
 
 model = CFASTModel(
     simulation_environment=SimulationEnvironment(title="My Simulation"),
-    compartments=[Compartments()],
+    compartments=[Compartment()],
     # you can also add: fires, wall_vents, ceiling_floor_vents, mechanical_vents, ...
     file_name="my_simulation.in",
 )
@@ -68,24 +68,24 @@ For a full model with all components:
 
 ```python
 from pycfast import (
-    CeilingFloorVents,
+    CeilingFloorVent,
     CFASTModel,
-    Compartments,
-    Fires,
-    MaterialProperties,
-    MechanicalVents,
+    Compartment,
+    Fire,
+    Material,
+    MechanicalVent,
     SimulationEnvironment,
-    WallVents,
+    WallVent,
 )
 
 model = CFASTModel(
     simulation_environment=SimulationEnvironment(...),
-    material_properties=[MaterialProperties(...)],
-    compartments=[Compartments(...)],
-    wall_vents=[WallVents(...)],
-    ceiling_floor_vents=[CeilingFloorVents(...)],
-    mechanical_vents=[MechanicalVents(...)],
-    fires=[Fires(...)],
+    material_properties=[Material(...)],
+    compartments=[Compartment(...)],
+    wall_vents=[WallVent(...)],
+    ceiling_floor_vents=[CeilingFloorVent(...)],
+    mechanical_vents=[MechanicalVent(...)],
+    fires=[Fire(...)],
     file_name="test_simulation.in",
 )
 ```

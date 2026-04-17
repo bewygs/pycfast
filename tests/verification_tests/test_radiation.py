@@ -5,12 +5,12 @@ from pathlib import Path
 import pytest
 
 from pycfast import (
-    CeilingFloorVents,
+    CeilingFloorVent,
     CFASTModel,
-    Compartments,
-    Devices,
-    Fires,
-    MaterialProperties,
+    Compartment,
+    Device,
+    Fire,
+    Material,
     SimulationEnvironment,
 )
 
@@ -41,7 +41,7 @@ def test_radiation_1_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="STEELSHT",
             material="Steel, Plain Carbon (1/16 in)",
             conductivity=48,
@@ -53,7 +53,7 @@ def test_radiation_1_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=99,
             height=99,
@@ -68,7 +68,7 @@ def test_radiation_1_simulation(tmp_path):
     ]
 
     ceiling_floor_vents = [
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_1",
             comps_ids=["OUTSIDE", "Comp 1"],
             area=20,
@@ -79,7 +79,7 @@ def test_radiation_1_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="Comp 1",
             location=[9.5, 7.5, 0],
@@ -92,7 +92,7 @@ def test_radiation_1_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="New Fire",
             comp_id="Comp 1",
             fire_id="New Fire_Fire",
@@ -157,7 +157,7 @@ def test_radiation_2_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="STEELROD",
             material="Steel Rod, 2.5 cm diameter",
             conductivity=54,
@@ -166,7 +166,7 @@ def test_radiation_2_simulation(tmp_path):
             thickness=0.025,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="STEELTHCK",
             material="Thick Steel (1 in)",
             conductivity=54,
@@ -175,7 +175,7 @@ def test_radiation_2_simulation(tmp_path):
             thickness=0.025,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="STEELSHT",
             material="Thin Steel (1/16 in)",
             conductivity=54,
@@ -187,7 +187,7 @@ def test_radiation_2_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=5,
             height=5,
@@ -202,7 +202,7 @@ def test_radiation_2_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="Comp 1",
             location=[2.5, 2.5, 0.01],
@@ -212,7 +212,7 @@ def test_radiation_2_simulation(tmp_path):
             temperature_depth=0.0125,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2",
             comp_id="Comp 1",
             location=[1.5, 2.5, 0.01],
@@ -222,7 +222,7 @@ def test_radiation_2_simulation(tmp_path):
             temperature_depth=0.0125,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 3",
             comp_id="Comp 1",
             location=[3.5, 2.5, 0.01],
@@ -283,7 +283,7 @@ def test_radiation_3_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="CONCRETE",
             material="CONCRETE",
             conductivity=1.75,
@@ -295,7 +295,7 @@ def test_radiation_3_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=2,
             height=4,
@@ -314,7 +314,7 @@ def test_radiation_3_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1top",
             comp_id="Comp 1",
             location=[0.0909, 1, 4],
@@ -324,7 +324,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2top",
             comp_id="Comp 1",
             location=[0.2727, 1, 4],
@@ -334,7 +334,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 3top",
             comp_id="Comp 1",
             location=[0.4545, 1, 4],
@@ -344,7 +344,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 4top",
             comp_id="Comp 1",
             location=[0.6363, 1, 4],
@@ -354,7 +354,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 5top",
             comp_id="Comp 1",
             location=[0.8181, 1, 4],
@@ -364,7 +364,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 6top",
             comp_id="Comp 1",
             location=[1, 1, 4],
@@ -374,7 +374,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 7top",
             comp_id="Comp 1",
             location=[1.1817, 1, 4],
@@ -384,7 +384,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 8top",
             comp_id="Comp 1",
             location=[1.3635, 1, 4],
@@ -394,7 +394,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 9top",
             comp_id="Comp 1",
             location=[1.5453, 1, 4],
@@ -404,7 +404,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 10top",
             comp_id="Comp 1",
             location=[1.7271, 1, 4],
@@ -414,7 +414,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 11top",
             comp_id="Comp 1",
             location=[1.9089, 1, 4],
@@ -424,7 +424,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1side",
             comp_id="Comp 1",
             location=[2, 1, 0.125],
@@ -434,7 +434,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2side",
             comp_id="Comp 1",
             location=[2, 1, 0.375],
@@ -444,7 +444,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 3side",
             comp_id="Comp 1",
             location=[2, 1, 0.625],
@@ -454,7 +454,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 4side",
             comp_id="Comp 1",
             location=[2, 1, 0.875],
@@ -464,7 +464,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 5side",
             comp_id="Comp 1",
             location=[2, 1, 1.125],
@@ -474,7 +474,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 6side",
             comp_id="Comp 1",
             location=[2, 1, 1.375],
@@ -484,7 +484,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 7side",
             comp_id="Comp 1",
             location=[2, 1, 1.625],
@@ -494,7 +494,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 8side",
             comp_id="Comp 1",
             location=[2, 1, 1.875],
@@ -504,7 +504,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 9side",
             comp_id="Comp 1",
             location=[2, 1, 2.125],
@@ -514,7 +514,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 10side",
             comp_id="Comp 1",
             location=[2, 1, 2.375],
@@ -524,7 +524,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 11side",
             comp_id="Comp 1",
             location=[2, 1, 2.625],
@@ -534,7 +534,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 12side",
             comp_id="Comp 1",
             location=[2, 1, 2.875],
@@ -544,7 +544,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 13side",
             comp_id="Comp 1",
             location=[2, 1, 3.125],
@@ -554,7 +554,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 14side",
             comp_id="Comp 1",
             location=[2, 1, 3.375],
@@ -564,7 +564,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 15side",
             comp_id="Comp 1",
             location=[2, 1, 3.625],
@@ -574,7 +574,7 @@ def test_radiation_3_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 16side",
             comp_id="Comp 1",
             location=[2, 1, 3.875],
@@ -635,7 +635,7 @@ def test_radiation_4_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="CONCRETE",
             material="CONCRETE",
             conductivity=1.75,
@@ -647,7 +647,7 @@ def test_radiation_4_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=2,
             height=4,
@@ -666,7 +666,7 @@ def test_radiation_4_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1top",
             comp_id="Comp 1",
             location=[0.0909, 1, 4],
@@ -676,7 +676,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2top",
             comp_id="Comp 1",
             location=[0.2727, 1, 4],
@@ -686,7 +686,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 3top",
             comp_id="Comp 1",
             location=[0.4545, 1, 4],
@@ -696,7 +696,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 4top",
             comp_id="Comp 1",
             location=[0.6363, 1, 4],
@@ -706,7 +706,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 5top",
             comp_id="Comp 1",
             location=[0.8181, 1, 4],
@@ -716,7 +716,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 6top",
             comp_id="Comp 1",
             location=[1, 1, 4],
@@ -726,7 +726,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 7top",
             comp_id="Comp 1",
             location=[1.1817, 1, 4],
@@ -736,7 +736,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 8top",
             comp_id="Comp 1",
             location=[1.3635, 1, 4],
@@ -746,7 +746,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 9top",
             comp_id="Comp 1",
             location=[1.5453, 1, 4],
@@ -756,7 +756,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 10top",
             comp_id="Comp 1",
             location=[1.7271, 1, 4],
@@ -766,7 +766,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 11top",
             comp_id="Comp 1",
             location=[1.9089, 1, 4],
@@ -776,7 +776,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1side",
             comp_id="Comp 1",
             location=[2, 1, 0.125],
@@ -786,7 +786,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2side",
             comp_id="Comp 1",
             location=[2, 1, 0.375],
@@ -796,7 +796,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 3side",
             comp_id="Comp 1",
             location=[2, 1, 0.625],
@@ -806,7 +806,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 4side",
             comp_id="Comp 1",
             location=[2, 1, 0.875],
@@ -816,7 +816,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 5side",
             comp_id="Comp 1",
             location=[2, 1, 1.125],
@@ -826,7 +826,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 6side",
             comp_id="Comp 1",
             location=[2, 1, 1.375],
@@ -836,7 +836,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 7side",
             comp_id="Comp 1",
             location=[2, 1, 1.625],
@@ -846,7 +846,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 8side",
             comp_id="Comp 1",
             location=[2, 1, 1.875],
@@ -856,7 +856,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 9side",
             comp_id="Comp 1",
             location=[2, 1, 2.125],
@@ -866,7 +866,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 10side",
             comp_id="Comp 1",
             location=[2, 1, 2.375],
@@ -876,7 +876,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 11side",
             comp_id="Comp 1",
             location=[2, 1, 2.625],
@@ -886,7 +886,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 12side",
             comp_id="Comp 1",
             location=[2, 1, 2.875],
@@ -896,7 +896,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 13side",
             comp_id="Comp 1",
             location=[2, 1, 3.125],
@@ -906,7 +906,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 14side",
             comp_id="Comp 1",
             location=[2, 1, 3.375],
@@ -916,7 +916,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 15side",
             comp_id="Comp 1",
             location=[2, 1, 3.625],
@@ -926,7 +926,7 @@ def test_radiation_4_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 16side",
             comp_id="Comp 1",
             location=[2, 1, 3.875],
@@ -988,7 +988,7 @@ def test_radiation_5_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="CONCRETE",
             material="CONCRETE",
             conductivity=1.75,
@@ -1000,7 +1000,7 @@ def test_radiation_5_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=2,
             height=4,
@@ -1019,7 +1019,7 @@ def test_radiation_5_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1top",
             comp_id="Comp 1",
             location=[0.0909, 1, 4],
@@ -1029,7 +1029,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2top",
             comp_id="Comp 1",
             location=[0.2727, 1, 4],
@@ -1039,7 +1039,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 3top",
             comp_id="Comp 1",
             location=[0.4545, 1, 4],
@@ -1049,7 +1049,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 4top",
             comp_id="Comp 1",
             location=[0.6363, 1, 4],
@@ -1059,7 +1059,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 5top",
             comp_id="Comp 1",
             location=[0.8181, 1, 4],
@@ -1069,7 +1069,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 6top",
             comp_id="Comp 1",
             location=[1, 1, 4],
@@ -1079,7 +1079,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 7top",
             comp_id="Comp 1",
             location=[1.1817, 1, 4],
@@ -1089,7 +1089,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 8top",
             comp_id="Comp 1",
             location=[1.3635, 1, 4],
@@ -1099,7 +1099,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 9top",
             comp_id="Comp 1",
             location=[1.5453, 1, 4],
@@ -1109,7 +1109,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 10top",
             comp_id="Comp 1",
             location=[1.7271, 1, 4],
@@ -1119,7 +1119,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 11top",
             comp_id="Comp 1",
             location=[1.9089, 1, 4],
@@ -1129,7 +1129,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1side",
             comp_id="Comp 1",
             location=[2, 1, 0.125],
@@ -1139,7 +1139,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2side",
             comp_id="Comp 1",
             location=[2, 1, 0.375],
@@ -1149,7 +1149,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 3side",
             comp_id="Comp 1",
             location=[2, 1, 0.625],
@@ -1159,7 +1159,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 4side",
             comp_id="Comp 1",
             location=[2, 1, 0.875],
@@ -1169,7 +1169,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 5side",
             comp_id="Comp 1",
             location=[2, 1, 1.125],
@@ -1179,7 +1179,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 6side",
             comp_id="Comp 1",
             location=[2, 1, 1.375],
@@ -1189,7 +1189,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 7side",
             comp_id="Comp 1",
             location=[2, 1, 1.625],
@@ -1199,7 +1199,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 8side",
             comp_id="Comp 1",
             location=[2, 1, 1.875],
@@ -1209,7 +1209,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 9side",
             comp_id="Comp 1",
             location=[2, 1, 2.125],
@@ -1219,7 +1219,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 10side",
             comp_id="Comp 1",
             location=[2, 1, 2.375],
@@ -1229,7 +1229,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 11side",
             comp_id="Comp 1",
             location=[2, 1, 2.625],
@@ -1239,7 +1239,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 12side",
             comp_id="Comp 1",
             location=[2, 1, 2.875],
@@ -1249,7 +1249,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 13side",
             comp_id="Comp 1",
             location=[2, 1, 3.125],
@@ -1259,7 +1259,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 14side",
             comp_id="Comp 1",
             location=[2, 1, 3.375],
@@ -1269,7 +1269,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 15side",
             comp_id="Comp 1",
             location=[2, 1, 3.625],
@@ -1279,7 +1279,7 @@ def test_radiation_5_simulation(tmp_path):
             temperature_depth=0.075,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 16side",
             comp_id="Comp 1",
             location=[2, 1, 3.875],

@@ -13,11 +13,11 @@ This minimal model runs with just a title and one compartment with default value
 
 .. code-block:: python
 
-    from pycfast import CFASTModel, Compartments, SimulationEnvironment
+    from pycfast import CFASTModel, Compartment, SimulationEnvironment
 
     model = CFASTModel(
         simulation_environment=SimulationEnvironment(title="My Simulation"),
-        compartments=[Compartments()],
+        compartments=[Compartment()],
         # you can also add: fires, wall_vents, ceiling_floor_vents, mechanical_vents, material_properties
         file_name="my_simulation.in",
     )
@@ -32,18 +32,18 @@ You will have a ``my_simulation.in`` file saved in your working directory, which
 Complete Example
 ^^^^^^^^^^^^^^^^
 
-A more complete model with two :class:`~pycfast.Compartments` connected by a :class:`~pycfast.WallVents` and a :class:`~pycfast.Fires` in the first room. Components reference each other with an ID to be able to connect them together.
+A more complete model with two :class:`~pycfast.Compartment` connected by a :class:`~pycfast.WallVent` and a :class:`~pycfast.Fire` in the first room. Components reference each other with an ID to be able to connect them together.
 
 .. code-block:: python
 
-    from pycfast import CFASTModel, Compartments, Fires, SimulationEnvironment, WallVents
+    from pycfast import CFASTModel, Compartment, Fire, SimulationEnvironment, WallVent
 
     # Two compartments connected by a door
-    room1 = Compartments(id="ROOM1", width=5.0, depth=4.0, height=2.7)
-    room2 = Compartments(id="ROOM2", width=4.0, depth=4.0, height=2.7)
+    room1 = Compartment(id="ROOM1", width=5.0, depth=4.0, height=2.7)
+    room2 = Compartment(id="ROOM2", width=4.0, depth=4.0, height=2.7)
 
     # Door between the two rooms (references compartment IDs)
-    wall_vent = WallVents(
+    wall_vent = WallVent(
         id="wallvent",
         comps_ids=["ROOM1", "ROOM2"],  # connects ROOM1 and ROOM2
         bottom=0.0,
@@ -63,7 +63,7 @@ A more complete model with two :class:`~pycfast.Compartments` connected by a :cl
     ]
 
     # Fire in ROOM1 (references compartment ID)
-    fire = Fires(
+    fire = Fire(
         id="FIRE1",
         comp_id="ROOM1",  # placed in ROOM1
         fire_id="POLYURETHANE",
@@ -80,7 +80,7 @@ A more complete model with two :class:`~pycfast.Compartments` connected by a :cl
     )
     model.save()
 
-Other components (:class:`~pycfast.CeilingFloorVents`, :class:`~pycfast.Devices`, :class:`~pycfast.MaterialProperties`, :class:`~pycfast.MechanicalVents`, :class:`~pycfast.SurfaceConnections`) follow the same pattern and are documented in the :doc:`API reference <api/index>`.
+Other components (:class:`~pycfast.CeilingFloorVent`, :class:`~pycfast.Device`, :class:`~pycfast.Material`, :class:`~pycfast.MechanicalVent`, :class:`~pycfast.SurfaceConnection`) follow the same pattern and are documented in the :doc:`API reference <api/index>`.
 
 Importing Existing Models
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -118,10 +118,10 @@ PyCFAST provides flexible methods to modify your models dynamically:
 
 .. code-block:: python
 
-    from pycfast import Compartments
+    from pycfast import Compartment
 
     # Add new components
-    new_compartment = Compartments(...)
+    new_compartment = Compartment(...)
     model = model.add_compartments(new_compartment)
 
     # Update existing components (by index or ID)

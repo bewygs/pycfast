@@ -19,17 +19,17 @@ from typing import Any, cast
 import numpy as np
 import pandas as pd
 
-from .ceiling_floor_vents import CeilingFloorVents
-from .compartments import Compartments
-from .devices import Devices
-from .fires import Fires
-from .material_properties import MaterialProperties
-from .mechanical_vents import MechanicalVents
+from .ceiling_floor_vent import CeilingFloorVent
+from .compartment import Compartment
+from .device import Device
+from .fire import Fire
+from .material import Material
+from .mechanical_vent import MechanicalVent
 from .simulation_environment import SimulationEnvironment
-from .surface_connections import SurfaceConnections
+from .surface_connection import SurfaceConnection
 from .utils import CSV_READ_CONFIGS
 from .utils.theme import build_card
-from .wall_vents import WallVents
+from .wall_vent import WallVent
 
 logger = logging.getLogger("pycfast")
 
@@ -94,19 +94,19 @@ class CFASTModel:
     ----------
     simulation_environment: SimulationEnvironment
         Basic simulation parameters and settings
-    material_properties: List[MaterialProperties]
+    material_properties: List[Material]
         List of material property definitions
-    compartments: List[Compartments]
+    compartments: List[Compartment]
         List of compartment/room definitions
-    wall_vents: List[WallVents]
+    wall_vents: List[WallVent]
         List of wall vent connections between compartments
-    ceiling_floor_vents: List[CeilingFloorVents]
+    ceiling_floor_vents: List[CeilingFloorVent]
         List of ceiling/floor vent connections
-    mechanical_vents: List[MechanicalVents]
+    mechanical_vents: List[MechanicalVent]
         List of mechanical ventilation systems
-    fires: List[Fires]
+    fires: List[Fire]
         List of fire definitions
-    targets: List[Devices]
+    targets: List[Device]
         List of target/sensor definitions
     file_name: str
         Name of the CFAST input file to generate
@@ -143,14 +143,14 @@ class CFASTModel:
     def __init__(
         self,
         simulation_environment: SimulationEnvironment,
-        compartments: list[Compartments],
-        material_properties: list[MaterialProperties] | None = None,
-        wall_vents: list[WallVents] | None = None,
-        ceiling_floor_vents: list[CeilingFloorVents] | None = None,
-        mechanical_vents: list[MechanicalVents] | None = None,
-        fires: list[Fires] | None = None,
-        devices: list[Devices] | None = None,
-        surface_connections: list[SurfaceConnections] | None = None,
+        compartments: list[Compartment],
+        material_properties: list[Material] | None = None,
+        wall_vents: list[WallVent] | None = None,
+        ceiling_floor_vents: list[CeilingFloorVent] | None = None,
+        mechanical_vents: list[MechanicalVent] | None = None,
+        fires: list[Fire] | None = None,
+        devices: list[Device] | None = None,
+        surface_connections: list[SurfaceConnection] | None = None,
         file_name: str = "cfast_input.in",
         cfast_exe: str | None = None,
         extra_arguments: list[str] | None = None,
@@ -215,7 +215,7 @@ class CFASTModel:
             )
             components_html += f"""
             <details class="pycfast-detail">
-                <summary><strong>Compartments</strong> ({len(self.compartments)})</summary>
+                <summary><strong>Compartment</strong> ({len(self.compartments)})</summary>
                 <ul style="margin: 5px 0; padding-left: 20px;">{comp_details}</ul>
             </details>
             """
@@ -229,7 +229,7 @@ class CFASTModel:
             )
             components_html += f"""
             <details class="pycfast-detail">
-                <summary><strong>Fires</strong> ({len(self.fires)})</summary>
+                <summary><strong>Fire</strong> ({len(self.fires)})</summary>
                 <ul style="margin: 5px 0; padding-left: 20px;">{fire_details}</ul>
             </details>
             """
@@ -279,7 +279,7 @@ class CFASTModel:
             )
             components_html += f"""
             <details class="pycfast-detail">
-                <summary><strong>Devices</strong> ({len(self.devices)})</summary>
+                <summary><strong>Device</strong> ({len(self.devices)})</summary>
                 <ul style="margin: 5px 0; padding-left: 20px;">{device_details}</ul>
             </details>
             """
@@ -509,7 +509,7 @@ class CFASTModel:
             New fire data table to replace existing one. Must have 9 columns:
             TIME, HRR, HEIGHT, AREA, CO_YIELD, SOOT_YIELD, HCN_YIELD, HCL_YIELD, TRACE_YIELD.
         **kwargs : Any
-            Fire object attributes to update. See Fires class documentation
+            Fire object attributes to update. See Fire class documentation
             for available parameters.
 
         Returns
@@ -670,7 +670,7 @@ class CFASTModel:
         compartment_index : int, optional
             Deprecated. Use 'compartment' parameter instead.
         **kwargs : Any
-            Compartment attributes to update. See Compartments class documentation
+            Compartment attributes to update. See Compartment class documentation
             for available parameters.
 
         Returns
@@ -742,7 +742,7 @@ class CFASTModel:
         material_index : int, optional
             Deprecated. Use 'material' parameter instead.
         **kwargs : Any
-            Material properties attributes to update. See MaterialProperties class
+            Material properties attributes to update. See Material class
             documentation for available parameters.
 
         Returns
@@ -809,7 +809,7 @@ class CFASTModel:
         vent_index : int, optional
             Deprecated. Use 'vent' parameter instead.
         **kwargs : Any
-            Wall vent attributes to update. See WallVents class documentation
+            Wall vent attributes to update. See WallVent class documentation
             for available parameters.
 
         Returns
@@ -876,7 +876,7 @@ class CFASTModel:
         vent_index : int, optional
             Deprecated. Use 'vent' parameter instead.
         **kwargs : Any
-            Ceiling/floor vent attributes to update. See CeilingFloorVents class
+            Ceiling/floor vent attributes to update. See CeilingFloorVent class
             documentation for available parameters.
 
         Returns
@@ -942,7 +942,7 @@ class CFASTModel:
         vent_index : int, optional
             Deprecated. Use 'vent' parameter instead.
         **kwargs : Any
-            Mechanical vent attributes to update. See MechanicalVents class
+            Mechanical vent attributes to update. See MechanicalVent class
             documentation for available parameters.
 
         Returns
@@ -1008,7 +1008,7 @@ class CFASTModel:
         device_index : int, optional
             Deprecated. Use 'device' parameter instead.
         **kwargs : Any
-            Device attributes to update. See Devices class documentation
+            Device attributes to update. See Device class documentation
             for available parameters.
 
         Returns
@@ -1072,7 +1072,7 @@ class CFASTModel:
         connection_index : int, optional
             Deprecated. Use 'connection' parameter instead.
         **kwargs : Any
-            Surface connection attributes to update. See SurfaceConnections class
+            Surface connection attributes to update. See SurfaceConnection class
             documentation for available parameters.
 
         Returns
@@ -1117,13 +1117,13 @@ class CFASTModel:
 
         return new_model
 
-    def add_fire(self, fire: Fires) -> CFASTModel:
+    def add_fire(self, fire: Fire) -> CFASTModel:
         """
         Add a fire to the model and return a new model instance.
 
         Parameters
         ----------
-        fire : Fires
+        fire : Fire
             Fire object to add to the model
 
         Returns
@@ -1133,20 +1133,20 @@ class CFASTModel:
 
         Examples
         --------
-        >>> new_fire = Fires(id="FIRE2", comp_id="ROOM1", location=[2.0, 2.0])
+        >>> new_fire = Fire(id="FIRE2", comp_id="ROOM1", location=[2.0, 2.0])
         >>> updated_model = model.add_fire(new_fire)
         """
         new_model = copy.deepcopy(self)
         new_model.fires.append(fire)
         return new_model
 
-    def add_compartment(self, compartment: Compartments) -> CFASTModel:
+    def add_compartment(self, compartment: Compartment) -> CFASTModel:
         """
         Add a compartment to the model and return a new model instance.
 
         Parameters
         ----------
-        compartment : Compartments
+        compartment : Compartment
             Compartment object to add to the model
 
         Returns
@@ -1156,20 +1156,20 @@ class CFASTModel:
 
         Examples
         --------
-        >>> new_room = Compartments(id="ROOM3", width=5.0, depth=4.0, height=3.0)
+        >>> new_room = Compartment(id="ROOM3", width=5.0, depth=4.0, height=3.0)
         >>> updated_model = model.add_compartment(new_room)
         """
         new_model = copy.deepcopy(self)
         new_model.compartments.append(compartment)
         return new_model
 
-    def add_material(self, material: MaterialProperties) -> CFASTModel:
+    def add_material(self, material: Material) -> CFASTModel:
         """
         Add a material property to the model and return a new model instance.
 
         Parameters
         ----------
-        material : MaterialProperties
+        material : Material
             Material properties object to add to the model
 
         Returns
@@ -1179,20 +1179,20 @@ class CFASTModel:
 
         Examples
         --------
-        >>> steel = MaterialProperties(id="STEEL", conductivity=45.0, density=7850)
+        >>> steel = Material(id="STEEL", conductivity=45.0, density=7850)
         >>> updated_model = model.add_material(steel)
         """
         new_model = copy.deepcopy(self)
         new_model.material_properties.append(material)
         return new_model
 
-    def add_wall_vent(self, vent: WallVents) -> CFASTModel:
+    def add_wall_vent(self, vent: WallVent) -> CFASTModel:
         """
         Add a wall vent to the model and return a new model instance.
 
         Parameters
         ----------
-        vent : WallVents
+        vent : WallVent
             Wall vent object to add to the model
 
         Returns
@@ -1202,20 +1202,20 @@ class CFASTModel:
 
         Examples
         --------
-        >>> door = WallVents(comp_ids=["ROOM1", "ROOM2"], width=1.0, height=2.0)
+        >>> door = WallVent(comp_ids=["ROOM1", "ROOM2"], width=1.0, height=2.0)
         >>> updated_model = model.add_wall_vent(door)
         """
         new_model = copy.deepcopy(self)
         new_model.wall_vents.append(vent)
         return new_model
 
-    def add_ceiling_floor_vent(self, vent: CeilingFloorVents) -> CFASTModel:
+    def add_ceiling_floor_vent(self, vent: CeilingFloorVent) -> CFASTModel:
         """
         Add a ceiling/floor vent to the model and return a new model instance.
 
         Parameters
         ----------
-        vent : CeilingFloorVents
+        vent : CeilingFloorVent
             Ceiling/floor vent object to add to the model
 
         Returns
@@ -1225,20 +1225,20 @@ class CFASTModel:
 
         Examples
         --------
-        >>> hatch = CeilingFloorVents(comp_ids=["ROOM1", "ROOM2"], area=0.5)
+        >>> hatch = CeilingFloorVent(comp_ids=["ROOM1", "ROOM2"], area=0.5)
         >>> updated_model = model.add_ceiling_floor_vent(hatch)
         """
         new_model = copy.deepcopy(self)
         new_model.ceiling_floor_vents.append(vent)
         return new_model
 
-    def add_mechanical_vent(self, vent: MechanicalVents) -> CFASTModel:
+    def add_mechanical_vent(self, vent: MechanicalVent) -> CFASTModel:
         """
         Add a mechanical vent to the model and return a new model instance.
 
         Parameters
         ----------
-        vent : MechanicalVents
+        vent : MechanicalVent
             Mechanical vent object to add to the model
 
         Returns
@@ -1248,20 +1248,20 @@ class CFASTModel:
 
         Examples
         --------
-        >>> hvac = MechanicalVents(comp_ids=["ROOM1", "OUTSIDE"], flow_rate=0.5)
+        >>> hvac = MechanicalVent(comp_ids=["ROOM1", "OUTSIDE"], flow_rate=0.5)
         >>> updated_model = model.add_mechanical_vent(hvac)
         """
         new_model = copy.deepcopy(self)
         new_model.mechanical_vents.append(vent)
         return new_model
 
-    def add_device(self, device: Devices) -> CFASTModel:
+    def add_device(self, device: Device) -> CFASTModel:
         """
         Add a device/target to the model and return a new model instance.
 
         Parameters
         ----------
-        device : Devices
+        device : Device
             Device object to add to the model
 
         Returns
@@ -1271,7 +1271,7 @@ class CFASTModel:
 
         Examples
         --------
-        >>> sensor = Devices.create_heat_detector(
+        >>> sensor = Device.create_heat_detector(
         ...     comp_id="ROOM1", location=[2.0, 2.0, 2.4], temperature=68.0
         ... )
         >>> updated_model = model.add_device(sensor)
@@ -1280,13 +1280,13 @@ class CFASTModel:
         new_model.devices.append(device)
         return new_model
 
-    def add_surface_connection(self, connection: SurfaceConnections) -> CFASTModel:
+    def add_surface_connection(self, connection: SurfaceConnection) -> CFASTModel:
         """
         Add a surface connection to the model and return a new model instance.
 
         Parameters
         ----------
-        connection : SurfaceConnections
+        connection : SurfaceConnection
             Surface connection object to add to the model
 
         Returns
@@ -1296,7 +1296,7 @@ class CFASTModel:
 
         Examples
         --------
-        >>> wall_conn = SurfaceConnections.wall_connection(
+        >>> wall_conn = SurfaceConnection.wall_connection(
         ...     comp_ids=["ROOM1", "ROOM2"], fraction=0.5
         ... )
         >>> updated_model = model.add_surface_connection(wall_conn)
@@ -1585,10 +1585,10 @@ class CFASTModel:
         Simulation: 'Building Fire Test' (3600s)
 
         Material Properties (2):
-            MaterialProperties(material='GYPSUM', conductivity=0.17, density=800...)
+            Material(material='GYPSUM', conductivity=0.17, density=800...)
 
-        Compartments (2):
-            Compartments(id='ROOM1', width=4.0, depth=3.0, height=2.5...)
+        Compartment (2):
+            Compartment(id='ROOM1', width=4.0, depth=3.0, height=2.5...)
         """
         lines: list[str] = []
 
@@ -1604,7 +1604,7 @@ class CFASTModel:
                 lines.append(f"    {mat}")
 
         if self.compartments:
-            lines.append(f"  Compartments ({len(self.compartments)}):")
+            lines.append(f"  Compartment ({len(self.compartments)}):")
             for comp in self.compartments:
                 lines.append(f"    {comp}")
 
@@ -1624,12 +1624,12 @@ class CFASTModel:
                 lines.append(f"    {mechanical_vent}")
 
         if self.fires:
-            lines.append(f"  Fires ({len(self.fires)}):")
+            lines.append(f"  Fire ({len(self.fires)}):")
             for fire in self.fires:
                 lines.append(f"    {fire}")
 
         if self.devices:
-            lines.append(f"  Devices ({len(self.devices)}):")
+            lines.append(f"  Device ({len(self.devices)}):")
             for device in self.devices:
                 lines.append(f"    {device}")
 
@@ -1762,8 +1762,8 @@ class CFASTModel:
                 ("!! Wall Vents", self.wall_vents),
                 ("!! Ceiling and Floor Vents", self.ceiling_floor_vents),
                 ("!! Mechanical Vents", self.mechanical_vents),
-                ("!! Fires", self.fires),
-                ("!! Devices", self.devices),
+                ("!! Fire", self.fires),
+                ("!! Device", self.devices),
                 ("!! Surface Connections", self.surface_connections),
             ]
 
@@ -1855,40 +1855,40 @@ class CFASTModel:
                     f"Device '{device.id}': comp_id='{device.comp_id}' does not match any defined compartment."
                 )
 
-        # comps_ids of vents must exist in compartments ("OUTSIDE" is valid as second comp for WallVents)
+        # comps_ids of vents must exist in compartments ("OUTSIDE" is valid as second comp for WallVent)
         for vent in self.wall_vents:
             if vent.comps_ids[0] not in comp_ids:
                 raise ValueError(
-                    f"WallVents '{vent.id}': comps_ids[0]='{vent.comps_ids[0]}' does not match any defined compartment."
+                    f"WallVent '{vent.id}': comps_ids[0]='{vent.comps_ids[0]}' does not match any defined compartment."
                 )
             if vent.comps_ids[1] != "OUTSIDE" and vent.comps_ids[1] not in comp_ids:
                 raise ValueError(
-                    f"WallVents '{vent.id}': comps_ids[1]='{vent.comps_ids[1]}' does not match any defined compartment."
+                    f"WallVent '{vent.id}': comps_ids[1]='{vent.comps_ids[1]}' does not match any defined compartment."
                 )
 
         for cf_vent in self.ceiling_floor_vents:
             for i, cid in enumerate(cf_vent.comps_ids):
                 if cid != "OUTSIDE" and cid not in comp_ids:
                     raise ValueError(
-                        f"CeilingFloorVents '{cf_vent.id}': comps_ids[{i}]='{cid}' does not match any defined compartment."
+                        f"CeilingFloorVent '{cf_vent.id}': comps_ids[{i}]='{cid}' does not match any defined compartment."
                     )
 
         for m_vent in self.mechanical_vents:
             for i, cid in enumerate(m_vent.comps_ids):
                 if cid != "OUTSIDE" and cid not in comp_ids:
                     raise ValueError(
-                        f"MechanicalVents '{m_vent.id}': comps_ids[{i}]='{cid}' does not match any defined compartment."
+                        f"MechanicalVent '{m_vent.id}': comps_ids[{i}]='{cid}' does not match any defined compartment."
                     )
 
-        # comp_id of SurfaceConnections must exist in compartments
+        # comp_id of SurfaceConnection must exist in compartments
         for sc in self.surface_connections:
             if sc.comp_id not in comp_ids:
                 raise ValueError(
-                    f"SurfaceConnections: comp_id='{sc.comp_id}' does not match any defined compartment."
+                    f"SurfaceConnection: comp_id='{sc.comp_id}' does not match any defined compartment."
                 )
             if sc.comp_ids not in comp_ids:
                 raise ValueError(
-                    f"SurfaceConnections: comp_ids='{sc.comp_ids}' does not match any defined compartment."
+                    f"SurfaceConnection: comp_ids='{sc.comp_ids}' does not match any defined compartment."
                 )
 
         # material_id of Device/Compartment must exist in material_properties
@@ -1917,19 +1917,19 @@ class CFASTModel:
         for vent in self.wall_vents:
             if vent.device_id is not None and vent.device_id not in device_ids:
                 raise ValueError(
-                    f"WallVents '{vent.id}': device_id='{vent.device_id}' does not match any defined device."
+                    f"WallVent '{vent.id}': device_id='{vent.device_id}' does not match any defined device."
                 )
 
         for cf_vent in self.ceiling_floor_vents:
             if cf_vent.device_id is not None and cf_vent.device_id not in device_ids:
                 raise ValueError(
-                    f"CeilingFloorVents '{cf_vent.id}': device_id='{cf_vent.device_id}' does not match any defined device."
+                    f"CeilingFloorVent '{cf_vent.id}': device_id='{cf_vent.device_id}' does not match any defined device."
                 )
 
         for m_vent in self.mechanical_vents:
             if m_vent.device_id is not None and m_vent.device_id not in device_ids:
                 raise ValueError(
-                    f"MechanicalVents '{m_vent.id}': device_id='{m_vent.device_id}' does not match any defined device."
+                    f"MechanicalVent '{m_vent.id}': device_id='{m_vent.device_id}' does not match any defined device."
                 )
 
         comp_map = {c.id: c for c in self.compartments}

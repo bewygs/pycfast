@@ -5,7 +5,7 @@
 
 
 Build surrogate model machine learning models to predict CFAST outputs instantly instead of running full simulations.
-**Goal**: Predict Target Surface Temperature of the devices (:class:`~pycfast.Devices` TRGSURT) from fire parameters: heat of combustion, radiative fraction, soot yield and target z position
+**Goal**: Predict Target Surface Temperature of the devices (:class:`~pycfast.Device` TRGSURT) from fire parameters: heat of combustion, radiative fraction, soot yield and target z position
 **Models**: Linear → Polynomial → Gradient Boosting → Random Forest → Neural Network (PyTorch)
 """
 

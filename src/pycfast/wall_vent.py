@@ -1,7 +1,7 @@
 """
 Wall vent definition module for CFAST simulations.
 
-This module provides the WallVents class for defining openings in walls
+This module provides the WallVent class for defining openings in walls
 that connect compartments horizontally, such as doors, windows, and openings.
 """
 
@@ -14,7 +14,7 @@ from .utils.namelist import NamelistRecord
 from .utils.theme import build_card
 
 
-class WallVents:
+class WallVent:
     """
     Represents wall openings connecting two compartments that physically overlap in elevation.
 
@@ -91,7 +91,7 @@ class WallVents:
     --------
     Create a door between two rooms following CFAST conventions:
 
-    >>> door = WallVents(
+    >>> door = WallVent(
     ...     id="DOOR_1_2",
     ...     comps_ids=["ROOM1", "ROOM2"],
     ...     bottom=0,           # Bottom at floor level (relative to first)
@@ -165,7 +165,7 @@ class WallVents:
         ):
             if val is not None and val < 0:
                 raise ValueError(
-                    f"WallVents '{self.id}': {dim} must be non-negative, got {val}."
+                    f"WallVent '{self.id}': {dim} must be non-negative, got {val}."
                 )
 
         for label, val in (
@@ -174,30 +174,30 @@ class WallVents:
         ):
             if val is not None and not 0.0 <= val <= 1.0:
                 raise ValueError(
-                    f"WallVents '{self.id}': {label}={val} must be in [0, 1]."
+                    f"WallVent '{self.id}': {label}={val} must be in [0, 1]."
                 )
 
         if self.fraction is not None:
             for i, f in enumerate(self.fraction):
                 if not 0.0 <= f <= 1.0:
                     raise ValueError(
-                        f"WallVents '{self.id}': fraction[{i}]={f} must be in [0, 1]."
+                        f"WallVent '{self.id}': fraction[{i}]={f} must be in [0, 1]."
                     )
 
         if (self.height is not None and self.height == 0) or (
             self.width is not None and self.width == 0
         ):
             warnings.warn(
-                f"WallVents '{self.id}': height or width is 0, meaning no flow will occur "
+                f"WallVent '{self.id}': height or width is 0, meaning no flow will occur "
                 "through this vent.",
                 UserWarning,
                 stacklevel=2,
             )
 
     def __repr__(self) -> str:
-        """Return a detailed string representation of the WallVents."""
+        """Return a detailed string representation of the WallVent."""
         return (
-            f"WallVents("
+            f"WallVent("
             f"id='{self.id}', "
             f"comps_ids={self.comps_ids}, "
             f"bottom={self.bottom}, height={self.height}, width={self.width}, "
@@ -206,7 +206,7 @@ class WallVents:
         )
 
     def __str__(self) -> str:
-        """Return a user-friendly string representation of the WallVents."""
+        """Return a user-friendly string representation of the WallVent."""
         connection = f"{self.comps_ids[0]} ↔ {self.comps_ids[1]}"
         size_info = f"{self.width}x{self.height} m"
         position_info = f"bottom: {self.bottom} m"
@@ -245,7 +245,7 @@ class WallVents:
     def __getitem__(self, key: str) -> Any:
         """Get vent property by name for dictionary-like access."""
         if not hasattr(self, key):
-            raise KeyError(f"Property '{key}' not found in WallVents.")
+            raise KeyError(f"Property '{key}' not found in WallVent.")
         return getattr(self, key)
 
     def __setitem__(self, key: str, value: Any) -> None:
@@ -262,7 +262,7 @@ class WallVents:
             If setting this value would violate object constraints.
         """
         if not hasattr(self, key):
-            raise KeyError(f"Cannot set '{key}'. Property does not exist in WallVents.")
+            raise KeyError(f"Cannot set '{key}'. Property does not exist in WallVent.")
         old_value = getattr(self, key)
         setattr(self, key, value)
         try:
@@ -282,7 +282,7 @@ class WallVents:
 
         Examples
         --------
-        >>> vent = WallVents("DOOR1", ["RM1", "RM2"], 0.0, 2.0, 0.9, "RIGHT", 1.0)
+        >>> vent = WallVent("DOOR1", ["RM1", "RM2"], 0.0, 2.0, 0.9, "RIGHT", 1.0)
         >>> print(vent.to_input_string())
         &VENT TYPE = 'WALL' ID = 'DOOR1' COMP_IDS = 'RM1', 'RM2' BOTTOM = 0.0 ...
         """

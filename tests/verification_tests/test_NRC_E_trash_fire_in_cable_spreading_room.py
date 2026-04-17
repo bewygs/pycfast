@@ -7,13 +7,13 @@ import pytest
 
 from pycfast import (
     CFASTModel,
-    Compartments,
-    Devices,
-    Fires,
-    MaterialProperties,
-    MechanicalVents,
+    Compartment,
+    Device,
+    Fire,
+    Material,
+    MechanicalVent,
     SimulationEnvironment,
-    WallVents,
+    WallVent,
 )
 
 from .verification import (
@@ -46,7 +46,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="CSRConcrete",
             material="CSR Concrete (user''s guide)",
             conductivity=1.6,
@@ -55,7 +55,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
             thickness=0.5,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="THIEF",
             material="Thief Cable (per NUREG CR 6931)",
             conductivity=0.2,
@@ -67,7 +67,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Cable Spreading Room",
             depth=18.5,
             height=4,
@@ -117,7 +117,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Cable Spreading Room", "OUTSIDE"],
             bottom=0,
@@ -126,7 +126,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
             face="FRONT",
             offset=5,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_2",
             comps_ids=["Cable Spreading Room", "OUTSIDE"],
             bottom=0,
@@ -135,7 +135,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
             face="FRONT",
             offset=33,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_3",
             comps_ids=["Cable Spreading Room", "OUTSIDE"],
             bottom=0.01,
@@ -150,7 +150,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["OUTSIDE", "Cable Spreading Room"],
             area=[0.25, 0.25],
@@ -165,7 +165,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_2",
             comps_ids=["OUTSIDE", "Cable Spreading Room"],
             area=[0.25, 0.25],
@@ -180,7 +180,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_3",
             comps_ids=["Cable Spreading Room", "OUTSIDE"],
             area=[0.25, 0.25],
@@ -195,7 +195,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_4",
             comps_ids=["Cable Spreading Room", "OUTSIDE"],
             area=[0.25, 0.25],
@@ -213,7 +213,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="Transient Combustibles",
             comp_id="Cable Spreading Room",
             fire_id="Transient Combustibles_Fire",
@@ -245,7 +245,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="Cable Spreading Room",
             location=[33, 16.3, 1.8],
@@ -255,7 +255,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
             temperature_depth=0.0001125,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2",
             comp_id="Cable Spreading Room",
             location=[33, 16.3, 2.3],
@@ -265,7 +265,7 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
             temperature_depth=0.0001125,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 3",
             comp_id="Cable Spreading Room",
             location=[33, 16.3, 3.1],
@@ -275,98 +275,98 @@ def test_trash_fire_in_cable_spreading_room_simulation(tmp_path):
             temperature_depth=0.0001125,
             depth_units="M",
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_1",
             comp_id="Cable Spreading Room",
             location=[4, 15.5, 3.96],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_2",
             comp_id="Cable Spreading Room",
             location=[11.9, 15.5, 3.96],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_3",
             comp_id="Cable Spreading Room",
             location=[19.8, 15.5, 3.96],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_4",
             comp_id="Cable Spreading Room",
             location=[27.7, 15.5, 3.96],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_5",
             comp_id="Cable Spreading Room",
             location=[35.7, 15.5, 3.96],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_6",
             comp_id="Cable Spreading Room",
             location=[4, 9.4, 3.96],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_7",
             comp_id="Cable Spreading Room",
             location=[11.9, 9.4, 3.96],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_8",
             comp_id="Cable Spreading Room",
             location=[27.7, 9.4, 3.96],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_9",
             comp_id="Cable Spreading Room",
             location=[35.7, 9.4, 3.96],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_10",
             comp_id="Cable Spreading Room",
             location=[4, 3.3, 3.96],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_11",
             comp_id="Cable Spreading Room",
             location=[11.9, 3.3, 3.96],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_12",
             comp_id="Cable Spreading Room",
             location=[19.8, 3.3, 3.96],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_13",
             comp_id="Cable Spreading Room",
             location=[27.7, 3.3, 3.96],
             setpoint=30,
             rti=5,
         ),
-        Devices.create_heat_detector(
+        Device.create_heat_detector(
             id="HeatDetector_14",
             comp_id="Cable Spreading Room",
             location=[35.7, 3.3, 3.96],

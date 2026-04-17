@@ -12,16 +12,16 @@ We'll build a complete simulation with two compartments, ventilation, fire sourc
 # ------------------------------------------
 # First, let's import all the necessary PyCFAST components.
 from pycfast import (
-    CeilingFloorVents,
+    CeilingFloorVent,
     CFASTModel,
-    Compartments,
-    Devices,
-    Fires,
-    MaterialProperties,
-    MechanicalVents,
+    Compartment,
+    Device,
+    Fire,
+    Material,
+    MechanicalVent,
     SimulationEnvironment,
-    SurfaceConnections,
-    WallVents,
+    SurfaceConnection,
+    WallVent,
 )
 
 # %%
@@ -54,7 +54,7 @@ simulation_env
 # %%
 # Step 3: Define Material Properties
 # ----------------------------------
-# Material properties define the thermal characteristics of surfaces in our compartments. The :class:`~pycfast.MaterialProperties` class is the equivalent of the CEdit simulation settings tab but programmatically defined.
+# Material properties define the thermal characteristics of surfaces in our compartments. The :class:`~pycfast.Material` class is the equivalent of the CEdit simulation settings tab but programmatically defined.
 #
 # .. figure:: /_static/images/cedit-material-properties-tab.png
 #    :alt: CEdit Material Properties Tab
@@ -63,7 +63,7 @@ simulation_env
 #
 # Here we define gypsum board, which is commonly used for walls and ceilings.
 
-gypsum_board = MaterialProperties(
+gypsum_board = Material(
     id="Gypboard",  # Unique identifier for the material
     material="Gypsum Board",  # Descriptive name
     conductivity=0.16,  # Thermal conductivity in W/m·K (not in kW as CEdit shows)
@@ -79,18 +79,18 @@ gypsum_board = MaterialProperties(
 gypsum_board
 
 # %%
-# Step 4: Create Compartments
+# Step 4: Create Compartment
 # ---------------------------
-# Compartments represent the physical spaces in our building. The :class:`~pycfast.Compartments` class is the equivalent of the CEdit compartment tab but programmatically defined.
+# Compartment represent the physical spaces in our building. The :class:`~pycfast.Compartment` class is the equivalent of the CEdit compartment tab but programmatically defined.
 #
 # .. figure:: /_static/images/cedit-compartments-tab.png
-#    :alt: CEdit Compartments Tab
+#    :alt: CEdit Compartment Tab
 #    :width: 800px
 #
 #
 # We'll create two 10×10×10 meter rooms stacked vertically.
 
-ground_level = Compartments(
+ground_level = Compartment(
     id="Comp 1",
     depth=10.0,  # Depth in meters (Y-direction)
     height=10.0,  # Height in meters (Z-direction)
@@ -106,7 +106,7 @@ ground_level = Compartments(
     origin_z=0,  # Z-coordinate of origin
 )
 
-upper_level = Compartments(
+upper_level = Compartment(
     id="Comp 2",
     depth=10.0,
     height=10.0,
@@ -152,11 +152,11 @@ ground_level
 #           :alt: CEdit Mechanical Ventilation Tab
 #           :width: 200px
 #
-# We'll use the :class:`~pycfast.MechanicalVents`, :class:`~pycfast.CeilingFloorVents`, and :class:`~pycfast.WallVents` classes to define our vents.
+# We'll use the :class:`~pycfast.MechanicalVent`, :class:`~pycfast.CeilingFloorVent`, and :class:`~pycfast.WallVent` classes to define our vents.
 
 # Wall vent connecting first compartment to outside
 
-wall_vent = WallVents(
+wall_vent = WallVent(
     id="WallVent_1",
     comps_ids=["Comp 1", "OUTSIDE"],  # Connect compartment 1 to outside
     bottom=0.02,  # Height of bottom of vent in meters
@@ -165,7 +165,7 @@ wall_vent = WallVents(
     face="FRONT",  # Wall face (FRONT, BACK, LEFT, RIGHT)
     offset=0.47,
 )
-ceiling_floor_vents = CeilingFloorVents(
+ceiling_floor_vents = CeilingFloorVent(
     id="CeilFloorVent_1",
     comps_ids=["Comp 2", "Comp 1"],  # Connect compartment 2 to compartment 1
     area=0.01,  # Vent area in m²
@@ -174,7 +174,7 @@ ceiling_floor_vents = CeilingFloorVents(
     offsets=[0.84, 0.86],
 )
 
-mechanical_vents = MechanicalVents(
+mechanical_vents = MechanicalVent(
     id="mech",
     comps_ids=["OUTSIDE", "Comp 1"],  # Connect outside to compartment 1
     area=[1.2, 10],  # Areas at each end in m²
@@ -195,16 +195,16 @@ wall_vent
 # %%
 # Step 6: Define Fire Sources
 # ---------------------------
-# Fire sources represent the combustion processes in our simulation. The :class:`~pycfast.Fires` class is the equivalent of the CEdit fires tab but programmatically defined.
+# Fire sources represent the combustion processes in our simulation. The :class:`~pycfast.Fire` class is the equivalent of the CEdit fires tab but programmatically defined.
 #
 # .. figure:: /_static/images/cedit-fires-tab.png
-#    :alt: CEdit Fires Tab
+#    :alt: CEdit Fire Tab
 #    :width: 800px
 #
 #
 # Here we define a propane fire with specific chemical composition and heat release characteristics.
 
-propane_fire = Fires(
+propane_fire = Fire(
     id="Propane",
     comp_id="Comp 1",  # Location: first compartment
     fire_id="Propane_Fire",
@@ -249,23 +249,23 @@ propane_fire = Fires(
 )
 
 # %%
-# Step 7: Add Devices
+# Step 7: Add Device
 # -------------------
-# Devices allow us to monitor conditions at specific locations. The :class:`~pycfast.Devices` class is the equivalent of the CEdit devices tab but programmatically defined.
+# Device allow us to monitor conditions at specific locations. The :class:`~pycfast.Device` class is the equivalent of the CEdit devices tab but programmatically defined.
 #
 # .. figure:: /_static/images/cedit-targets-tab.png
 #    :alt: CEdit Target Tab
 #    :width: 800px
 #
 #
-# The :class:`~pycfast.Devices` class has classmethods to help create common device types:
-# * :meth:`~pycfast.Devices.create_target`: equivalent of target device
-# * :meth:`~pycfast.Devices.create_heat_detector`: equivalent of heat detector device
-# * :meth:`~pycfast.Devices.create_smoke_detector`: equivalent of smoke detector device
-# * :meth:`~pycfast.Devices.create_sprinkler`: equivalent of sprinkler device
+# The :class:`~pycfast.Device` class has classmethods to help create common device types:
+# * :meth:`~pycfast.Device.create_target`: equivalent of target device
+# * :meth:`~pycfast.Device.create_heat_detector`: equivalent of heat detector device
+# * :meth:`~pycfast.Device.create_smoke_detector`: equivalent of smoke detector device
+# * :meth:`~pycfast.Device.create_sprinkler`: equivalent of sprinkler device
 #
 # Here we add a target device to measure thermal conditions.
-target = Devices.create_target(
+target = Device.create_target(
     id="Target_1",
     comp_id="Comp 1",  # Location: first compartment
     location=[0.5, 0.5, 0],  # X,Y,Z coordinates
@@ -285,17 +285,17 @@ target
 # %%
 # Step 8: Configure Surface Connections
 # -------------------------------------
-# Surface connections define thermal connections between compartments through shared surfaces. The :class:`~pycfast.SurfaceConnections` class is the equivalent of the CEdit surface connections tab but programmatically defined.
+# Surface connections define thermal connections between compartments through shared surfaces. The :class:`~pycfast.SurfaceConnection` class is the equivalent of the CEdit surface connections tab but programmatically defined.
 #
 # .. figure:: /_static/images/cedit-surface-connections-tab.png
 #    :alt: CEdit Surface Connections
 #    :width: 800px
 #
 #
-# The :class:`~pycfast.SurfaceConnections` class has 2 classmethods to help create common connection types :meth:`~pycfast.SurfaceConnections.ceiling_floor_connection`, and :meth:`~pycfast.SurfaceConnections.wall_connection`.
+# The :class:`~pycfast.SurfaceConnection` class has 2 classmethods to help create common connection types :meth:`~pycfast.SurfaceConnection.ceiling_floor_connection`, and :meth:`~pycfast.SurfaceConnection.wall_connection`.
 # Here we create a ceiling/floor connection between the two compartments to allow heat transfer and air flow between them.
 
-ceiling_floor_connection = SurfaceConnections.ceiling_floor_connection(
+ceiling_floor_connection = SurfaceConnection.ceiling_floor_connection(
     comp_id="Comp 1",  # Source compartment
     comp_ids="Comp 2",  # Target compartment
 )
@@ -415,7 +415,7 @@ for device in model.devices:
     print(device)
 
 # After adding a new device
-new_device = Devices.create_target(
+new_device = Device.create_target(
     id="Target_2",
     comp_id="Comp 2",  # Location: second compartment
     location=[0.5, 0.5, 0.5],  # X,Y,Z coordinates

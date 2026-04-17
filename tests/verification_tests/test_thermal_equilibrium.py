@@ -6,10 +6,10 @@ import pytest
 
 from pycfast import (
     CFASTModel,
-    Compartments,
-    MaterialProperties,
+    Compartment,
+    Material,
     SimulationEnvironment,
-    WallVents,
+    WallVent,
 )
 
 from .verification import (
@@ -41,7 +41,7 @@ def test_basic_tempequilib_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="GYPSUM",
             material="Gypsum Board (5/8 in)",
             conductivity=0.16,
@@ -53,7 +53,7 @@ def test_basic_tempequilib_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Compartment 1",
             depth=5,
             height=5,
@@ -111,7 +111,7 @@ def test_basic_tempequilib_window_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="GYPSUM",
             material="Gypsum Board (5/8 in)",
             conductivity=0.16,
@@ -123,7 +123,7 @@ def test_basic_tempequilib_window_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Compartment 1",
             depth=5,
             height=5,
@@ -140,7 +140,7 @@ def test_basic_tempequilib_window_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Compartment 1", "OUTSIDE"],
             bottom=1.5,
@@ -193,7 +193,7 @@ def test_basic_tempequilib_window_elevation_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="GYPSUM",
             material="Gypsum Board (5/8 in)",
             conductivity=0.16,
@@ -205,7 +205,7 @@ def test_basic_tempequilib_window_elevation_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Compartment 1",
             depth=5,
             height=5,
@@ -222,7 +222,7 @@ def test_basic_tempequilib_window_elevation_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Compartment 1", "OUTSIDE"],
             bottom=2,
