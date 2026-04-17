@@ -219,8 +219,8 @@ propane_fire = Fire(
     radiative_fraction=0.3,  # Fraction of energy released as radiation
     # Fire time-line data
     # [time, mdot, hight, area, CO_yield, soot_yield, HCN_yield, HCl_yield, trace_yield]
-    # you can also use an numpy array or pandas DataFrame
-    # as long as the shape of the table is (n row , 9 columns)
+    # you can also use a numpy array, pandas DataFrame, or dict (with column names as keys,
+    # values as lists or scalars/float repeated for all timesteps)
     data_table=[
         [0, 0, 0, 0.3, 0.008021683, 0.02, 0, 0, 0],  # t=0s
         [30, 10, 0, 0.3, 0.008021683, 0.02, 0, 0, 0],  # t=30s
