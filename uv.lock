@@ -2849,6 +2849,36 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+all = [
+    { name = "bokeh" },
+    { name = "coverage" },
+    { name = "dask" },
+    { name = "distributed" },
+    { name = "ipython" },
+    { name = "jupyter" },
+    { name = "linkify-it-py" },
+    { name = "matplotlib" },
+    { name = "mypy" },
+    { name = "myst-parser" },
+    { name = "nbsphinx" },
+    { name = "numpydoc" },
+    { name = "pandas-stubs" },
+    { name = "pre-commit" },
+    { name = "pydata-sphinx-theme" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+    { name = "salib" },
+    { name = "scikit-learn" },
+    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "scipy", version = "1.16.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "seaborn" },
+    { name = "sphinx" },
+    { name = "sphinx-autodoc-typehints" },
+    { name = "sphinx-copybutton" },
+    { name = "sphinx-gallery" },
+    { name = "torch" },
+]
 dev = [
     { name = "coverage" },
     { name = "mypy" },
@@ -2913,6 +2943,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.0.0" },
     { name = "pandas-stubs", marker = "extra == 'dev'", specifier = ">=2.3.3.260113" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.3.0" },
+    { name = "pycfast", extras = ["docs", "dev", "examples"], marker = "extra == 'all'" },
     { name = "pycfast", extras = ["examples"], marker = "extra == 'docs'" },
     { name = "pydata-sphinx-theme", marker = "extra == 'docs'", specifier = ">=0.16.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.2" },
@@ -2928,7 +2959,7 @@ requires-dist = [
     { name = "sphinx-gallery", marker = "extra == 'docs'", specifier = ">=0.16" },
     { name = "torch", marker = "extra == 'examples'", specifier = ">=2.8.0" },
 ]
-provides-extras = ["docs", "dev", "examples"]
+provides-extras = ["docs", "dev", "examples", "all"]
 
 [[package]]
 name = "pycparser"

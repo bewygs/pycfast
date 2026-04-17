@@ -34,7 +34,7 @@ install-examples:
 	uv sync --extra examples
 
 install-all:
-	uv sync --extra dev --extra docs --extra examples
+	uv sync --extra all
 
 test:
 	uv run pytest tests/
