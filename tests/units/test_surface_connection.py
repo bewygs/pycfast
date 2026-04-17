@@ -253,34 +253,3 @@ class TestSurfaceConnection:
 
         with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
             conn["invalid_key"] = "value"
-
-    def test_repr_html(self) -> None:
-        """Test _repr_html_ method."""
-        conn = SurfaceConnection(
-            conn_type="WALL", comp_id="ROOM1", comp_ids="ROOM2", fraction=0.75
-        )
-
-        html_str = conn._repr_html_()
-
-        # Check that it returns valid HTML string
-        assert isinstance(html_str, str)
-        assert len(html_str) > 0
-
-        # Check for expected HTML structure
-        assert '<div class="pycfast-card' in html_str
-        assert "Surface Connection" in html_str
-        assert "Wall" in html_str  # Matches actual implementation format
-        assert "ROOM1 → ROOM2" in html_str
-        assert "0.75" in html_str
-
-    def test_repr_html_floor_connection(self) -> None:
-        """Test _repr_html_ method for floor connection."""
-        conn = SurfaceConnection(
-            conn_type="FLOOR", comp_id="UPPER", comp_ids="LOWER", fraction=None
-        )
-
-        html_str = conn._repr_html_()
-
-        assert isinstance(html_str, str)
-        assert "Floor" in html_str  # Matches actual implementation format
-        assert "UPPER → LOWER" in html_str

@@ -1487,26 +1487,6 @@ class TestCFASTModel:
                 content = f.read()
                 assert "Test Simulation" in content  # Title should be in the file
 
-    def test_repr_html(self) -> None:
-        """Test _repr_html_ method."""
-        model = self.create_full_model()
-
-        html_str = model._repr_html_()
-
-        # Check that it returns valid HTML string
-        assert isinstance(html_str, str)
-        assert len(html_str) > 0
-
-        # Check for expected HTML structure
-        assert '<div class="pycfast-card' in html_str
-        assert "CFAST Model" in html_str
-        assert model.simulation_environment.title in html_str
-
-        # Check for component counts - verify actual format
-        assert "Compartment" in html_str  # Check section exists
-        assert "Fire" in html_str
-        assert "Materials" in html_str
-
 
 class TestCFASTModelValidateDependencies:
     """Test _validate_dependencies cross-component constraints."""

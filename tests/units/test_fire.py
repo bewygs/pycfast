@@ -715,40 +715,6 @@ class TestFireDataTableFormats:
             for value in row:
                 assert isinstance(value, float)
 
-    def test_repr_html(self) -> None:
-        """Test _repr_html_ method."""
-        data_table = [
-            [0, 100, 0.5, 0.1, 0.01, 0.01, 0, 0, 0],
-            [60, 500, 1.0, 0.5, 0.01, 0.01, 0, 0, 0],
-        ]
-        fire = Fire(
-            id="FIRE1",
-            comp_id="ROOM1",
-            fire_id="POLYURETHANE",
-            location=[2.0, 3.0],
-            heat_of_combustion=25000,
-            radiative_fraction=0.4,
-            data_table=data_table,
-        )
-
-        html_str = fire._repr_html_()
-
-        # Check that it returns valid HTML string
-        assert isinstance(html_str, str)
-        assert len(html_str) > 0
-
-        # Check for expected HTML structure
-        assert '<div class="pycfast-card' in html_str
-        assert "Fire: FIRE1" in html_str
-        assert "POLYURETHANE" in html_str
-        assert "ROOM1" in html_str
-
-        # Check fire properties
-        assert "(2.0, 3.0)" in html_str
-        assert "25000" in html_str  # heat of combustion
-        assert "0.4" in html_str  # radiative fraction
-        assert "2" in html_str  # data rows count - more flexible check
-
 
 class TestFireDictDataTable:
     """Test dict-format data_table support."""

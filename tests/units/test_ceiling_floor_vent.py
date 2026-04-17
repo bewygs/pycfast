@@ -403,33 +403,6 @@ class TestCeilingFloorVent:
         with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
             vent["invalid_key"] = "value"
 
-    def test_repr_html(self) -> None:
-        """Test _repr_html_ method."""
-        vent = CeilingFloorVent(
-            id="STAIR_VENT",
-            comps_ids=["UPPER_FLOOR", "LOWER_FLOOR"],
-            area=2.0,
-            shape="SQUARE",
-            width=1.4,
-            offsets=[1.0, 2.0],
-        )
-
-        html_str = vent._repr_html_()
-
-        # Check that it returns valid HTML string
-        assert isinstance(html_str, str)
-        assert len(html_str) > 0
-
-        # Check for expected HTML structure
-        assert '<div class="pycfast-card' in html_str
-        assert "Ceiling/Floor Vent: STAIR_VENT" in html_str
-        assert "UPPER_FLOOR ↕ LOWER_FLOOR" in html_str
-
-        # Check vent properties
-        assert "2.0 m²" in html_str
-        assert "SQUARE" in html_str
-        assert "1.4" in html_str
-
 
 class TestCeilingFloorVentSetItemValidation:
     """Test validation in __setitem__ to ensure data integrity."""

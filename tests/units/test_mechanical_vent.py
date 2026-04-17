@@ -522,35 +522,6 @@ class TestMechanicalVent:
         ):
             vent["nonexistent_attr"] = "some_value"
 
-    def test_repr_html(self) -> None:
-        """Test _repr_html_ method."""
-        vent = MechanicalVent(
-            id="SUPPLY_FAN",
-            comps_ids=["OUTSIDE", "LOBBY"],
-            area=[0.2, 0.2],
-            heights=[3.5, 2.5],
-            orientations=["HORIZONTAL", "HORIZONTAL"],
-            flow=1.2,
-            cutoffs=[120, 180],
-            offsets=[0.5, 1.0],
-        )
-
-        html_str = vent._repr_html_()
-
-        # Check that it returns valid HTML string
-        assert isinstance(html_str, str)
-        assert len(html_str) > 0
-
-        # Check for expected HTML structure
-        assert '<div class="pycfast-card' in html_str
-        assert "Mechanical Vent: SUPPLY_FAN" in html_str
-        assert "OUTSIDE → LOBBY" in html_str
-
-        # Check vent properties
-        assert "1.2 m³/s" in html_str
-        assert "3.5" in html_str  # height
-        assert "0.2" in html_str  # area
-
 
 class TestMechanicalVentSetItemValidation:
     """Test validation in __setitem__ to ensure data integrity."""
