@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import warnings
 from collections.abc import Generator
+from pathlib import Path
 from typing import Any, cast
 
 import numpy as np
@@ -449,7 +450,7 @@ class CFASTModel:
                 result = subprocess.run(
                     [
                         cfast_exe,
-                        f"{os.path.basename(input_file_path).replace('.in', '')}",
+                        Path(input_file_path).stem,
                         *self.extra_arguments,
                     ],
                     check=True,
@@ -479,7 +480,7 @@ class CFASTModel:
                     stacklevel=2,
                 )
             dataframes = {}
-            base_name = self.file_name.replace(".in", "")
+            base_name = str(Path(self.file_name).with_suffix(""))
 
             optional_csvs = {"diagnostics"}
             for suffix, read_params in CSV_READ_CONFIGS.items():
@@ -511,7 +512,6 @@ class CFASTModel:
     def update_fire_params(
         self,
         fire: int | str | None = None,
-        fire_index: int | None = None,
         data_table: list[list[float]] | np.ndarray | pd.DataFrame | None = None,
         **kwargs: Any,
     ) -> CFASTModel:
@@ -525,9 +525,6 @@ class CFASTModel:
             - int: Fire index (0-based)
             - str: "fire_id" or "id" (yes it's different)
             - None: Updates first fire (index 0)
-        fire_index : int, optional
-            Deprecated. Use 'fire' parameter instead.
-            Fire index (0-based). If both fire and fire_index are provided, 'fire' takes precedence.
         data_table : list[list[float]], np.ndarray, or pd.DataFrame, optional
             New fire data table to replace existing one. Must have 9 columns:
             TIME, HRR, HEIGHT, AREA, CO_YIELD, SOOT_YIELD, HCN_YIELD, HCL_YIELD, TRACE_YIELD.
@@ -585,7 +582,7 @@ class CFASTModel:
         ...     heat_of_combustion=18000
         ... )
         """
-        identifier = fire if fire is not None else fire_index
+        identifier = fire
         new_model = self._update_component("fire", identifier, **kwargs)
 
         if data_table is not None:
@@ -643,7 +640,6 @@ class CFASTModel:
     def update_compartment_params(
         self,
         compartment: int | str | None = None,
-        compartment_index: int | None = None,
         **kwargs: Any,
     ) -> CFASTModel:
         """
@@ -656,8 +652,6 @@ class CFASTModel:
             - int: Compartment index (0-based)
             - str: Compartment id
             - None: Updates first compartment (index 0)
-        compartment_index : int, optional
-            Deprecated. Use 'compartment' parameter instead.
         **kwargs : Any
             Compartment attributes to update. See Compartment class documentation
             for available parameters.
@@ -680,13 +674,12 @@ class CFASTModel:
         ...     width=6.0
         ... )
         """
-        identifier = compartment if compartment is not None else compartment_index
+        identifier = compartment
         return self._update_component("compartment", identifier, **kwargs)
 
     def update_material_params(
         self,
         material: int | str | None = None,
-        material_index: int | None = None,
         **kwargs: Any,
     ) -> CFASTModel:
         """
@@ -699,8 +692,6 @@ class CFASTModel:
             - int: Material index (0-based)
             - str: Material id
             - None: Updates first material (index 0)
-        material_index : int, optional
-            Deprecated. Use 'material' parameter instead.
         **kwargs : Any
             Material properties attributes to update. See Material class
             documentation for available parameters.
@@ -718,13 +709,12 @@ class CFASTModel:
         ...     density=2300
         ... )
         """
-        identifier = material if material is not None else material_index
+        identifier = material
         return self._update_component("material", identifier, **kwargs)
 
     def update_wall_vent_params(
         self,
         vent: int | str | None = None,
-        vent_index: int | None = None,
         **kwargs: Any,
     ) -> CFASTModel:
         """
@@ -737,8 +727,6 @@ class CFASTModel:
             - int: Vent index (0-based)
             - str: Vent id
             - None: Updates first vent (index 0)
-        vent_index : int, optional
-            Deprecated. Use 'vent' parameter instead.
         **kwargs : Any
             Wall vent attributes to update. See WallVent class documentation
             for available parameters.
@@ -756,13 +744,11 @@ class CFASTModel:
         ...     height=2.0
         ... )
         """
-        identifier = vent if vent is not None else vent_index
-        return self._update_component("wall_vent", identifier, **kwargs)
+        return self._update_component("wall_vent", vent, **kwargs)
 
     def update_ceiling_floor_vent_params(
         self,
         vent: int | str | None = None,
-        vent_index: int | None = None,
         **kwargs: Any,
     ) -> CFASTModel:
         """
@@ -775,8 +761,6 @@ class CFASTModel:
             - int: Vent index (0-based)
             - str: Vent id
             - None: Updates first vent (index 0)
-        vent_index : int, optional
-            Deprecated. Use 'vent' parameter instead.
         **kwargs : Any
             Ceiling/floor vent attributes to update. See CeilingFloorVent class
             documentation for available parameters.
@@ -793,13 +777,11 @@ class CFASTModel:
         ...     area=0.5
         ... )
         """
-        identifier = vent if vent is not None else vent_index
-        return self._update_component("cf_vent", identifier, **kwargs)
+        return self._update_component("cf_vent", vent, **kwargs)
 
     def update_mechanical_vent_params(
         self,
         vent: int | str | None = None,
-        vent_index: int | None = None,
         **kwargs: Any,
     ) -> CFASTModel:
         """
@@ -812,8 +794,6 @@ class CFASTModel:
             - int: Vent index (0-based)
             - str: Vent id
             - None: Updates first vent (index 0)
-        vent_index : int, optional
-            Deprecated. Use 'vent' parameter instead.
         **kwargs : Any
             Mechanical vent attributes to update. See MechanicalVent class
             documentation for available parameters.
@@ -830,13 +810,11 @@ class CFASTModel:
         ...     flow_rate=0.5
         ... )
         """
-        identifier = vent if vent is not None else vent_index
-        return self._update_component("mech_vent", identifier, **kwargs)
+        return self._update_component("mech_vent", vent, **kwargs)
 
     def update_device_params(
         self,
         device: int | str | None = None,
-        device_index: int | None = None,
         **kwargs: Any,
     ) -> CFASTModel:
         """
@@ -849,8 +827,6 @@ class CFASTModel:
             - int: Device index (0-based)
             - str: Device id
             - None: Updates first device (index 0)
-        device_index : int, optional
-            Deprecated. Use 'device' parameter instead.
         **kwargs : Any
             Device attributes to update. See Device class documentation
             for available parameters.
@@ -867,12 +843,11 @@ class CFASTModel:
         ...     location=[2.0, 2.0, 2.4]
         ... )
         """
-        identifier = device if device is not None else device_index
-        return self._update_component("device", identifier, **kwargs)
+        return self._update_component("device", device, **kwargs)
 
     def update_surface_connection_params(
         self,
-        connection_index: int | None = None,
+        connection: int | None = None,
         **kwargs: Any,
     ) -> CFASTModel:
         """
@@ -884,8 +859,6 @@ class CFASTModel:
             Surface connection identifier. Can be:
             - int: Connection index (0-based)
             - None: Updates first connection (index 0)
-        connection_index : int, optional
-            Deprecated. Use 'connection' parameter instead.
         **kwargs : Any
             Surface connection attributes to update. See SurfaceConnection class
             documentation for available parameters.
@@ -902,7 +875,7 @@ class CFASTModel:
         ...     fraction=0.8
         ... )
         """
-        return self._update_component("surface_conn", connection_index, **kwargs)
+        return self._update_component("surface_conn", connection, **kwargs)
 
     def add_fire(self, fire: Fire) -> CFASTModel:
         """
@@ -1332,7 +1305,7 @@ class CFASTModel:
         IOError:
             If log file cannot be read
         """
-        log_file_path = self.file_name.replace(".in", ".log")
+        log_file_path = Path(self.file_name).with_suffix(".log")
         with open(log_file_path) as f:
             return f.read()
 
