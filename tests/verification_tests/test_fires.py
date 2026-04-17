@@ -21,7 +21,7 @@ from .verification import (
 
 pytestmark = [pytest.mark.slow, pytest.mark.local]
 
-verification_data_dir = get_verification_data_dir(Path(__file__).parent, "Fire")
+verification_data_dir = get_verification_data_dir(Path(__file__).parent, "Fires")
 
 
 def test_ignition_test_simulation(tmp_path):
