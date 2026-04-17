@@ -6,10 +6,10 @@ import pytest
 
 from pycfast import (
     CFASTModel,
-    Compartments,
-    Devices,
-    Fires,
-    MaterialProperties,
+    Compartment,
+    Device,
+    Fire,
+    Material,
     SimulationEnvironment,
 )
 
@@ -43,7 +43,7 @@ def test_target_1_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="ConcreteBE2",
             material="Concrete ICFMP BE2",
             conductivity=2,
@@ -52,7 +52,7 @@ def test_target_1_simulation(tmp_path):
             thickness=0.15,
             emissivity=0.95,
         ),
-        MaterialProperties(
+        Material(
             id="TC",
             material="Thermocouple (small steel target for plume temp)",
             conductivity=54,
@@ -64,7 +64,7 @@ def test_target_1_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Compartment 1",
             depth=10,
             height=10,
@@ -82,7 +82,7 @@ def test_target_1_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="Compartment 1",
             location=[5, 5, 5],
@@ -145,7 +145,7 @@ def test_target_2_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="Concrete",
             material="Concrete",
             conductivity=1.6,
@@ -157,7 +157,7 @@ def test_target_2_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp_1",
             depth=6,
             height=8,
@@ -175,7 +175,7 @@ def test_target_2_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="MCC 702 kW",
             comp_id="Comp_1",
             fire_id="MCC 702 kW_Fire",
@@ -195,7 +195,7 @@ def test_target_2_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="Comp_1",
             location=[3, 3, 8],
@@ -205,7 +205,7 @@ def test_target_2_simulation(tmp_path):
             temperature_depth=0.3,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2",
             comp_id="Comp_1",
             location=[3, 3, 6],
@@ -215,7 +215,7 @@ def test_target_2_simulation(tmp_path):
             temperature_depth=0.3,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 3",
             comp_id="Comp_1",
             location=[3, 3, 5],
@@ -225,7 +225,7 @@ def test_target_2_simulation(tmp_path):
             temperature_depth=0.3,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 4",
             comp_id="Comp_1",
             location=[3, 3, 4.5],
@@ -235,7 +235,7 @@ def test_target_2_simulation(tmp_path):
             temperature_depth=0.3,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 5",
             comp_id="Comp_1",
             location=[3, 3, 4.4],
@@ -245,7 +245,7 @@ def test_target_2_simulation(tmp_path):
             temperature_depth=0.3,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 6",
             comp_id="Comp_1",
             location=[3, 3, 4.3],
@@ -255,7 +255,7 @@ def test_target_2_simulation(tmp_path):
             temperature_depth=0.3,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 7",
             comp_id="Comp_1",
             location=[3, 3, 4.2],
@@ -265,7 +265,7 @@ def test_target_2_simulation(tmp_path):
             temperature_depth=0.3,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 8",
             comp_id="Comp_1",
             location=[3, 3, 4.1],

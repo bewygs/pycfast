@@ -2,19 +2,19 @@ from __future__ import annotations
 
 import pytest
 
-from pycfast.material_properties import MaterialProperties
+from pycfast.material import Material
 
 """
-Tests for the MaterialProperties class.
+Tests for the Material class.
 """
 
 
-class TestMaterialProperties:
-    """Test class for MaterialProperties."""
+class TestMaterial:
+    """Test class for Material."""
 
     def test_init_default(self):
         """Test default initialization."""
-        mat = MaterialProperties(id="NM1", material="New Material 1")
+        mat = Material(id="NM1", material="New Material 1")
 
         assert mat.id == "NM1"
         assert mat.material == "New Material 1"
@@ -26,7 +26,7 @@ class TestMaterialProperties:
 
     def test_init_with_all_parameters(self):
         """Test initialization with all parameters."""
-        mat = MaterialProperties(
+        mat = Material(
             id="GYPSUM",
             material="Gypsum Wallboard",
             conductivity=0.17,
@@ -46,7 +46,7 @@ class TestMaterialProperties:
     def test_init_different_materials(self):
         """Test initialization with different material types."""
         # Steel
-        steel = MaterialProperties(
+        steel = Material(
             id="STEEL",
             material="Structural Steel",
             conductivity=45.0,
@@ -60,7 +60,7 @@ class TestMaterialProperties:
         assert steel.density == 7850
 
         # Wood
-        wood = MaterialProperties(
+        wood = Material(
             id="WOOD",
             material="Pine Wood",
             conductivity=0.14,
@@ -75,27 +75,23 @@ class TestMaterialProperties:
     def test_init_invalid_id_type(self):
         """Test that initialization fails with non-string ID."""
         with pytest.raises(TypeError, match="id must be a string"):
-            MaterialProperties(id=123, material="Test Material")  # type: ignore
+            Material(id=123, material="Test Material")  # type: ignore
 
     def test_init_invalid_id_length(self):
         """Test that initialization fails with ID too long."""
         with pytest.raises(
             TypeError, match="id must be a string with no more than 16 characters"
         ):
-            MaterialProperties(
-                id="THIS_ID_IS_TOO_LONG_FOR_CFAST", material="Test Material"
-            )
+            Material(id="THIS_ID_IS_TOO_LONG_FOR_CFAST", material="Test Material")
 
     def test_init_boundary_id_length(self):
         """Test initialization with ID exactly at 16 character limit."""
-        mat = MaterialProperties(
-            id="EXACTLY_16_CHARS", material="Test Material"
-        )  # 16 characters
+        mat = Material(id="EXACTLY_16_CHARS", material="Test Material")  # 16 characters
         assert mat.id == "EXACTLY_16_CHARS"
 
     def test_to_input_string_basic(self):
         """Test basic input string generation."""
-        mat = MaterialProperties(
+        mat = Material(
             id="GYPSUM",
             material="Gypsum Board",
             conductivity=0.17,
@@ -118,7 +114,7 @@ class TestMaterialProperties:
 
     def test_to_input_string_with_spaces_in_material_name(self):
         """Test input string generation with spaces in material name."""
-        mat = MaterialProperties(
+        mat = Material(
             id="CONCRETE",
             material="High Density Concrete",
             conductivity=1.75,
@@ -132,7 +128,7 @@ class TestMaterialProperties:
 
     def test_to_input_string_integer_values(self):
         """Test input string generation with integer values."""
-        mat = MaterialProperties(
+        mat = Material(
             id="MAT1",
             material="Test Material",
             conductivity=1,  # Integer
@@ -150,7 +146,7 @@ class TestMaterialProperties:
 
     def test_to_input_string_float_values(self):
         """Test input string generation with float values."""
-        mat = MaterialProperties(
+        mat = Material(
             id="MAT2",
             material="Test Material",
             conductivity=0.123456,
@@ -168,7 +164,7 @@ class TestMaterialProperties:
 
     def test_to_input_string_default_values(self):
         """Test input string generation with default values omits None fields."""
-        mat = MaterialProperties(id="NM1", material="New Material 1")
+        mat = Material(id="NM1", material="New Material 1")
         result = mat.to_input_string()
         assert result.startswith("&MATL")
         assert result.endswith("/\n")
@@ -184,7 +180,7 @@ class TestMaterialProperties:
 
     def test_to_input_string_special_characters_in_name(self):
         """Test input string generation with special characters in material name."""
-        mat = MaterialProperties(
+        mat = Material(
             id="SPECIAL",
             material="Material-123 (Type A)",
             conductivity=0.5,
@@ -213,12 +209,12 @@ class TestMaterialProperties:
         """Test that zero or negative physical properties raise ValueError."""
         kwargs = {"id": "ZERO", "material": "Test Material", prop: value}
         with pytest.raises(ValueError, match=f"{prop} must be positive"):
-            MaterialProperties(**kwargs)
+            Material(**kwargs)
 
     def test_emissivity_warning(self):
         """Test that emissivity values outside 0-1 raise a warning."""
         with pytest.warns(UserWarning, match="This may cause inaccurate results"):
-            MaterialProperties(
+            Material(
                 id="TestMat",
                 material="Test Material",
                 emissivity=1.5,
@@ -226,7 +222,7 @@ class TestMaterialProperties:
 
     def test_to_input_string_ends_correctly(self):
         """Test that input string ends with proper format."""
-        mat = MaterialProperties(id="NM1", material="New Material 1")
+        mat = Material(id="NM1", material="New Material 1")
         result = mat.to_input_string()
         assert result.startswith("&MATL")
         assert result.endswith("/\n")
@@ -241,12 +237,12 @@ class TestMaterialProperties:
     )
     def test_id_validation_edge_cases(self, mat_id: str):
         """Test ID validation edge cases."""
-        mat = MaterialProperties(id=mat_id, material="Test Material")
+        mat = Material(id=mat_id, material="Test Material")
         assert mat.id == mat_id
 
     def test_none_values_handling(self):
         """Test handling of None values in parameters."""
-        mat = MaterialProperties(
+        mat = Material(
             id="TEST",
             material="Test Material",
             conductivity=None,
@@ -267,7 +263,7 @@ class TestMaterialProperties:
     # Tests for dunder methods
     def test_repr(self) -> None:
         """Test __repr__ method."""
-        mat = MaterialProperties(
+        mat = Material(
             id="GYPSUM",
             material="Gypsum Wallboard",
             conductivity=0.17,
@@ -278,7 +274,7 @@ class TestMaterialProperties:
         )
 
         repr_str = repr(mat)
-        assert "MaterialProperties(" in repr_str
+        assert "Material(" in repr_str
         assert "id='GYPSUM'" in repr_str
         assert "material='Gypsum Wallboard'" in repr_str
         assert "conductivity=0.17" in repr_str
@@ -286,7 +282,7 @@ class TestMaterialProperties:
 
     def test_str(self) -> None:
         """Test __str__ method."""
-        mat = MaterialProperties(
+        mat = Material(
             id="CONCRETE",
             material="Normal Weight Concrete",
             conductivity=1.2,
@@ -307,7 +303,7 @@ class TestMaterialProperties:
 
     def test_str_with_none_values(self) -> None:
         """Test __str__ method with None values."""
-        mat = MaterialProperties(
+        mat = Material(
             id="INCOMPLETE",
             material="Incomplete Material",
             conductivity=None,
@@ -322,7 +318,7 @@ class TestMaterialProperties:
 
     def test_getitem(self) -> None:
         """Test __getitem__ method."""
-        mat = MaterialProperties(
+        mat = Material(
             id="WOOD",
             material="Oak Wood",
             conductivity=0.16,
@@ -342,16 +338,16 @@ class TestMaterialProperties:
 
     def test_getitem_invalid_key(self) -> None:
         """Test __getitem__ method with invalid key."""
-        mat = MaterialProperties(id="STEEL", material="Steel Material")
+        mat = Material(id="STEEL", material="Steel Material")
 
         with pytest.raises(
-            KeyError, match="Property 'invalid_key' not found in MaterialProperties"
+            KeyError, match="Property 'invalid_key' not found in Material"
         ):
             mat["invalid_key"]
 
     def test_setitem(self) -> None:
         """Test __setitem__ method."""
-        mat = MaterialProperties(id="TEST_MAT", material="Test Material")
+        mat = Material(id="TEST_MAT", material="Test Material")
 
         # Test setting various properties
         mat["id"] = "NEW_MATERIAL"
@@ -377,7 +373,7 @@ class TestMaterialProperties:
 
     def test_setitem_none_values(self) -> None:
         """Test __setitem__ method with None values."""
-        mat = MaterialProperties(id="TEST_MAT", material="Test Material")
+        mat = Material(id="TEST_MAT", material="Test Material")
 
         mat["material"] = None
         assert mat.material is None
@@ -390,14 +386,14 @@ class TestMaterialProperties:
 
     def test_setitem_invalid_key(self) -> None:
         """Test __setitem__ method with invalid key."""
-        mat = MaterialProperties(id="TEST_MAT", material="Test Material")
+        mat = Material(id="TEST_MAT", material="Test Material")
 
         with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
             mat["invalid_key"] = "value"
 
     def test_repr_html(self) -> None:
         """Test _repr_html_ method."""
-        mat = MaterialProperties(
+        mat = Material(
             id="GYPSUM",
             material="Gypsum Wallboard",
             conductivity=0.17,
@@ -435,7 +431,7 @@ class TestMaterialProperties:
 
     def test_repr_html_with_none_values(self) -> None:
         """Test _repr_html_ method handles None values properly."""
-        mat = MaterialProperties(id="TEST", material="Test Material")
+        mat = Material(id="TEST", material="Test Material")
         mat.conductivity = None
         mat.density = None
 
@@ -447,7 +443,7 @@ class TestMaterialProperties:
         assert "None W/m·K" in html_str  # getattr shows None for None values
 
 
-class TestMaterialPropertiesSetItemValidation:
+class TestMaterialSetItemValidation:
     """Test validation in __setitem__ to ensure data integrity."""
 
     @pytest.mark.parametrize(
@@ -459,31 +455,25 @@ class TestMaterialPropertiesSetItemValidation:
     )
     def test_setitem_invalid_id(self, invalid_id):
         """Test that __setitem__ rejects invalid id values."""
-        mat = MaterialProperties(
-            id="VALID", material="Concrete", conductivity=1.6, density=2400
-        )
+        mat = Material(id="VALID", material="Concrete", conductivity=1.6, density=2400)
         with pytest.raises(TypeError, match="id must be a string"):
             mat["id"] = invalid_id
 
     def test_setitem_valid_id(self):
         """Test that __setitem__ accepts valid id change."""
-        mat = MaterialProperties(
-            id="VALID", material="Concrete", conductivity=1.6, density=2400
-        )
+        mat = Material(id="VALID", material="Concrete", conductivity=1.6, density=2400)
         mat["id"] = "NEW_ID"
         assert mat.id == "NEW_ID"
 
     def test_setitem_valid_conductivity(self):
         """Test that __setitem__ accepts valid conductivity change."""
-        mat = MaterialProperties(
-            id="VALID", material="Concrete", conductivity=1.6, density=2400
-        )
+        mat = Material(id="VALID", material="Concrete", conductivity=1.6, density=2400)
         mat["conductivity"] = 2.0
         assert mat.conductivity == 2.0
 
     def test_setitem_invalid_does_not_mutate_state(self):
         """Test that a failed __setitem__ rolls back to the previous value."""
-        mat = MaterialProperties(
+        mat = Material(
             id="VALID_ID", material="Concrete", conductivity=1.6, density=2400
         )
 

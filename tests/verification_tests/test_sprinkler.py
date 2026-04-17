@@ -6,9 +6,9 @@ import pytest
 
 from pycfast import (
     CFASTModel,
-    Compartments,
-    Devices,
-    Fires,
+    Compartment,
+    Device,
+    Fire,
     SimulationEnvironment,
 )
 
@@ -40,7 +40,7 @@ def test_sprinkler_1_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=4,
             height=4,
@@ -60,7 +60,7 @@ def test_sprinkler_1_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="New Fire",
             comp_id="Comp 1",
             fire_id="New Fire_Fire",
@@ -77,7 +77,7 @@ def test_sprinkler_1_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_sprinkler(
+        Device.create_sprinkler(
             id="Sprinkler_1",
             comp_id="Comp 1",
             location=[2, 2, 3.96],

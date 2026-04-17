@@ -9,16 +9,16 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pycfast.ceiling_floor_vents import CeilingFloorVents
-from pycfast.compartments import Compartments
-from pycfast.devices import Devices
-from pycfast.fires import Fires
-from pycfast.material_properties import MaterialProperties
-from pycfast.mechanical_vents import MechanicalVents
+from pycfast.ceiling_floor_vent import CeilingFloorVent
+from pycfast.compartment import Compartment
+from pycfast.device import Device
+from pycfast.fire import Fire
+from pycfast.material import Material
+from pycfast.mechanical_vent import MechanicalVent
 from pycfast.model import CFASTModel, _resolve_cfast_exe
 from pycfast.simulation_environment import SimulationEnvironment
-from pycfast.surface_connections import SurfaceConnections
-from pycfast.wall_vents import WallVents
+from pycfast.surface_connection import SurfaceConnection
+from pycfast.wall_vent import WallVent
 
 """
 Tests for the CFASTModel class.
@@ -31,7 +31,7 @@ class TestCFASTModel:
     def create_minimal_model(self) -> CFASTModel:
         """Create a minimal valid CFASTModel for testing."""
         simulation_env = SimulationEnvironment(title="Test Simulation")
-        compartment = Compartments(id="ROOM1", width=3.0, depth=4.0, height=2.4)
+        compartment = Compartment(id="ROOM1", width=3.0, depth=4.0, height=2.4)
 
         return CFASTModel(
             simulation_environment=simulation_env,
@@ -43,12 +43,12 @@ class TestCFASTModel:
         """Create a fully configured CFASTModel for testing."""
         simulation_env = SimulationEnvironment(title="Full Test Simulation")
 
-        compartment1 = Compartments(id="ROOM1", width=3.0, depth=4.0, height=2.4)
-        compartment2 = Compartments(id="ROOM2", width=4.0, depth=4.0, height=2.4)
+        compartment1 = Compartment(id="ROOM1", width=3.0, depth=4.0, height=2.4)
+        compartment2 = Compartment(id="ROOM2", width=4.0, depth=4.0, height=2.4)
 
-        material = MaterialProperties(id="GYPSUM", material="Gypsum Board")
+        material = Material(id="GYPSUM", material="Gypsum Board")
 
-        wall_vent = WallVents(
+        wall_vent = WallVent(
             id="DOOR1",
             comps_ids=["ROOM1", "ROOM2"],
             bottom=0.0,
@@ -57,26 +57,26 @@ class TestCFASTModel:
             face="RIGHT",
         )
 
-        ceiling_vent = CeilingFloorVents(
+        ceiling_vent = CeilingFloorVent(
             id="CEILING1",
             comps_ids=["ROOM1", "ROOM2"],
             area=1.0,
         )
 
-        mechanical_vent = MechanicalVents(
+        mechanical_vent = MechanicalVent(
             id="FAN1",
             comps_ids=["OUTSIDE", "ROOM1"],
             offsets=[0.0, 1.0],
         )
 
-        fire = Fires(
+        fire = Fire(
             id="FIRE1",
             comp_id="ROOM1",
             fire_id="POLYURETHANE",
             location=[2.0, 2.0],
         )
 
-        device = Devices(
+        device = Device(
             id="TEMP1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 1.5],
@@ -86,7 +86,7 @@ class TestCFASTModel:
             rti=50.0,
         )
 
-        surface_conn = SurfaceConnections.wall_connection(
+        surface_conn = SurfaceConnection.wall_connection(
             comp_id="ROOM1",
             comp_ids="ROOM2",
             fraction=0.5,
@@ -147,7 +147,7 @@ class TestCFASTModel:
     def test_init_with_custom_cfast_exe(self):
         """Test initialization with custom CFAST executable path."""
         simulation_env = SimulationEnvironment(title="Test")
-        compartment = Compartments(id="ROOM1")
+        compartment = Compartment(id="ROOM1")
 
         model = CFASTModel(
             simulation_environment=simulation_env,
@@ -160,7 +160,7 @@ class TestCFASTModel:
     def test_init_cfast_exe_none_by_default(self):
         """Test that cfast_exe is stored as None when not provided."""
         simulation_env = SimulationEnvironment(title="Test")
-        compartment = Compartments(id="ROOM1")
+        compartment = Compartment(id="ROOM1")
 
         model = CFASTModel(
             simulation_environment=simulation_env,
@@ -488,7 +488,7 @@ class TestCFASTModel:
     def test_empty_lists_initialization(self):
         """Test that None values are converted to empty lists."""
         simulation_env = SimulationEnvironment(title="Test")
-        compartment = Compartments(id="ROOM1")
+        compartment = Compartment(id="ROOM1")
 
         model = CFASTModel(
             simulation_environment=simulation_env,
@@ -606,10 +606,10 @@ class TestCFASTModel:
 
         str_repr = str(model)
         assert "full_test.in" in str_repr
-        assert "Compartments (2):" in str_repr
-        assert "Fires (1):" in str_repr
+        assert "Compartment (2):" in str_repr
+        assert "Fire (1):" in str_repr
         assert "Wall Vents (1):" in str_repr
-        assert "Devices (1):" in str_repr
+        assert "Device (1):" in str_repr
         assert "Material Properties (1):" in str_repr
 
     # Note: __len__, __bool__, __eq__, __hash__, __contains__ methods not implemented in current version
@@ -668,12 +668,12 @@ class TestCFASTModel:
         model = self.create_minimal_model()
 
         # Test setting compartments
-        new_compartment = Compartments(id="NEW_ROOM", width=5, depth=5, height=3)
+        new_compartment = Compartment(id="NEW_ROOM", width=5, depth=5, height=3)
         model["compartments"] = [new_compartment]
         assert model.compartments == [new_compartment]
 
         # Test setting fires
-        new_fire = Fires(
+        new_fire = Fire(
             id="NEW_FIRE", comp_id="NEW_ROOM", fire_id="WOOD", location=[1, 1]
         )
         model["fires"] = [new_fire]
@@ -700,7 +700,7 @@ class TestCFASTModel:
         # Check that key information is in the output
         assert "Model: test.in" in result
         assert "Test Simulation" in result
-        assert "Compartments (1):" in result
+        assert "Compartment (1):" in result
         assert "28.80 m³" in result  # Volume calculation: 3.0 * 4.0 * 2.4
 
     def test_summary_with_full_model(self) -> None:
@@ -710,10 +710,10 @@ class TestCFASTModel:
         result = model.summary()
 
         # Check that all component types are shown
-        assert "Compartments (2):" in result
-        assert "Fires (1):" in result
+        assert "Compartment (2):" in result
+        assert "Fire (1):" in result
         assert "Wall Vents (1):" in result
-        assert "Devices (1):" in result
+        assert "Device (1):" in result
 
     # Tests for update methods
     def test_update_fire_params(self) -> None:
@@ -1058,7 +1058,7 @@ class TestCFASTModel:
         model = self.create_full_model()
         original_fire_count = len(model.fires)
 
-        new_fire = Fires(
+        new_fire = Fire(
             id="FIRE2", comp_id="ROOM1", fire_id="FIRE2", location=[3.0, 3.0]
         )
         updated_model = model.add_fire(new_fire)
@@ -1081,7 +1081,7 @@ class TestCFASTModel:
         new_model = copy.deepcopy(model)
         new_model.fires = []
 
-        new_fire = Fires(
+        new_fire = Fire(
             id="FIRE1", comp_id="ROOM1", fire_id="FIRE1", location=[2.0, 2.0]
         )
         updated_model = new_model.add_fire(new_fire)
@@ -1094,7 +1094,7 @@ class TestCFASTModel:
         model = self.create_full_model()
         original_comp_count = len(model.compartments)
 
-        new_room = Compartments(id="ROOM3", width=5.0, depth=4.0, height=3.0)
+        new_room = Compartment(id="ROOM3", width=5.0, depth=4.0, height=3.0)
         updated_model = model.add_compartment(new_room)
 
         # Check that original model is unchanged
@@ -1110,9 +1110,7 @@ class TestCFASTModel:
         model = self.create_full_model()
         original_mat_count = len(model.material_properties)
 
-        steel = MaterialProperties(
-            id="STEEL", material="Steel", conductivity=45.0, density=7850
-        )
+        steel = Material(id="STEEL", material="Steel", conductivity=45.0, density=7850)
         updated_model = model.add_material(steel)
 
         # Check that original model is unchanged
@@ -1128,9 +1126,7 @@ class TestCFASTModel:
         model = self.create_full_model()
         original_vent_count = len(model.wall_vents)
 
-        door = WallVents(
-            id="DOOR2", comps_ids=["ROOM1", "ROOM2"], width=1.0, height=2.0
-        )
+        door = WallVent(id="DOOR2", comps_ids=["ROOM1", "ROOM2"], width=1.0, height=2.0)
         updated_model = model.add_wall_vent(door)
 
         # Check that original model is unchanged
@@ -1146,7 +1142,7 @@ class TestCFASTModel:
         model = self.create_full_model()
         original_vent_count = len(model.ceiling_floor_vents)
 
-        hatch = CeilingFloorVents(id="HATCH2", comps_ids=["ROOM1", "ROOM2"], area=0.5)
+        hatch = CeilingFloorVent(id="HATCH2", comps_ids=["ROOM1", "ROOM2"], area=0.5)
         updated_model = model.add_ceiling_floor_vent(hatch)
 
         # Check that original model is unchanged
@@ -1162,7 +1158,7 @@ class TestCFASTModel:
         model = self.create_full_model()
         original_vent_count = len(model.mechanical_vents)
 
-        hvac = MechanicalVents(id="HVAC2", comps_ids=["ROOM1", "OUTSIDE"], flow=0.5)
+        hvac = MechanicalVent(id="HVAC2", comps_ids=["ROOM1", "OUTSIDE"], flow=0.5)
         updated_model = model.add_mechanical_vent(hvac)
 
         # Check that original model is unchanged
@@ -1178,7 +1174,7 @@ class TestCFASTModel:
         model = self.create_full_model()
         original_device_count = len(model.devices)
 
-        sensor = Devices.create_heat_detector(
+        sensor = Device.create_heat_detector(
             id="SENSOR2",
             comp_id="ROOM1",
             location=[2.0, 2.0, 2.4],
@@ -1200,7 +1196,7 @@ class TestCFASTModel:
         model = self.create_full_model()
         original_conn_count = len(model.surface_connections)
 
-        wall_conn = SurfaceConnections.wall_connection(
+        wall_conn = SurfaceConnection.wall_connection(
             comp_id="ROOM1", comp_ids="ROOM2", fraction=0.5
         )
         updated_model = model.add_surface_connection(wall_conn)
@@ -1210,7 +1206,7 @@ class TestCFASTModel:
 
         # Check that new model has additional surface connection
         assert len(updated_model.surface_connections) == original_conn_count + 1
-        # Note: comp_ids is stored as a string in SurfaceConnections, not a list
+        # Note: comp_ids is stored as a string in SurfaceConnection, not a list
         assert updated_model.surface_connections[-1].comp_id == "ROOM1"
         assert updated_model.surface_connections[-1].comp_ids == "ROOM2"
         assert updated_model.surface_connections[-1].fraction == 0.5
@@ -1222,13 +1218,11 @@ class TestCFASTModel:
         # Chain multiple add operations
         updated_model = (
             model.add_fire(
-                Fires(id="FIRE2", comp_id="ROOM1", fire_id="FIRE2", location=[3.0, 3.0])
+                Fire(id="FIRE2", comp_id="ROOM1", fire_id="FIRE2", location=[3.0, 3.0])
             )
-            .add_compartment(Compartments(id="ROOM3", width=5.0, depth=4.0, height=3.0))
+            .add_compartment(Compartment(id="ROOM3", width=5.0, depth=4.0, height=3.0))
             .add_material(
-                MaterialProperties(
-                    id="STEEL", material="Steel", conductivity=45.0, density=7850
-                )
+                Material(id="STEEL", material="Steel", conductivity=45.0, density=7850)
             )
         )
 
@@ -1250,7 +1244,7 @@ class TestCFASTModel:
         """Test add methods when component lists are None."""
         # Create minimal model with only required components
         simulation_env = SimulationEnvironment(title="Test", time_simulation=1000)
-        room = Compartments(id="ROOM1", width=3.0, depth=3.0, height=2.5)
+        room = Compartment(id="ROOM1", width=3.0, depth=3.0, height=2.5)
 
         model = CFASTModel(
             simulation_environment=simulation_env,
@@ -1262,15 +1256,15 @@ class TestCFASTModel:
         )
 
         # Test adding to None lists
-        fire = Fires(id="FIRE1", comp_id="ROOM1", fire_id="FIRE1", location=[1.0, 1.0])
-        device = Devices.create_heat_detector(
+        fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="FIRE1", location=[1.0, 1.0])
+        device = Device.create_heat_detector(
             id="SENSOR1",
             comp_id="ROOM1",
             location=[2.0, 2.0, 2.4],
             setpoint=68.0,
             rti=50.0,
         )
-        material = MaterialProperties(
+        material = Material(
             id="CONCRETE", material="Concrete", conductivity=1.4, density=2300
         )
 
@@ -1545,8 +1539,8 @@ class TestCFASTModel:
         assert model.simulation_environment.title in html_str
 
         # Check for component counts - verify actual format
-        assert "Compartments" in html_str  # Check section exists
-        assert "Fires" in html_str
+        assert "Compartment" in html_str  # Check section exists
+        assert "Fire" in html_str
         assert "Materials" in html_str
 
 
@@ -1559,11 +1553,11 @@ class TestCFASTModelValidateDependencies:
 
     @pytest.fixture()
     def room1(self):
-        return Compartments(id="ROOM1", width=3.0, depth=4.0, height=2.4)
+        return Compartment(id="ROOM1", width=3.0, depth=4.0, height=2.4)
 
     @pytest.fixture()
     def room2(self):
-        return Compartments(id="ROOM2", width=3.0, depth=4.0, height=2.4)
+        return Compartment(id="ROOM2", width=3.0, depth=4.0, height=2.4)
 
     def _make(self, sim_env, compartments, **kwargs):
         return CFASTModel(
@@ -1574,33 +1568,33 @@ class TestCFASTModelValidateDependencies:
 
     def test_too_many_compartments(self, sim_env):
         """Test that more than 100 compartments raises ValueError."""
-        compartments = [Compartments(id=f"ROOM{i}") for i in range(101)]
+        compartments = [Compartment(id=f"ROOM{i}") for i in range(101)]
         with pytest.raises(ValueError, match="maximum of 100 compartments"):
             self._make(sim_env, compartments)
 
     def test_duplicate_compartment_ids(self, sim_env):
         """Test that duplicate compartment IDs raises ValueError."""
         with pytest.raises(ValueError, match="Duplicate id 'ROOM1'"):
-            self._make(sim_env, [Compartments(id="ROOM1"), Compartments(id="ROOM1")])
+            self._make(sim_env, [Compartment(id="ROOM1"), Compartment(id="ROOM1")])
 
     def test_duplicate_fire_ids(self, sim_env, room1):
         """Test that duplicate fire IDs raises ValueError."""
-        fire = Fires(id="FIRE1", comp_id="ROOM1", fire_id="PU", location=[1.0, 1.0])
-        fire_dup = Fires(id="FIRE1", comp_id="ROOM1", fire_id="PU", location=[2.0, 2.0])
+        fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="PU", location=[1.0, 1.0])
+        fire_dup = Fire(id="FIRE1", comp_id="ROOM1", fire_id="PU", location=[2.0, 2.0])
         with pytest.raises(ValueError, match="Duplicate id 'FIRE1'"):
             self._make(sim_env, [room1], fires=[fire, fire_dup])
 
     def test_duplicate_device_ids(self, sim_env, room1):
         """Test that duplicate device IDs raises ValueError."""
-        dev1 = Devices.create_heat_detector("HD1", "ROOM1", [1.0, 2.0, 1.5], 70.0, 50.0)
-        dev2 = Devices.create_heat_detector("HD1", "ROOM1", [2.0, 2.0, 1.5], 70.0, 50.0)
+        dev1 = Device.create_heat_detector("HD1", "ROOM1", [1.0, 2.0, 1.5], 70.0, 50.0)
+        dev2 = Device.create_heat_detector("HD1", "ROOM1", [2.0, 2.0, 1.5], 70.0, 50.0)
         with pytest.raises(ValueError, match="Duplicate id 'HD1'"):
             self._make(sim_env, [room1], devices=[dev1, dev2])
 
     def test_duplicate_material_ids(self, sim_env, room1):
         """Test that duplicate material IDs raises ValueError."""
-        mat = MaterialProperties(id="GYPSUM", material="Gypsum Board")
-        mat_dup = MaterialProperties(id="GYPSUM", material="Gypsum Board")
+        mat = Material(id="GYPSUM", material="Gypsum Board")
+        mat_dup = Material(id="GYPSUM", material="Gypsum Board")
         with pytest.raises(ValueError, match="Duplicate id 'GYPSUM'"):
             self._make(sim_env, [room1], material_properties=[mat, mat_dup])
 
@@ -1609,12 +1603,12 @@ class TestCFASTModelValidateDependencies:
         [
             pytest.param(
                 "fires",
-                Fires(id="F1", comp_id="UNKNOWN", fire_id="PU", location=[1.0, 1.0]),
+                Fire(id="F1", comp_id="UNKNOWN", fire_id="PU", location=[1.0, 1.0]),
                 id="fire",
             ),
             pytest.param(
                 "devices",
-                Devices.create_heat_detector(
+                Device.create_heat_detector(
                     "HD1", "UNKNOWN", [1.0, 2.0, 1.5], 70.0, 50.0
                 ),
                 id="device",
@@ -1627,8 +1621,8 @@ class TestCFASTModelValidateDependencies:
             self._make(sim_env, [room1], **{component_type: [component]})
 
     def test_wall_vent_undefined_first_comp(self, sim_env, room1):
-        """Test that WallVents with undefined first compartment raises ValueError."""
-        vent = WallVents(
+        """Test that WallVent with undefined first compartment raises ValueError."""
+        vent = WallVent(
             id="V1",
             comps_ids=["UNKNOWN", "ROOM1"],
             bottom=0,
@@ -1643,8 +1637,8 @@ class TestCFASTModelValidateDependencies:
             self._make(sim_env, [room1], wall_vents=[vent])
 
     def test_wall_vent_undefined_second_comp(self, sim_env, room1):
-        """Test that WallVents with undefined second compartment raises ValueError."""
-        vent = WallVents(
+        """Test that WallVent with undefined second compartment raises ValueError."""
+        vent = WallVent(
             id="V1",
             comps_ids=["ROOM1", "UNKNOWN"],
             bottom=0,
@@ -1659,8 +1653,8 @@ class TestCFASTModelValidateDependencies:
             self._make(sim_env, [room1], wall_vents=[vent])
 
     def test_wall_vent_outside_second_comp_is_valid(self, sim_env, room1):
-        """Test that OUTSIDE as second compartment in WallVents is accepted."""
-        vent = WallVents(
+        """Test that OUTSIDE as second compartment in WallVent is accepted."""
+        vent = WallVent(
             id="V1",
             comps_ids=["ROOM1", "OUTSIDE"],
             bottom=0,
@@ -1677,12 +1671,12 @@ class TestCFASTModelValidateDependencies:
         [
             pytest.param(
                 "ceiling_floor_vents",
-                CeilingFloorVents(id="V1", comps_ids=["ROOM1", "UNKNOWN"], area=1.0),
+                CeilingFloorVent(id="V1", comps_ids=["ROOM1", "UNKNOWN"], area=1.0),
                 id="ceiling-floor-vent",
             ),
             pytest.param(
                 "mechanical_vents",
-                MechanicalVents(
+                MechanicalVent(
                     id="V1", comps_ids=["ROOM1", "UNKNOWN"], offsets=[0.0, 0.0]
                 ),
                 id="mechanical-vent",
@@ -1695,20 +1689,20 @@ class TestCFASTModelValidateDependencies:
             self._make(sim_env, [room1], **{vent_type: [vent]})
 
     def test_surface_connection_undefined_comp_id(self, sim_env, room1):
-        """Test that SurfaceConnections with undefined comp_id raises ValueError."""
-        sc = SurfaceConnections.wall_connection("UNKNOWN", "ROOM1", fraction=0.5)
+        """Test that SurfaceConnection with undefined comp_id raises ValueError."""
+        sc = SurfaceConnection.wall_connection("UNKNOWN", "ROOM1", fraction=0.5)
         with pytest.raises(ValueError, match="comp_id='UNKNOWN' does not match"):
             self._make(sim_env, [room1], surface_connections=[sc])
 
     def test_surface_connection_undefined_comp_ids(self, sim_env, room1):
-        """Test that SurfaceConnections with undefined comp_ids raises ValueError."""
-        sc = SurfaceConnections.wall_connection("ROOM1", "UNKNOWN", fraction=0.5)
+        """Test that SurfaceConnection with undefined comp_ids raises ValueError."""
+        sc = SurfaceConnection.wall_connection("ROOM1", "UNKNOWN", fraction=0.5)
         with pytest.raises(ValueError, match="comp_ids='UNKNOWN' does not match"):
             self._make(sim_env, [room1], surface_connections=[sc])
 
     def test_device_undefined_material_id(self, sim_env, room1):
         """Test that a device referencing an undefined material raises ValueError."""
-        device = Devices(
+        device = Device(
             id="T1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 1.5],
@@ -1724,13 +1718,13 @@ class TestCFASTModelValidateDependencies:
     )
     def test_compartment_undefined_material_id(self, sim_env, mat_attr):
         """Test that a compartment referencing an undefined material raises ValueError."""
-        comp = Compartments(id="ROOM1", **{mat_attr: "UNKNOWN"})  # type: ignore
+        comp = Compartment(id="ROOM1", **{mat_attr: "UNKNOWN"})  # type: ignore
         with pytest.raises(ValueError, match=f"{mat_attr}='UNKNOWN' does not match"):
             self._make(sim_env, [comp])
 
     def test_fire_undefined_device_id(self, sim_env, room1):
         """Test that a fire referencing an undefined device raises ValueError."""
-        fire = Fires(
+        fire = Fire(
             id="F1",
             comp_id="ROOM1",
             fire_id="PU",
@@ -1745,7 +1739,7 @@ class TestCFASTModelValidateDependencies:
         [
             pytest.param(
                 "wall_vents",
-                WallVents(
+                WallVent(
                     id="V1",
                     comps_ids=["ROOM1", "ROOM2"],
                     bottom=0,
@@ -1760,7 +1754,7 @@ class TestCFASTModelValidateDependencies:
             ),
             pytest.param(
                 "ceiling_floor_vents",
-                CeilingFloorVents(
+                CeilingFloorVent(
                     id="V1",
                     comps_ids=["ROOM1", "ROOM2"],
                     area=1.0,
@@ -1771,7 +1765,7 @@ class TestCFASTModelValidateDependencies:
             ),
             pytest.param(
                 "mechanical_vents",
-                MechanicalVents(
+                MechanicalVent(
                     id="V1",
                     comps_ids=["ROOM1", "ROOM2"],
                     offsets=[0.0, 0.0],
@@ -1789,7 +1783,7 @@ class TestCFASTModelValidateDependencies:
 
     def test_fire_location_outside_compartment_warning(self, sim_env, room1):
         """Test that a fire outside compartment bounds raises UserWarning."""
-        fire = Fires(
+        fire = Fire(
             id="F1",
             comp_id="ROOM1",
             fire_id="PU",
@@ -1800,7 +1794,7 @@ class TestCFASTModelValidateDependencies:
 
     def test_device_location_outside_compartment_warning(self, sim_env, room1):
         """Test that a device outside compartment bounds raises UserWarning."""
-        device = Devices.create_heat_detector(
+        device = Device.create_heat_detector(
             "HD1",
             "ROOM1",
             [10.0, 10.0, 10.0],

@@ -5,13 +5,13 @@ from pathlib import Path
 import pytest
 
 from pycfast import (
-    CeilingFloorVents,
+    CeilingFloorVent,
     CFASTModel,
-    Compartments,
-    Fires,
-    MechanicalVents,
+    Compartment,
+    Fire,
+    MechanicalVent,
     SimulationEnvironment,
-    WallVents,
+    WallVent,
 )
 
 from .verification import (
@@ -41,7 +41,7 @@ def test_ventilation_1_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=5,
             height=3,
@@ -56,7 +56,7 @@ def test_ventilation_1_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Comp 1", "OUTSIDE"],
             bottom=1.495,
@@ -68,7 +68,7 @@ def test_ventilation_1_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["OUTSIDE", "Comp 1"],
             area=[1, 1],
@@ -124,7 +124,7 @@ def test_leakage_1_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=1,
             height=1,
@@ -141,7 +141,7 @@ def test_leakage_1_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["OUTSIDE", "Comp 1"],
             area=[0.1, 0.1],
@@ -199,7 +199,7 @@ def test_leakage_2_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=1,
             height=1,
@@ -216,7 +216,7 @@ def test_leakage_2_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["OUTSIDE", "Comp 1"],
             area=[0.1, 0.1],
@@ -273,7 +273,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
         extra_custom="&DIAG UPPER_LAYER_THICKNESS = 1 VERIFICATION_TIME_STEP = 0.5/",
     )
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=4,
             height=3,
@@ -285,7 +285,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 2",
             depth=4,
             height=5,
@@ -297,7 +297,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             origin_y=0,
             origin_z=3,
         ),
-        Compartments(
+        Compartment(
             id="Comp 3",
             depth=4,
             height=6,
@@ -312,7 +312,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="HVENT 1",
             comps_ids=["Comp 1", "OUTSIDE"],
             bottom=2.5,
@@ -324,7 +324,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             time=[0, 0.5, 1],
             fraction=[0, 0.5, 1],
         ),
-        WallVents(
+        WallVent(
             id="HVENT 2",
             comps_ids=["Comp 1", "OUTSIDE"],
             bottom=0,
@@ -336,7 +336,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             time=[0, 0.5, 1],
             fraction=[0, 0.5, 1],
         ),
-        WallVents(
+        WallVent(
             id="HVENT 3",
             comps_ids=["Comp 1", "OUTSIDE"],
             bottom=0,
@@ -348,7 +348,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             time=[0, 0.5, 1],
             fraction=[0, 0.5, 1],
         ),
-        WallVents(
+        WallVent(
             id="HVENT 4",
             comps_ids=["Comp 1", "Comp 3"],
             bottom=1,
@@ -360,7 +360,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             time=[0, 0.5, 1],
             fraction=[0, 0.5, 1],
         ),
-        WallVents(
+        WallVent(
             id="HVENT 5",
             comps_ids=["Comp 1", "OUTSIDE"],
             bottom=0.5,
@@ -372,7 +372,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             time=[0, 0.5, 1],
             fraction=[0, 0.5, 1],
         ),
-        WallVents(
+        WallVent(
             id="HVENT 6",
             comps_ids=["Comp 2", "Comp 3"],
             bottom=0,
@@ -384,7 +384,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             time=[0, 0.5, 1],
             fraction=[0, 0.5, 1],
         ),
-        WallVents(
+        WallVent(
             id="HVENT 7",
             comps_ids=["Comp 2", "OUTSIDE"],
             bottom=4,
@@ -396,7 +396,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             time=[0, 0.5, 1],
             fraction=[0, 0.5, 1],
         ),
-        WallVents(
+        WallVent(
             id="HVENT 8",
             comps_ids=["Comp 2", "OUTSIDE"],
             bottom=0.5,
@@ -411,7 +411,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
     ]
 
     ceiling_floor_vents = [
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="VVENT 1",
             comps_ids=["Comp 2", "Comp 1"],
             area=1,
@@ -422,7 +422,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             time=[0, 0.5, 1],
             fraction=[0, 0.5, 1],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="VVENT 2",
             comps_ids=["Comp 1", "OUTSIDE"],
             area=1,
@@ -433,7 +433,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             time=[0, 0.5, 1],
             fraction=[0, 0.5, 1],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="VVENT 3",
             comps_ids=["OUTSIDE", "Comp 3"],
             area=1,
@@ -447,7 +447,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MVENT 1",
             comps_ids=["Comp 1", "OUTSIDE"],
             area=[1, 1],
@@ -460,7 +460,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MVENT 2",
             comps_ids=["Comp 1", "Comp 2"],
             area=[1, 1],
@@ -474,7 +474,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MVENT 3",
             comps_ids=["Comp 1", "Comp 3"],
             area=[0.25, 0.25],
@@ -487,7 +487,7 @@ def test_surface_opened_fraction_1_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MVENT 4",
             comps_ids=["Comp 2", "Comp 3"],
             area=[0.25, 0.25],
@@ -544,7 +544,7 @@ def test_ventilation_2_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=4,
             height=4,
@@ -557,7 +557,7 @@ def test_ventilation_2_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 2",
             depth=4,
             height=4,
@@ -570,7 +570,7 @@ def test_ventilation_2_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 3",
             depth=4,
             height=4,
@@ -583,7 +583,7 @@ def test_ventilation_2_simulation(tmp_path):
             origin_y=0,
             origin_z=4,
         ),
-        Compartments(
+        Compartment(
             id="Comp 4",
             depth=4,
             height=4,
@@ -599,7 +599,7 @@ def test_ventilation_2_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Comp 1", "Comp 2"],
             bottom=1.5,
@@ -608,7 +608,7 @@ def test_ventilation_2_simulation(tmp_path):
             face="RIGHT",
             offset=1.5,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_2",
             comps_ids=["Comp 3", "Comp 4"],
             bottom=1.5,
@@ -620,7 +620,7 @@ def test_ventilation_2_simulation(tmp_path):
     ]
 
     ceiling_floor_vents = [
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_1",
             comps_ids=["Comp 3", "Comp 2"],
             area=1,
@@ -631,7 +631,7 @@ def test_ventilation_2_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["OUTSIDE", "Comp 1"],
             area=[1, 1],
@@ -642,7 +642,7 @@ def test_ventilation_2_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_2",
             comps_ids=["Comp 4", "OUTSIDE"],
             area=[1, 1],
@@ -697,7 +697,7 @@ def test_ventilation_3_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=4,
             height=4,
@@ -710,7 +710,7 @@ def test_ventilation_3_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 2",
             depth=4,
             height=4,
@@ -723,7 +723,7 @@ def test_ventilation_3_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 3",
             depth=4,
             height=4,
@@ -736,7 +736,7 @@ def test_ventilation_3_simulation(tmp_path):
             origin_y=0,
             origin_z=4,
         ),
-        Compartments(
+        Compartment(
             id="Comp 4",
             depth=4,
             height=4,
@@ -752,7 +752,7 @@ def test_ventilation_3_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Comp 1", "Comp 2"],
             bottom=0,
@@ -764,7 +764,7 @@ def test_ventilation_3_simulation(tmp_path):
             time=[200, 201],
             fraction=[0, 1],
         ),
-        WallVents(
+        WallVent(
             id="WallVent_2",
             comps_ids=["Comp 3", "Comp 4"],
             bottom=0,
@@ -779,7 +779,7 @@ def test_ventilation_3_simulation(tmp_path):
     ]
 
     ceiling_floor_vents = [
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_1",
             comps_ids=["Comp 3", "Comp 2"],
             area=3,
@@ -790,7 +790,7 @@ def test_ventilation_3_simulation(tmp_path):
             time=[500, 501],
             fraction=[0, 1],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_2",
             comps_ids=["OUTSIDE", "Comp 4"],
             area=4,
@@ -804,7 +804,7 @@ def test_ventilation_3_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["OUTSIDE", "Comp 1"],
             area=[1, 1],
@@ -863,7 +863,7 @@ def test_ventilation_4_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=5,
             height=5,
@@ -878,7 +878,7 @@ def test_ventilation_4_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Comp 1", "OUTSIDE"],
             bottom=0,
@@ -890,7 +890,7 @@ def test_ventilation_4_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="simple",
             comp_id="Comp 1",
             fire_id="simple_Fire",
@@ -953,7 +953,7 @@ def test_vvent_tests_simulation(tmp_path):
     )
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1 Up",
             depth=5,
             height=5,
@@ -965,7 +965,7 @@ def test_vvent_tests_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 2 Up",
             depth=5,
             height=5,
@@ -977,7 +977,7 @@ def test_vvent_tests_simulation(tmp_path):
             origin_y=0,
             origin_z=5,
         ),
-        Compartments(
+        Compartment(
             id="Comp 3 Up",
             depth=5,
             height=5,
@@ -989,7 +989,7 @@ def test_vvent_tests_simulation(tmp_path):
             origin_y=0,
             origin_z=10,
         ),
-        Compartments(
+        Compartment(
             id="Comp 1 Down",
             depth=5,
             height=5,
@@ -1001,7 +1001,7 @@ def test_vvent_tests_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 2 Down",
             depth=5,
             height=5,
@@ -1013,7 +1013,7 @@ def test_vvent_tests_simulation(tmp_path):
             origin_y=0,
             origin_z=5,
         ),
-        Compartments(
+        Compartment(
             id="Comp 3 Down",
             depth=5,
             height=5,
@@ -1025,7 +1025,7 @@ def test_vvent_tests_simulation(tmp_path):
             origin_y=0,
             origin_z=10,
         ),
-        Compartments(
+        Compartment(
             id="Comp 1 Both",
             depth=5,
             height=5,
@@ -1037,7 +1037,7 @@ def test_vvent_tests_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 2 Both",
             depth=5,
             height=5,
@@ -1049,7 +1049,7 @@ def test_vvent_tests_simulation(tmp_path):
             origin_y=0,
             origin_z=5,
         ),
-        Compartments(
+        Compartment(
             id="Comp 3 Both",
             depth=5,
             height=5,
@@ -1061,7 +1061,7 @@ def test_vvent_tests_simulation(tmp_path):
             origin_y=0,
             origin_z=10,
         ),
-        Compartments(
+        Compartment(
             id="Comp 1 All Vents",
             depth=5,
             height=5,
@@ -1073,7 +1073,7 @@ def test_vvent_tests_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 2 All Vents",
             depth=5,
             height=5,
@@ -1085,7 +1085,7 @@ def test_vvent_tests_simulation(tmp_path):
             origin_y=0,
             origin_z=5,
         ),
-        Compartments(
+        Compartment(
             id="Comp 3 All Vents",
             depth=5,
             height=5,
@@ -1100,7 +1100,7 @@ def test_vvent_tests_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Comp 3 All Vents", "OUTSIDE"],
             bottom=2.25,
@@ -1115,7 +1115,7 @@ def test_vvent_tests_simulation(tmp_path):
     ]
 
     ceiling_floor_vents = [
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_1",
             comps_ids=["OUTSIDE", "Comp 3 Up"],
             area=0.25,
@@ -1123,7 +1123,7 @@ def test_vvent_tests_simulation(tmp_path):
             shape="ROUND",
             offsets=[2.5, 2.5],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_2",
             comps_ids=["Comp 3 Up", "Comp 2 Up"],
             area=0.25,
@@ -1131,7 +1131,7 @@ def test_vvent_tests_simulation(tmp_path):
             shape="ROUND",
             offsets=[2.5, 2.5],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_3",
             comps_ids=["Comp 2 Up", "Comp 1 Up"],
             area=0.25,
@@ -1139,7 +1139,7 @@ def test_vvent_tests_simulation(tmp_path):
             shape="ROUND",
             offsets=[2.5, 2.5],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_4",
             comps_ids=["Comp 3 Down", "Comp 2 Down"],
             area=0.25,
@@ -1147,7 +1147,7 @@ def test_vvent_tests_simulation(tmp_path):
             shape="ROUND",
             offsets=[2.5, 2.5],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_5",
             comps_ids=["Comp 2 Down", "Comp 1 Down"],
             area=0.25,
@@ -1155,7 +1155,7 @@ def test_vvent_tests_simulation(tmp_path):
             shape="ROUND",
             offsets=[2.5, 2.5],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_6",
             comps_ids=["Comp 1 Down", "OUTSIDE"],
             area=0.25,
@@ -1163,7 +1163,7 @@ def test_vvent_tests_simulation(tmp_path):
             shape="ROUND",
             offsets=[2.5, 2.5],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_7",
             comps_ids=["OUTSIDE", "Comp 3 Both"],
             area=0.25,
@@ -1171,7 +1171,7 @@ def test_vvent_tests_simulation(tmp_path):
             shape="ROUND",
             offsets=[2.5, 2.5],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_8",
             comps_ids=["Comp 3 Both", "Comp 2 Both"],
             area=0.25,
@@ -1179,7 +1179,7 @@ def test_vvent_tests_simulation(tmp_path):
             shape="ROUND",
             offsets=[2.5, 2.5],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_9",
             comps_ids=["Comp 2 Both", "Comp 1 Both"],
             area=0.25,
@@ -1187,7 +1187,7 @@ def test_vvent_tests_simulation(tmp_path):
             shape="ROUND",
             offsets=[2.5, 2.5],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_10",
             comps_ids=["Comp 1 Both", "OUTSIDE"],
             area=0.25,
@@ -1195,7 +1195,7 @@ def test_vvent_tests_simulation(tmp_path):
             shape="ROUND",
             offsets=[2.5, 2.5],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_11",
             comps_ids=["Comp 3 All Vents", "Comp 2 All Vents"],
             area=0.25,
@@ -1203,7 +1203,7 @@ def test_vvent_tests_simulation(tmp_path):
             shape="ROUND",
             offsets=[2.5, 2.5],
         ),
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_12",
             comps_ids=["Comp 2 All Vents", "Comp 1 All Vents"],
             area=0.25,
@@ -1214,7 +1214,7 @@ def test_vvent_tests_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["OUTSIDE", "Comp 1 Up"],
             area=[0.25, 0.25],
@@ -1224,7 +1224,7 @@ def test_vvent_tests_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_2",
             comps_ids=["OUTSIDE", "Comp 3 Down"],
             area=[0.25, 0.25],
@@ -1234,7 +1234,7 @@ def test_vvent_tests_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_3",
             comps_ids=["OUTSIDE", "Comp 2 Both"],
             area=[0.25, 0.25],
@@ -1244,7 +1244,7 @@ def test_vvent_tests_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_4",
             comps_ids=["OUTSIDE", "Comp 1 All Vents"],
             area=[0.25, 0.25],

@@ -1,7 +1,7 @@
 """
 Material thermal property definitions for CFAST simulations.
 
-This module provides the MaterialProperties class for defining
+This module provides the Material class for defining
 thermophysical properties of materials used in CFAST simulations.
 """
 
@@ -14,7 +14,7 @@ from .utils.namelist import NamelistRecord
 from .utils.theme import build_card
 
 
-class MaterialProperties:
+class Material:
     """
     Defines thermophysical properties of materials used for compartment surfaces or targets.
 
@@ -56,7 +56,7 @@ class MaterialProperties:
     --------
     Create a gypsum wallboard material:
 
-    >>> gypsum = MaterialProperties(
+    >>> gypsum = Material(
     ...     id="GYPSUM",
     ...     material="Gypsum Wallboard",
     ...     conductivity=0.17,
@@ -108,21 +108,21 @@ class MaterialProperties:
         ):
             if val is not None and val <= 0:
                 raise ValueError(
-                    f"MaterialProperties '{self.id}': {prop} must be positive, got {val}."
+                    f"Material '{self.id}': {prop} must be positive, got {val}."
                 )
 
         if self.emissivity is not None and not 0.0 <= self.emissivity <= 1.0:
             warnings.warn(
-                f"MaterialProperties '{self.id}': emissivity={self.emissivity} is outside [0, 1]."
+                f"Material '{self.id}': emissivity={self.emissivity} is outside [0, 1]."
                 "This may cause inaccurate results.",
                 UserWarning,
                 stacklevel=2,
             )
 
     def __repr__(self) -> str:
-        """Return a detailed string representation of the MaterialProperties."""
+        """Return a detailed string representation of the Material."""
         return (
-            f"MaterialProperties("
+            f"Material("
             f"id='{self.id}', material='{self.material}', "
             f"conductivity={self.conductivity}, density={self.density}, "
             f"specific_heat={self.specific_heat}, thickness={self.thickness}, "
@@ -131,7 +131,7 @@ class MaterialProperties:
         )
 
     def __str__(self) -> str:
-        """Return a user-friendly string representation of the MaterialProperties."""
+        """Return a user-friendly string representation of the Material."""
         return (
             f"Material '{self.id}' ({self.material}): "
             f"k={self.conductivity}, ρ={self.density}, c={self.specific_heat}, "
@@ -162,7 +162,7 @@ class MaterialProperties:
     def __getitem__(self, key: str) -> Any:
         """Get material property by name for dictionary-like access."""
         if not hasattr(self, key):
-            raise KeyError(f"Property '{key}' not found in MaterialProperties.")
+            raise KeyError(f"Property '{key}' not found in Material.")
         return getattr(self, key)
 
     def __setitem__(self, key: str, value: Any) -> None:
@@ -179,9 +179,7 @@ class MaterialProperties:
             If setting this value would violate object constraints.
         """
         if not hasattr(self, key):
-            raise KeyError(
-                f"Cannot set '{key}'. Property does not exist in MaterialProperties."
-            )
+            raise KeyError(f"Cannot set '{key}'. Property does not exist in Material.")
         old_value = getattr(self, key)
         setattr(self, key, value)
         try:
@@ -201,7 +199,7 @@ class MaterialProperties:
 
         Examples
         --------
-        >>> mat = MaterialProperties("GYPSUM", "Gypsum Board", 0.17, 930, 1.09, 0.016, 0.9)
+        >>> mat = Material("GYPSUM", "Gypsum Board", 0.17, 930, 1.09, 0.016, 0.9)
         >>> print(mat.to_input_string().strip())
         &MATL ID = 'GYPSUM' MATERIAL = 'Gypsum Board' CONDUCTIVITY = 0.17 DENSITY = 930 SPECIFIC_HEAT = 1.09 THICKNESS = 0.016 EMISSIVITY = 0.9 /
         """

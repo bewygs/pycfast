@@ -2,35 +2,35 @@ from __future__ import annotations
 
 import pytest
 
-from pycfast.ceiling_floor_vents import CeilingFloorVents
+from pycfast.ceiling_floor_vent import CeilingFloorVent
 
 """
-Tests for the CeilingFloorVents class.
+Tests for the CeilingFloorVent class.
 """
 
 
 @pytest.fixture()
 def make_ceiling_floor_vent():
-    """Create a CeilingFloorVents instance with sensible defaults."""
+    """Create a CeilingFloorVent instance with sensible defaults."""
 
-    def _make(**kwargs: object) -> CeilingFloorVents:
+    def _make(**kwargs: object) -> CeilingFloorVent:
         defaults: dict[str, object] = {
             "id": "VENT1",
             "comps_ids": ["UPPER", "LOWER"],
             "area": 1.0,
         }
         defaults.update(kwargs)
-        return CeilingFloorVents(**defaults)  # type: ignore[arg-type]
+        return CeilingFloorVent(**defaults)  # type: ignore[arg-type]
 
     return _make
 
 
-class TestCeilingFloorVents:
-    """Test class for CeilingFloorVents."""
+class TestCeilingFloorVent:
+    """Test class for CeilingFloorVent."""
 
     def test_init_basic(self):
         """Test basic initialization with required parameters."""
-        vent = CeilingFloorVents(id="VENT1", comps_ids=["UPPER", "LOWER"], area=1.0)
+        vent = CeilingFloorVent(id="VENT1", comps_ids=["UPPER", "LOWER"], area=1.0)
         assert vent.id == "VENT1"
         assert vent.comps_ids == ["UPPER", "LOWER"]
         assert vent.area == 1.0
@@ -40,7 +40,7 @@ class TestCeilingFloorVents:
 
     def test_init_with_all_parameters(self):
         """Test initialization with all parameters."""
-        vent = CeilingFloorVents(
+        vent = CeilingFloorVent(
             id="VENT1",
             comps_ids=["UPPER", "LOWER"],
             area=2.5,
@@ -79,12 +79,12 @@ class TestCeilingFloorVents:
     def test_init_invalid_comps_ids_length(self, comps_ids: list[str]):
         """Test that initialization fails with wrong number of compartments."""
         with pytest.raises(ValueError, match="exactly 2 compartments"):
-            CeilingFloorVents(id="VENT1", comps_ids=comps_ids, area=1.0)
+            CeilingFloorVent(id="VENT1", comps_ids=comps_ids, area=1.0)
 
     def test_init_mismatched_time_fraction_lists(self):
         """Test that initialization fails with mismatched time and fraction lists."""
         with pytest.raises(ValueError, match="equal length"):
-            CeilingFloorVents(
+            CeilingFloorVent(
                 id="VENT1",
                 comps_ids=["UPPER", "LOWER"],
                 area=1.0,
@@ -95,7 +95,7 @@ class TestCeilingFloorVents:
     def test_area_negative_values(self):
         """Test that negative area values are rejected."""
         with pytest.raises(ValueError, match="area must be non-negative"):
-            CeilingFloorVents(id="VENT1", comps_ids=["UPPER", "LOWER"], area=-1.0)
+            CeilingFloorVent(id="VENT1", comps_ids=["UPPER", "LOWER"], area=-1.0)
 
     @pytest.mark.parametrize(
         ("param", "value"),
@@ -107,7 +107,7 @@ class TestCeilingFloorVents:
     def test_pre_post_fraction_invalid_values(self, param, value):
         """Test that invalid pre/post_fraction values (out of [0, 1]) are rejected."""
         with pytest.raises(ValueError, match=r"must be in \[0, 1\]\."):
-            CeilingFloorVents(
+            CeilingFloorVent(
                 id="VENT1",
                 comps_ids=["UPPER", "LOWER"],
                 area=1.0,
@@ -118,7 +118,7 @@ class TestCeilingFloorVents:
     def test_fraction_invalid_values(self):
         """Test that invalid fracion value (out of [0, 1]) are rejected."""
         with pytest.raises(ValueError, match=r"must be in \[0, 1\]\."):
-            CeilingFloorVents(
+            CeilingFloorVent(
                 id="VENT1",
                 comps_ids=["UPPER", "LOWER"],
                 area=1.0,
@@ -130,11 +130,11 @@ class TestCeilingFloorVents:
         with pytest.warns(
             UserWarning, match="area=0 means no flow will occur through this vent"
         ):
-            CeilingFloorVents(id="VENT1", comps_ids=["UPPER", "LOWER"], area=0.0)
+            CeilingFloorVent(id="VENT1", comps_ids=["UPPER", "LOWER"], area=0.0)
 
     def test_to_input_string_basic(self):
         """Test basic input string generation."""
-        vent = CeilingFloorVents(
+        vent = CeilingFloorVent(
             id="HOLE1", comps_ids=["RM_UP", "RM_LOW"], area=1.0, shape="ROUND"
         )
         result = vent.to_input_string()
@@ -149,7 +149,7 @@ class TestCeilingFloorVents:
 
     def test_to_input_string_with_offsets(self):
         """Test input string generation with custom offsets."""
-        vent = CeilingFloorVents(
+        vent = CeilingFloorVent(
             id="VENT1",
             comps_ids=["UPPER", "LOWER"],
             area=2.0,
@@ -165,7 +165,7 @@ class TestCeilingFloorVents:
 
     def test_to_input_string_with_time_fraction(self):
         """Test input string generation with time and fraction data."""
-        vent = CeilingFloorVents(
+        vent = CeilingFloorVent(
             id="VENT1",
             comps_ids=["UPPER", "LOWER"],
             area=1.0,
@@ -253,7 +253,7 @@ class TestCeilingFloorVents:
 
     def test_to_input_string_with_all_options(self):
         """Test input string generation with all possible options."""
-        vent = CeilingFloorVents(
+        vent = CeilingFloorVent(
             id="COMPLEX_VENT",
             comps_ids=["TOP_ROOM", "BOTTOM_ROOM"],
             area=3.14,
@@ -287,14 +287,14 @@ class TestCeilingFloorVents:
 
     def test_default_offsets(self):
         """Test that default offsets are set when None is provided."""
-        vent = CeilingFloorVents(
+        vent = CeilingFloorVent(
             id="VENT1", comps_ids=["UPPER", "LOWER"], area=1.0, offsets=None
         )
         assert vent.offsets == [0, 0]
 
     def test_compartment_ids_formatting(self):
         """Test that compartment IDs are properly quoted in output."""
-        vent = CeilingFloorVents(
+        vent = CeilingFloorVent(
             id="TEST_VENT", comps_ids=["COMP_1", "COMP_2"], area=1.0
         )
         result = vent.to_input_string()
@@ -302,7 +302,7 @@ class TestCeilingFloorVents:
 
     def test_repr(self):
         """Test __repr__ method."""
-        vent = CeilingFloorVents(
+        vent = CeilingFloorVent(
             id="STAIR_VENT",
             comps_ids=["UPPER_FLOOR", "LOWER_FLOOR"],
             area=2.0,
@@ -312,7 +312,7 @@ class TestCeilingFloorVents:
         )
 
         repr_str = repr(vent)
-        assert "CeilingFloorVents(" in repr_str
+        assert "CeilingFloorVent(" in repr_str
         assert "id='STAIR_VENT'" in repr_str
         assert "comps_ids=['UPPER_FLOOR', 'LOWER_FLOOR']" in repr_str
         assert "area=2.0" in repr_str
@@ -322,7 +322,7 @@ class TestCeilingFloorVents:
 
     def test_str(self):
         """Test __str__ method."""
-        vent = CeilingFloorVents(
+        vent = CeilingFloorVent(
             id="STAIR_OPENING",
             comps_ids=["UPPER_ROOM", "LOWER_ROOM"],
             area=3.5,
@@ -339,7 +339,7 @@ class TestCeilingFloorVents:
 
     def test_str_with_criterion(self):
         """Test __str__ method with opening criterion."""
-        vent = CeilingFloorVents(
+        vent = CeilingFloorVent(
             id="CONTROLLED_VENT",
             comps_ids=["UP", "DOWN"],
             area=1.0,
@@ -355,7 +355,7 @@ class TestCeilingFloorVents:
 
     def test_getitem(self) -> None:
         """Test __getitem__ method."""
-        vent = CeilingFloorVents(
+        vent = CeilingFloorVent(
             id="TEST_VENT",
             comps_ids=["ROOM1", "ROOM2"],
             area=2.5,
@@ -373,16 +373,16 @@ class TestCeilingFloorVents:
 
     def test_getitem_invalid_key(self) -> None:
         """Test __getitem__ method with invalid key."""
-        vent = CeilingFloorVents(id="VENT1", comps_ids=["UP", "DOWN"], area=1.0)
+        vent = CeilingFloorVent(id="VENT1", comps_ids=["UP", "DOWN"], area=1.0)
 
         with pytest.raises(
-            KeyError, match="Property 'invalid_key' not found in CeilingFloorVents"
+            KeyError, match="Property 'invalid_key' not found in CeilingFloorVent"
         ):
             vent["invalid_key"]
 
     def test_setitem(self) -> None:
         """Test __setitem__ method."""
-        vent = CeilingFloorVents(id="VENT1", comps_ids=["UP", "DOWN"], area=1.0)
+        vent = CeilingFloorVent(id="VENT1", comps_ids=["UP", "DOWN"], area=1.0)
 
         vent["id"] = "NEW_VENT"
         assert vent.id == "NEW_VENT"
@@ -398,14 +398,14 @@ class TestCeilingFloorVents:
 
     def test_setitem_invalid_key(self) -> None:
         """Test __setitem__ method with invalid key."""
-        vent = CeilingFloorVents(id="VENT1", comps_ids=["UP", "DOWN"], area=1.0)
+        vent = CeilingFloorVent(id="VENT1", comps_ids=["UP", "DOWN"], area=1.0)
 
         with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
             vent["invalid_key"] = "value"
 
     def test_repr_html(self) -> None:
         """Test _repr_html_ method."""
-        vent = CeilingFloorVents(
+        vent = CeilingFloorVent(
             id="STAIR_VENT",
             comps_ids=["UPPER_FLOOR", "LOWER_FLOOR"],
             area=2.0,
@@ -431,7 +431,7 @@ class TestCeilingFloorVents:
         assert "1.4" in html_str
 
 
-class TestCeilingFloorVentsSetItemValidation:
+class TestCeilingFloorVentSetItemValidation:
     """Test validation in __setitem__ to ensure data integrity."""
 
     @pytest.mark.parametrize(

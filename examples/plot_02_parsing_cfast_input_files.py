@@ -13,7 +13,7 @@ This example explains how to use PyCFAST's parser to read and analyze existing C
 
 import os
 
-from pycfast import MaterialProperties
+from pycfast import Material
 from pycfast.parsers import parse_cfast_file
 
 # %%
@@ -67,7 +67,7 @@ updated_model = model.update_simulation_params(
 )
 
 # Add a new material with :meth:`~pycfast.CFASTModel.add_material`
-new_material = MaterialProperties(
+new_material = Material(
     id="Steel",
     material="Steel Plate",
     conductivity=45.0,

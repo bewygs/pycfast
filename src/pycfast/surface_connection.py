@@ -1,7 +1,7 @@
 """
 Surface connections module for CFAST simulations.
 
-This module provides the SurfaceConnections class for defining heat transfer
+This module provides the SurfaceConnection class for defining heat transfer
 between compartments through solid boundaries (walls, ceilings, and floors)
 by means of conduction.
 """
@@ -15,7 +15,7 @@ from .utils.namelist import NamelistRecord
 from .utils.theme import build_card
 
 
-class SurfaceConnections:
+class SurfaceConnection:
     """
     Represents surface connections for heat transfer between compartments in CFAST.
 
@@ -95,12 +95,12 @@ class SurfaceConnections:
     Create a wall connection between two rooms:
 
     >>> # For 1mx1mx1m compartments sharing 1m² wall out of 4m² total wall area
-    >>> wall_conn_1to2 = SurfaceConnections.wall_connection(
+    >>> wall_conn_1to2 = SurfaceConnection.wall_connection(
     ...     comp_id="ROOM1",
     ...     comp_ids="ROOM2",
     ...     fraction=0.25  # 1m²/4m² = 0.25
     ... )
-    >>> wall_conn_2to1 = SurfaceConnections.wall_connection(
+    >>> wall_conn_2to1 = SurfaceConnection.wall_connection(
     ...     comp_id="ROOM2",
     ...     comp_ids="ROOM1",
     ...     fraction=0.25  # Bidirectional connection required
@@ -108,7 +108,7 @@ class SurfaceConnections:
 
     Create a floor/ceiling connection between stacked compartments:
 
-    >>> floor_conn = SurfaceConnections.ceiling_floor_connection(
+    >>> floor_conn = SurfaceConnection.ceiling_floor_connection(
     ...     comp_id="UPPER_ROOM",    # Top compartment
     ...     comp_ids="LOWER_ROOM"    # Bottom compartment
     ... )
@@ -118,8 +118,8 @@ class SurfaceConnections:
     >>> # Compartment 1: 1x1x1m, Compartment 2: 2x2x2m
     >>> # Connection 1→2: 1m²/4m² = 0.25
     >>> # Connection 2→1: 1m²/16m² = 0.125 (same 1m² area, different base)
-    >>> conn_1to2 = SurfaceConnections.wall_connection("COMP1", "COMP2", 0.25)
-    >>> conn_2to1 = SurfaceConnections.wall_connection("COMP2", "COMP1", 0.125)
+    >>> conn_1to2 = SurfaceConnection.wall_connection("COMP1", "COMP2", 0.25)
+    >>> conn_2to1 = SurfaceConnection.wall_connection("COMP2", "COMP1", 0.125)
     """
 
     def __init__(
@@ -147,30 +147,30 @@ class SurfaceConnections:
         valid_types = {"WALL", "FLOOR"}
         if self.conn_type not in valid_types:
             raise ValueError(
-                f"SurfaceConnections: conn_type='{self.conn_type}' must be one of {valid_types}."
+                f"SurfaceConnection: conn_type='{self.conn_type}' must be one of {valid_types}."
             )
 
         if self.conn_type == "WALL":
             if self.fraction is None:
                 raise ValueError(
-                    "SurfaceConnections: WALL connection requires a fraction value."
+                    "SurfaceConnection: WALL connection requires a fraction value."
                 )
             if not 0.0 <= self.fraction <= 1.0:
                 raise ValueError(
-                    f"SurfaceConnections: fraction={self.fraction} must be in [0, 1] for WALL connections."
+                    f"SurfaceConnection: fraction={self.fraction} must be in [0, 1] for WALL connections."
                 )
 
         if self.conn_type == "FLOOR" and self.fraction is not None:
             warnings.warn(
-                "SurfaceConnections: fraction should be None for FLOOR connections.",
+                "SurfaceConnection: fraction should be None for FLOOR connections.",
                 UserWarning,
                 stacklevel=2,
             )
 
     def __repr__(self) -> str:
-        """Return a detailed string representation of the SurfaceConnections."""
+        """Return a detailed string representation of the SurfaceConnection."""
         return (
-            f"SurfaceConnections("
+            f"SurfaceConnection("
             f"conn_type='{self.conn_type}', "
             f"comp_id='{self.comp_id}', "
             f"comp_ids='{self.comp_ids}', "
@@ -179,7 +179,7 @@ class SurfaceConnections:
         )
 
     def __str__(self) -> str:
-        """Return a user-friendly string representation of the SurfaceConnections."""
+        """Return a user-friendly string representation of the SurfaceConnection."""
         connection = f"{self.comp_id} -> {self.comp_ids}"
         return f"Surface Connection ({self.conn_type}): {connection}"
 
@@ -226,7 +226,7 @@ class SurfaceConnections:
     def __getitem__(self, key: str) -> Any:
         """Get property by name for dictionary-like access."""
         if not hasattr(self, key):
-            raise KeyError(f"Property '{key}' not found in SurfaceConnections.")
+            raise KeyError(f"Property '{key}' not found in SurfaceConnection.")
         return getattr(self, key)
 
     def __setitem__(self, key: str, value: Any) -> None:
@@ -244,7 +244,7 @@ class SurfaceConnections:
         """
         if not hasattr(self, key):
             raise KeyError(
-                f"Cannot set '{key}'. Property does not exist in SurfaceConnections."
+                f"Cannot set '{key}'. Property does not exist in SurfaceConnection."
             )
         old_value = getattr(self, key)
         setattr(self, key, value)
@@ -265,11 +265,11 @@ class SurfaceConnections:
 
         Examples
         --------
-        >>> wall_conn = SurfaceConnections.wall_connection("ROOM1", "ROOM2", 0.25)
+        >>> wall_conn = SurfaceConnection.wall_connection("ROOM1", "ROOM2", 0.25)
         >>> print(wall_conn.to_input_string())
         &CONN TYPE = 'WALL' COMP_ID = 'ROOM1' COMP_IDS = 'ROOM2' F = 0.25 /
 
-        >>> floor_conn = SurfaceConnections.ceiling_floor_connection("UPPER", "LOWER")
+        >>> floor_conn = SurfaceConnection.ceiling_floor_connection("UPPER", "LOWER")
         >>> print(floor_conn.to_input_string())
         &CONN TYPE = 'FLOOR' COMP_ID = 'UPPER' COMP_IDS = 'LOWER' /
         """
@@ -286,7 +286,7 @@ class SurfaceConnections:
     @classmethod
     def wall_connection(
         cls, comp_id: str, comp_ids: str, fraction: float
-    ) -> SurfaceConnections:
+    ) -> SurfaceConnection:
         """
         Create a surface connection for horizontal heat transfer through walls.
 
@@ -304,7 +304,7 @@ class SurfaceConnections:
 
         Returns
         -------
-        SurfaceConnections
+        SurfaceConnection
             Configured surface connection instance for wall heat transfer.
         """
         return cls(
@@ -312,9 +312,7 @@ class SurfaceConnections:
         )
 
     @classmethod
-    def ceiling_floor_connection(
-        cls, comp_id: str, comp_ids: str
-    ) -> SurfaceConnections:
+    def ceiling_floor_connection(cls, comp_id: str, comp_ids: str) -> SurfaceConnection:
         """
         Create a surface connection for vertical heat transfer through floors/ceilings.
 
@@ -335,7 +333,7 @@ class SurfaceConnections:
 
         Returns
         -------
-        SurfaceConnections
+        SurfaceConnection
             Configured surface connection instance for floor/ceiling heat transfer.
         """
         return cls(conn_type="FLOOR", comp_id=comp_id, comp_ids=comp_ids, fraction=None)

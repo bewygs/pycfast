@@ -3,16 +3,16 @@ from __future__ import annotations
 import pytest
 
 from pycfast import (
-    CeilingFloorVents,
+    CeilingFloorVent,
     CFASTModel,
-    Compartments,
-    Devices,
-    Fires,
-    MaterialProperties,
-    MechanicalVents,
+    Compartment,
+    Device,
+    Fire,
+    Material,
+    MechanicalVent,
     SimulationEnvironment,
-    SurfaceConnections,
-    WallVents,
+    SurfaceConnection,
+    WallVent,
 )
 
 pytestmark = [pytest.mark.slow, pytest.mark.local]
@@ -35,7 +35,7 @@ def test_run_returns_results(tmp_path):
         max_time_step=10,
     )
     material_properties = [
-        MaterialProperties(
+        Material(
             id="Gypboard",
             material="Gypsum Board",
             conductivity=0.16,
@@ -46,7 +46,7 @@ def test_run_returns_results(tmp_path):
         )
     ]
     compartments = [
-        Compartments(
+        Compartment(
             id="Comp 1",
             depth=10.0,
             height=10.0,
@@ -61,7 +61,7 @@ def test_run_returns_results(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="Comp 2",
             depth=10.0,
             height=10.0,
@@ -78,7 +78,7 @@ def test_run_returns_results(tmp_path):
         ),
     ]
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Comp 1", "OUTSIDE"],
             bottom=0.02,
@@ -89,7 +89,7 @@ def test_run_returns_results(tmp_path):
         )
     ]
     ceiling_floor_vents = [
-        CeilingFloorVents(
+        CeilingFloorVent(
             id="CeilFloorVent_1",
             comps_ids=["Comp 2", "Comp 1"],
             area=0.01,
@@ -100,7 +100,7 @@ def test_run_returns_results(tmp_path):
         )
     ]
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="mech",
             comps_ids=["OUTSIDE", "Comp 1"],
             area=[1.2, 10],
@@ -114,7 +114,7 @@ def test_run_returns_results(tmp_path):
         )
     ]
     fires = [
-        Fires(
+        Fire(
             id="Propane",
             comp_id="Comp 1",
             fire_id="Propane_Fire",
@@ -133,7 +133,7 @@ def test_run_returns_results(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Target_1",
             comp_id="Comp 1",
             location=[0.5, 0.5, 0],
@@ -147,7 +147,7 @@ def test_run_returns_results(tmp_path):
     ]
 
     surface_connections = [
-        SurfaceConnections.ceiling_floor_connection(
+        SurfaceConnection.ceiling_floor_connection(
             comp_id="Comp 1",
             comp_ids="Comp 2",
         )

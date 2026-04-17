@@ -1,7 +1,7 @@
 """
-Compartments definition module for CFAST simulations.
+Compartment definition module for CFAST simulations.
 
-This module provides the Compartments class for defining the size, position,
+This module provides the Compartment class for defining the size, position,
 materials of construction, and flow characteristics for the compartments in
 the CFAST simulation.
 """
@@ -10,15 +10,16 @@ from __future__ import annotations
 
 from typing import Any
 
+from .component import CFASTComponent
 from .utils.namelist import NamelistRecord
 from .utils.theme import build_card
 
 
-class Compartments:
+class Compartment(CFASTComponent):
     """
     Defines the size, position, materials of construction, and flow characteristics for compartments.
 
-    The Compartments page defines the size, position, materials of construction, and flow
+    The Compartment page defines the size, position, materials of construction, and flow
     characteristics for the compartments in the simulation. In order to model a fire scenario,
     the size and position of each compartment relevant to the scenario must be specified. For a
     compartment, the width, depth, compartment height and height of the floor of the compartment
@@ -114,7 +115,7 @@ class Compartments:
     --------
     Create a compartment following CFAST conventions:
 
-    >>> room = Compartments(
+    >>> room = Compartment(
     ...     id="BEDROOM",
     ...     width=3.5, depth=4.0, height=2.4,  # Size specification
     ...     ceiling_mat_id="GYPSUM", ceiling_thickness=0.016,
@@ -214,9 +215,9 @@ class Compartments:
                 )
 
     def __repr__(self) -> str:
-        """Return a detailed string representation of the Compartments."""
+        """Return a detailed string representation of the Compartment."""
         return (
-            f"Compartments("
+            f"Compartment("
             f"id='{self.id}', "
             f"width={self.width}, depth={self.depth}, height={self.height}, "
             f"ceiling_mat_id='{self.ceiling_mat_id}', wall_mat_id='{self.wall_mat_id}', "
@@ -226,7 +227,7 @@ class Compartments:
         )
 
     def __str__(self) -> str:
-        """Return a user-friendly string representation of the Compartments."""
+        """Return a user-friendly string representation of the Compartment."""
         volume = None
         if (
             self.width is not None
@@ -383,7 +384,7 @@ class Compartments:
 
         Examples
         --------
-        >>> comp = Compartments("ROOM1", width=3.0, depth=4.0, height=2.4,
+        >>> comp = Compartment("ROOM1", width=3.0, depth=4.0, height=2.4,
         ...                    ceiling_mat_id="GYPSUM", ceiling_thickness=0.016,
         ...                    wall_mat_id="GYPSUM", wall_thickness=0.016,
         ...                    floor_mat_id="CONCRETE", floor_thickness=0.10,

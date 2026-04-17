@@ -7,13 +7,13 @@ import pytest
 
 from pycfast import (
     CFASTModel,
-    Compartments,
-    Devices,
-    Fires,
-    MaterialProperties,
-    MechanicalVents,
+    Compartment,
+    Device,
+    Fire,
+    Material,
+    MechanicalVent,
     SimulationEnvironment,
-    WallVents,
+    WallVent,
 )
 
 from .verification import (
@@ -46,7 +46,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="SwMCCConcrete",
             material="Switchgear MCC Concrete (user''s guide)",
             conductivity=1.6,
@@ -55,7 +55,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
             thickness=0.6,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="SwMCCSteel",
             material="Switchgear MCC Steel (user''s guide)",
             conductivity=54,
@@ -64,7 +64,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
             thickness=0.0015,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="THIEF",
             material="Thief Cable (per NUREG CR 6931)",
             conductivity=0.2,
@@ -76,7 +76,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Low Ceiling Area",
             depth=8.5,
             height=3,
@@ -91,7 +91,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
             origin_y=0,
             origin_z=0,
         ),
-        Compartments(
+        Compartment(
             id="High Ceiling Area",
             depth=8.5,
             height=9.1,
@@ -109,7 +109,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_1",
             comps_ids=["Low Ceiling Area", "High Ceiling Area"],
             bottom=0,
@@ -118,7 +118,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
             face="RIGHT",
             offset=0,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_2",
             comps_ids=["High Ceiling Area", "OUTSIDE"],
             bottom=0,
@@ -127,7 +127,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
             face="FRONT",
             offset=5.97,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_3",
             comps_ids=["Low Ceiling Area", "OUTSIDE"],
             bottom=0,
@@ -139,7 +139,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["OUTSIDE", "Low Ceiling Area"],
             area=[0.2, 0.2],
@@ -150,7 +150,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_2",
             comps_ids=["High Ceiling Area", "OUTSIDE"],
             area=[0.2, 0.2],
@@ -164,7 +164,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="MCC 702 kW",
             comp_id="Low Ceiling Area",
             fire_id="MCC 702 kW_Fire",
@@ -196,7 +196,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="Low Ceiling Area",
             location=[2.8, 4.15, 2.6],
@@ -206,7 +206,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
             temperature_depth=0.00405,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2",
             comp_id="Low Ceiling Area",
             location=[3, 5.5, 2.6],
@@ -216,7 +216,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
             temperature_depth=0.00405,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 3",
             comp_id="High Ceiling Area",
             location=[4.25, 4.25, 9],
@@ -226,7 +226,7 @@ def test_mcc_in_switchgear_simulation(tmp_path):
             temperature_depth=0.00405,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 4",
             comp_id="Low Ceiling Area",
             location=[3.5, 5, 2.4],
@@ -280,7 +280,7 @@ def test_mcc_in_switchgear_one_compartment_simulation(tmp_path):
     )
 
     material_properties = [
-        MaterialProperties(
+        Material(
             id="SwMCCConcrete",
             material="Switchgear MCC Concrete (user''s guide)",
             conductivity=1.6,
@@ -289,7 +289,7 @@ def test_mcc_in_switchgear_one_compartment_simulation(tmp_path):
             thickness=0.6,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="SwMCCSteel",
             material="Switchgear MCC Steel (user''s guide)",
             conductivity=54,
@@ -298,7 +298,7 @@ def test_mcc_in_switchgear_one_compartment_simulation(tmp_path):
             thickness=0.0015,
             emissivity=0.9,
         ),
-        MaterialProperties(
+        Material(
             id="THIEF",
             material="Thief Cable (per NUREG CR 6931)",
             conductivity=0.2,
@@ -310,7 +310,7 @@ def test_mcc_in_switchgear_one_compartment_simulation(tmp_path):
     ]
 
     compartments = [
-        Compartments(
+        Compartment(
             id="Low Ceiling Area",
             depth=8.5,
             height=9.1,
@@ -330,7 +330,7 @@ def test_mcc_in_switchgear_one_compartment_simulation(tmp_path):
     ]
 
     wall_vents = [
-        WallVents(
+        WallVent(
             id="WallVent_2",
             comps_ids=["Low Ceiling Area", "OUTSIDE"],
             bottom=0,
@@ -339,7 +339,7 @@ def test_mcc_in_switchgear_one_compartment_simulation(tmp_path):
             face="FRONT",
             offset=8.05,
         ),
-        WallVents(
+        WallVent(
             id="WallVent_3",
             comps_ids=["Low Ceiling Area", "OUTSIDE"],
             bottom=0,
@@ -351,7 +351,7 @@ def test_mcc_in_switchgear_one_compartment_simulation(tmp_path):
     ]
 
     mechanical_vents = [
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_1",
             comps_ids=["OUTSIDE", "Low Ceiling Area"],
             area=[0.2, 0.2],
@@ -362,7 +362,7 @@ def test_mcc_in_switchgear_one_compartment_simulation(tmp_path):
             filter_time=0,
             filter_efficiency=0,
         ),
-        MechanicalVents(
+        MechanicalVent(
             id="MechanicalVent_2",
             comps_ids=["Low Ceiling Area", "OUTSIDE"],
             area=[0.2, 0.2],
@@ -376,7 +376,7 @@ def test_mcc_in_switchgear_one_compartment_simulation(tmp_path):
     ]
 
     fires = [
-        Fires(
+        Fire(
             id="MCC 702 kW",
             comp_id="Low Ceiling Area",
             fire_id="MCC 702 kW_Fire",
@@ -408,7 +408,7 @@ def test_mcc_in_switchgear_one_compartment_simulation(tmp_path):
     ]
 
     devices = [
-        Devices.create_target(
+        Device.create_target(
             id="Targ 1",
             comp_id="Low Ceiling Area",
             location=[2.8, 4.15, 2.6],
@@ -418,7 +418,7 @@ def test_mcc_in_switchgear_one_compartment_simulation(tmp_path):
             temperature_depth=0.00405,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 2",
             comp_id="Low Ceiling Area",
             location=[3, 5.5, 2.6],
@@ -428,7 +428,7 @@ def test_mcc_in_switchgear_one_compartment_simulation(tmp_path):
             temperature_depth=0.00405,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 3",
             comp_id="Low Ceiling Area",
             location=[8.6, 4.25, 9],
@@ -438,7 +438,7 @@ def test_mcc_in_switchgear_one_compartment_simulation(tmp_path):
             temperature_depth=0.00405,
             depth_units="M",
         ),
-        Devices.create_target(
+        Device.create_target(
             id="Targ 4",
             comp_id="Low Ceiling Area",
             location=[3.5, 5, 2.4],
