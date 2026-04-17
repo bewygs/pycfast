@@ -997,7 +997,7 @@ class TestCFASTModel:
 
         # Test updating surface connection parameters (only supports index)
         updated_model = model.update_surface_connection_params(
-            connection_index=0, fraction=0.8
+            connection=0, fraction=0.8
         )
 
         # Check that original model is unchanged
@@ -1028,15 +1028,13 @@ class TestCFASTModel:
         assert model.compartments[0].width != 5.0
 
     def test_backward_compatibility(self) -> None:
-        """Test that deprecated *_index parameters still work."""
+        """Test that int identifier works as index."""
         model = self.create_full_model()
 
-        # Test fire_index parameter
-        updated_model = model.update_fire_params(fire_index=0, heat_of_combustion=25000)
+        updated_model = model.update_fire_params(fire=0, heat_of_combustion=25000)
         assert updated_model.fires[0].heat_of_combustion == 25000
 
-        # Test compartment_index parameter
-        updated_model2 = model.update_compartment_params(compartment_index=0, width=5.0)
+        updated_model2 = model.update_compartment_params(compartment=0, width=5.0)
         assert updated_model2.compartments[0].width == 5.0
 
     def test_default_selection(self) -> None:
