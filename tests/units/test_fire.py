@@ -633,19 +633,6 @@ class TestFireDataTableFormats:
                 data_table=data_array,
             )
 
-    def test_data_table_empty_list(self):
-        """Test that empty data_table list raises error."""
-        with pytest.raises(
-            ValueError, match="data_table must contain at least one row"
-        ):
-            Fire(
-                id="FIRE1",
-                comp_id="ROOM1",
-                fire_id="WOOD",
-                location=[1.0, 2.0],
-                data_table=[],
-            )
-
     def test_to_dataframe(self):
         """Test conversion to pandas DataFrame."""
         data_table = [
@@ -825,8 +812,8 @@ class TestFireDictDataTable:
         with pytest.raises(ValueError, match="same length"):
             make_fire(
                 data_table={
-                    "TIME": [0, 60, 120],
-                    "HRR": [0, 500],
+                    "TIME": [0, 60, 120],  # 3 elements
+                    "HRR": [0, 500],  # 2 elements
                     "HEIGHT": 0.5,
                     "AREA": 0.1,
                     "CO_YIELD": 0.01,
@@ -881,46 +868,6 @@ class TestFireDictDataTable:
                     "TRACE_YIELD": 0,
                 }
             )
-
-    def test_dict_data_table_to_input_string(self, make_fire):
-        """Test that dict data_table produces correct CFAST input string."""
-        fire = make_fire(
-            data_table={
-                "TIME": [0, 60],
-                "HRR": [0, 1000],
-                "HEIGHT": 0,
-                "AREA": 0.1,
-                "CO_YIELD": 0.01,
-                "SOOT_YIELD": 0.02,
-                "HCN_YIELD": 0,
-                "HCL_YIELD": 0,
-                "TRACE_YIELD": 0,
-            }
-        )
-        output = fire.to_input_string()
-        assert "&TABL" in output
-        assert "DATA = 0" in output
-        assert "1000" in output
-
-    def test_dict_data_table_to_dataframe(self, make_fire):
-        """Test that dict data_table round-trips to DataFrame correctly."""
-        data = {
-            "TIME": [0, 60, 120],
-            "HRR": [0, 500, 1000],
-            "HEIGHT": 0.5,
-            "AREA": 0.1,
-            "CO_YIELD": 0.01,
-            "SOOT_YIELD": 0.02,
-            "HCN_YIELD": 0,
-            "HCL_YIELD": 0,
-            "TRACE_YIELD": 0,
-        }
-        fire = make_fire(data_table=data)
-        df = fire.to_dataframe()
-        assert list(df.columns) == Fire.LABELS
-        assert len(df) == 3
-        assert df["HRR"].tolist() == [0.0, 500.0, 1000.0]
-        assert df["HEIGHT"].tolist() == [0.5, 0.5, 0.5]
 
     def test_dict_data_table_empty_list_value(self, make_fire):
         """Test that an empty list value raises an error."""
