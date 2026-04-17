@@ -65,7 +65,7 @@ Each component implements:
 - `__getitem__` / `__setitem__` → dict-like parameter access
 - `__repr_html__()` → Jupyter card rendering
 
-### CFASTModel (`model.py`, ~1976 lines)
+### CFASTModel (`model.py`)
 
 The main orchestrator. Key responsibilities:
 - Holds lists of all component instances

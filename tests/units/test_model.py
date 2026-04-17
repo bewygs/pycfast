@@ -825,7 +825,7 @@ class TestCFASTModel:
         model = self.create_minimal_model()  # No fires
 
         # Test with no fires
-        with pytest.raises(ValueError, match="Model has no fires to update"):
+        with pytest.raises(ValueError, match="Model has no Fire to update"):
             model.update_fire_params(heat_of_combustion=20000)
 
         # Test with invalid fire index
@@ -834,13 +834,11 @@ class TestCFASTModel:
             model_with_fire.update_fire_params(fire=5, heat_of_combustion=20000)
 
         # Test with invalid fire ID
-        with pytest.raises(ValueError, match="No fire found with id/fire_id 'INVALID'"):
+        with pytest.raises(ValueError, match="No Fire found with id/fire_id 'INVALID'"):
             model_with_fire.update_fire_params(fire="INVALID", heat_of_combustion=20000)
 
         # Test with invalid parameter
-        with pytest.raises(
-            ValueError, match="Fire object has no parameter 'invalid_param'"
-        ):
+        with pytest.raises(ValueError, match="Fire has no parameter 'invalid_param'"):
             model_with_fire.update_fire_params(invalid_param=123)
 
         # Test with invalid data_table type
@@ -908,7 +906,7 @@ class TestCFASTModel:
             model.update_compartment_params(compartment=5, width=5.0)
 
         # Test with invalid compartment ID
-        with pytest.raises(ValueError, match="No compartment found with id 'INVALID'"):
+        with pytest.raises(ValueError, match="No Compartment found with id 'INVALID'"):
             model.update_compartment_params(compartment="INVALID", width=5.0)
 
         # Test with invalid parameter
@@ -936,7 +934,7 @@ class TestCFASTModel:
         model = self.create_minimal_model()  # No materials
 
         # Test with no materials
-        with pytest.raises(ValueError, match="Model has no materials to update"):
+        with pytest.raises(ValueError, match="Model has no Material to update"):
             model.update_material_params(conductivity=1.5)
 
     def test_update_wall_vent_params(self) -> None:
@@ -1347,22 +1345,22 @@ class TestCFASTModel:
         model = self.create_minimal_model()
 
         # Test updating non-existent components
-        with pytest.raises(ValueError, match="Model has no wall vents to update"):
+        with pytest.raises(ValueError, match="Model has no Wall vent to update"):
             model.update_wall_vent_params(width=1.0)
 
         with pytest.raises(
-            ValueError, match="Model has no ceiling/floor vents to update"
+            ValueError, match="Model has no Ceiling/floor vent to update"
         ):
             model.update_ceiling_floor_vent_params(area=1.0)
 
-        with pytest.raises(ValueError, match="Model has no mechanical vents to update"):
+        with pytest.raises(ValueError, match="Model has no Mechanical vent to update"):
             model.update_mechanical_vent_params(flow=1.0)
 
-        with pytest.raises(ValueError, match="Model has no devices to update"):
+        with pytest.raises(ValueError, match="Model has no Device to update"):
             model.update_device_params(setpoint=70.0)
 
         with pytest.raises(
-            ValueError, match="Model has no surface connections to update"
+            ValueError, match="Model has no Surface connection to update"
         ):
             model.update_surface_connection_params(fraction=0.5)
 
@@ -1406,105 +1404,73 @@ class TestCFASTModel:
         ):
             model.update_surface_connection_params(invalid_attribute=123)
 
-    def test_resolve_identifier_methods(self) -> None:
-        """Test resolver methods for identifiers."""
+    def test_identifier_resolution(self) -> None:
+        """Test identifier resolution (int index and string id) via public methods."""
         model = self.create_full_model()
 
-        # Test fire identifier resolution
-        assert model._resolve_fire_identifier(0) == 0
-        assert model._resolve_fire_identifier("FIRE1") == 0
+        # Index and string id both resolve to the same component (verified via id)
+        assert model.update_fire_params(fire=0).fires[0].id == model.fires[0].id
+        assert model.update_fire_params(fire="FIRE1").fires[0].id == model.fires[0].id
+        assert (
+            model.update_compartment_params(compartment="ROOM1").compartments[0].id
+            == model.compartments[0].id
+        )
+        assert (
+            model.update_material_params(material="GYPSUM").material_properties[0].id
+            == model.material_properties[0].id
+        )
+        assert (
+            model.update_wall_vent_params(vent="DOOR1").wall_vents[0].id
+            == model.wall_vents[0].id
+        )
+        assert (
+            model.update_ceiling_floor_vent_params(vent="CEILING1")
+            .ceiling_floor_vents[0]
+            .id
+            == model.ceiling_floor_vents[0].id
+        )
+        assert (
+            model.update_mechanical_vent_params(vent="FAN1").mechanical_vents[0].id
+            == model.mechanical_vents[0].id
+        )
+        assert (
+            model.update_device_params(device="TEMP1").devices[0].id
+            == model.devices[0].id
+        )
 
-        # Test compartment identifier resolution
-        assert model._resolve_compartment_identifier(0) == 0
-        assert model._resolve_compartment_identifier("ROOM1") == 0
-
-        # Test material identifier resolution
-        assert model._resolve_material_identifier(0) == 0
-        assert model._resolve_material_identifier("GYPSUM") == 0
-
-        # Test wall vent identifier resolution
-        assert model._resolve_wall_vent_identifier(0) == 0
-        assert model._resolve_wall_vent_identifier("DOOR1") == 0
-
-        # Test ceiling/floor vent identifier resolution
-        assert model._resolve_ceiling_floor_vent_identifier(0) == 0
-        assert model._resolve_ceiling_floor_vent_identifier("CEILING1") == 0
-
-        # Test mechanical vent identifier resolution
-        assert model._resolve_mechanical_vent_identifier(0) == 0
-        assert model._resolve_mechanical_vent_identifier("FAN1") == 0
-
-        # Test device identifier resolution
-        assert model._resolve_device_identifier(0) == 0
-        assert model._resolve_device_identifier("TEMP1") == 0
-
-    def test_resolve_identifier_errors(self) -> None:
-        """Test resolver methods error handling."""
-        model = self.create_full_model()
-
-        # Test invalid identifiers
+        # Unknown string id raises ValueError
         with pytest.raises(
-            ValueError, match="No fire found with id/fire_id 'NONEXISTENT'"
+            ValueError, match="No Fire found with id/fire_id 'NONEXISTENT'"
         ):
-            model._resolve_fire_identifier("NONEXISTENT")
-
+            model.update_fire_params(fire="NONEXISTENT", heat_of_combustion=1)
         with pytest.raises(
-            ValueError, match="No compartment found with id 'NONEXISTENT'"
+            ValueError, match="No Compartment found with id 'NONEXISTENT'"
         ):
-            model._resolve_compartment_identifier("NONEXISTENT")
-
-        with pytest.raises(ValueError, match="No material found with id"):
-            model._resolve_material_identifier("NONEXISTENT")
-
+            model.update_compartment_params(compartment="NONEXISTENT", width=1.0)
+        with pytest.raises(ValueError, match="No Material found with id"):
+            model.update_material_params(material="NONEXISTENT", conductivity=1.0)
         with pytest.raises(
-            ValueError, match="No wall vent found with id 'NONEXISTENT'"
+            ValueError, match="No Wall vent found with id 'NONEXISTENT'"
         ):
-            model._resolve_wall_vent_identifier("NONEXISTENT")
-
+            model.update_wall_vent_params(vent="NONEXISTENT", width=1.0)
         with pytest.raises(
-            ValueError, match="No ceiling/floor vent found with id 'NONEXISTENT'"
+            ValueError, match="No Ceiling/floor vent found with id 'NONEXISTENT'"
         ):
-            model._resolve_ceiling_floor_vent_identifier("NONEXISTENT")
-
+            model.update_ceiling_floor_vent_params(vent="NONEXISTENT", area=1.0)
         with pytest.raises(
-            ValueError, match="No mechanical vent found with id 'NONEXISTENT'"
+            ValueError, match="No Mechanical vent found with id 'NONEXISTENT'"
         ):
-            model._resolve_mechanical_vent_identifier("NONEXISTENT")
+            model.update_mechanical_vent_params(vent="NONEXISTENT", flow=1.0)
+        with pytest.raises(ValueError, match="No Device found with id 'NONEXISTENT'"):
+            model.update_device_params(device="NONEXISTENT", setpoint=70.0)
 
-        with pytest.raises(ValueError, match="No device found with id 'NONEXISTENT'"):
-            model._resolve_device_identifier("NONEXISTENT")
-
-    def test_resolve_identifier_type_errors(self) -> None:
-        """Test resolver methods with invalid types."""
-        model = self.create_full_model()
-
-        # Test invalid types
+        # Wrong type raises TypeError
         with pytest.raises(TypeError, match="Fire identifier must be int or str"):
-            model._resolve_fire_identifier(3.14)  # type: ignore
-
+            model.update_fire_params(fire=3.14, heat_of_combustion=1)  # type: ignore
         with pytest.raises(
             TypeError, match="Compartment identifier must be int or str"
         ):
-            model._resolve_compartment_identifier(3.14)  # type: ignore
-
-        with pytest.raises(TypeError, match="Material identifier must be int or str"):
-            model._resolve_material_identifier(3.14)  # type: ignore
-
-        with pytest.raises(TypeError, match="Wall vent identifier must be int or str"):
-            model._resolve_wall_vent_identifier(3.14)  # type: ignore
-
-        with pytest.raises(
-            TypeError, match="Ceiling/floor vent identifier must be int or str"
-        ):
-            model._resolve_ceiling_floor_vent_identifier(3.14)  # type: ignore
-
-        with pytest.raises(
-            TypeError, match="Mechanical vent identifier must be int or str"
-        ):
-            model._resolve_mechanical_vent_identifier(3.14)  # type: ignore
-
-        with pytest.raises(TypeError, match="Device identifier must be int or str"):
-            model._resolve_device_identifier(3.14)  # type: ignore
+            model.update_compartment_params(compartment=3.14, width=1.0)  # type: ignore
 
     def test_save_method_with_custom_filename(self) -> None:
         """Test save method with custom filename."""

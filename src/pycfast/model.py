@@ -33,6 +33,29 @@ from .wall_vent import WallVent
 
 logger = logging.getLogger("pycfast")
 
+# Table used for mapping component types to their identifiers, useful for intenal method
+# that update or add component to the model.
+#
+# Format: component_key: (model_attribute, display_label, identifier_fields)
+#
+# component_key is used internally to acces the table in private methods,
+# model_attribute is the corresponding attribute of the CFASTModel class,
+# display_label is used for error messages and logging
+# identifier_fields are the fields used to identify components and update it
+#
+# fmt: off
+_COMPONENT_SPECS = {
+    "fire":         ("fires",               "Fire",               ("id", "fire_id")),
+    "compartment":  ("compartments",        "Compartment",        ("id",)),
+    "material":     ("material_properties", "Material",           ("id",)),
+    "wall_vent":    ("wall_vents",          "Wall vent",          ("id",)),
+    "cf_vent":      ("ceiling_floor_vents", "Ceiling/floor vent", ("id",)),
+    "mech_vent":    ("mechanical_vents",    "Mechanical vent",    ("id",)),
+    "device":       ("devices",             "Device",             ("id",)),
+    "surface_conn": ("surface_connections", "Surface connection", ()),
+}
+# fmt: on
+
 
 def _resolve_cfast_exe(cfast_exe: str | None = None) -> str:
     """Resolve the CFAST executable path with a fallback chain.
@@ -562,47 +585,26 @@ class CFASTModel:
         ...     heat_of_combustion=18000
         ... )
         """
-        new_model = copy.deepcopy(self)
-
-        if not new_model.fires:
-            raise ValueError("Model has no fires to update")
-
-        if fire is not None:
-            fire_idx = self._resolve_fire_identifier(fire)
-        elif fire_index is not None:
-            fire_idx = fire_index
-        else:
-            fire_idx = 0
-
-        if fire_idx >= len(new_model.fires):
-            raise IndexError(
-                f"Fire index {fire_idx} is out of range. "
-                f"Model has {len(new_model.fires)} fires."
-            )
-
-        target_fire = new_model.fires[fire_idx]
+        identifier = fire if fire is not None else fire_index
+        new_model = self._update_component("fire", identifier, **kwargs)
 
         if data_table is not None:
             if isinstance(data_table, pd.DataFrame):
-                target_fire.data_table = data_table.values.tolist()
+                coerced = data_table.values.tolist()
             elif isinstance(data_table, np.ndarray):
-                target_fire.data_table = data_table.tolist()
+                coerced = data_table.tolist()
             elif isinstance(data_table, list):
-                target_fire.data_table = data_table
+                coerced = data_table
             else:
                 raise TypeError(
                     "data_table must be a pandas DataFrame, numpy ndarray, or list of lists"
                 )
-
-        for param, value in kwargs.items():
-            if hasattr(target_fire, param):
-                setattr(target_fire, param, value)
-            else:
-                available_params = self._get_available_attributes(target_fire)
-                raise ValueError(
-                    f"Fire object has no parameter '{param}'. "
-                    f"Available parameters: {', '.join(available_params)}"
-                )
+            idx = (
+                self._resolve_identifier("fire", identifier)
+                if identifier is not None
+                else 0
+            )
+            new_model.fires[idx].data_table = coerced
 
         return new_model
 
@@ -630,25 +632,12 @@ class CFASTModel:
         ... )
         """
         new_model = copy.deepcopy(self)
-
-        if (
-            not hasattr(new_model, "simulation_environment")
-            or new_model.simulation_environment is None
-        ):
+        if getattr(new_model, "simulation_environment", None) is None:
             raise AttributeError("Model has no simulation_environment object")
 
-        for param, value in kwargs.items():
-            if hasattr(new_model.simulation_environment, param):
-                setattr(new_model.simulation_environment, param, value)
-            else:
-                available_params = self._get_available_attributes(
-                    new_model.simulation_environment
-                )
-                raise ValueError(
-                    f"Simulation environment has no parameter '{param}'. "
-                    f"Available parameters: {', '.join(available_params)}"
-                )
-
+        self._apply_kwargs(
+            new_model.simulation_environment, "Simulation environment", kwargs
+        )
         return new_model
 
     def update_compartment_params(
@@ -691,37 +680,8 @@ class CFASTModel:
         ...     width=6.0
         ... )
         """
-        new_model = copy.deepcopy(self)
-
-        if not new_model.compartments:
-            raise ValueError("Model has no compartments to update")
-
-        if compartment is not None:
-            comp_idx = self._resolve_compartment_identifier(compartment)
-        elif compartment_index is not None:
-            comp_idx = compartment_index
-        else:
-            comp_idx = 0
-
-        if comp_idx >= len(new_model.compartments):
-            raise IndexError(
-                f"Compartment index {comp_idx} is out of range. "
-                f"Model has {len(new_model.compartments)} compartments."
-            )
-
-        target_compartment = new_model.compartments[comp_idx]
-
-        for param, value in kwargs.items():
-            if hasattr(target_compartment, param):
-                setattr(target_compartment, param, value)
-            else:
-                available_params = self._get_available_attributes(target_compartment)
-                raise ValueError(
-                    f"Compartment has no parameter '{param}'. "
-                    f"Available parameters: {', '.join(available_params)}"
-                )
-
-        return new_model
+        identifier = compartment if compartment is not None else compartment_index
+        return self._update_component("compartment", identifier, **kwargs)
 
     def update_material_params(
         self,
@@ -758,37 +718,8 @@ class CFASTModel:
         ...     density=2300
         ... )
         """
-        new_model = copy.deepcopy(self)
-
-        if not new_model.material_properties:
-            raise ValueError("Model has no materials to update")
-
-        if material is not None:
-            mat_idx = self._resolve_material_identifier(material)
-        elif material_index is not None:
-            mat_idx = material_index
-        else:
-            mat_idx = 0
-
-        if mat_idx >= len(new_model.material_properties):
-            raise IndexError(
-                f"Material index {mat_idx} is out of range. "
-                f"Model has {len(new_model.material_properties)} materials."
-            )
-
-        target_material = new_model.material_properties[mat_idx]
-
-        for param, value in kwargs.items():
-            if hasattr(target_material, param):
-                setattr(target_material, param, value)
-            else:
-                available_params = self._get_available_attributes(target_material)
-                raise ValueError(
-                    f"Material has no parameter '{param}'. "
-                    f"Available parameters: {', '.join(available_params)}"
-                )
-
-        return new_model
+        identifier = material if material is not None else material_index
+        return self._update_component("material", identifier, **kwargs)
 
     def update_wall_vent_params(
         self,
@@ -825,37 +756,8 @@ class CFASTModel:
         ...     height=2.0
         ... )
         """
-        new_model = copy.deepcopy(self)
-
-        if not new_model.wall_vents:
-            raise ValueError("Model has no wall vents to update")
-
-        if vent is not None:
-            vent_idx = self._resolve_wall_vent_identifier(vent)
-        elif vent_index is not None:
-            vent_idx = vent_index
-        else:
-            vent_idx = 0
-
-        if vent_idx >= len(new_model.wall_vents):
-            raise IndexError(
-                f"Wall vent index {vent_idx} is out of range. "
-                f"Model has {len(new_model.wall_vents)} wall vents."
-            )
-
-        target_vent = new_model.wall_vents[vent_idx]
-
-        for param, value in kwargs.items():
-            if hasattr(target_vent, param):
-                setattr(target_vent, param, value)
-            else:
-                available_params = self._get_available_attributes(target_vent)
-                raise ValueError(
-                    f"Wall vent has no parameter '{param}'. "
-                    f"Available parameters: {', '.join(available_params)}"
-                )
-
-        return new_model
+        identifier = vent if vent is not None else vent_index
+        return self._update_component("wall_vent", identifier, **kwargs)
 
     def update_ceiling_floor_vent_params(
         self,
@@ -891,37 +793,8 @@ class CFASTModel:
         ...     area=0.5
         ... )
         """
-        new_model = copy.deepcopy(self)
-
-        if not new_model.ceiling_floor_vents:
-            raise ValueError("Model has no ceiling/floor vents to update")
-
-        if vent is not None:
-            vent_idx = self._resolve_ceiling_floor_vent_identifier(vent)
-        elif vent_index is not None:
-            vent_idx = vent_index
-        else:
-            vent_idx = 0
-
-        if vent_idx >= len(new_model.ceiling_floor_vents):
-            raise IndexError(
-                f"Ceiling/floor vent index {vent_idx} is out of range. "
-                f"Model has {len(new_model.ceiling_floor_vents)} ceiling/floor vents."
-            )
-
-        target_vent = new_model.ceiling_floor_vents[vent_idx]
-
-        for param, value in kwargs.items():
-            if hasattr(target_vent, param):
-                setattr(target_vent, param, value)
-            else:
-                available_params = self._get_available_attributes(target_vent)
-                raise ValueError(
-                    f"Ceiling/floor vent has no parameter '{param}'. "
-                    f"Available parameters: {', '.join(available_params)}"
-                )
-
-        return new_model
+        identifier = vent if vent is not None else vent_index
+        return self._update_component("cf_vent", identifier, **kwargs)
 
     def update_mechanical_vent_params(
         self,
@@ -957,37 +830,8 @@ class CFASTModel:
         ...     flow_rate=0.5
         ... )
         """
-        new_model = copy.deepcopy(self)
-
-        if not new_model.mechanical_vents:
-            raise ValueError("Model has no mechanical vents to update")
-
-        if vent is not None:
-            vent_idx = self._resolve_mechanical_vent_identifier(vent)
-        elif vent_index is not None:
-            vent_idx = vent_index
-        else:
-            vent_idx = 0
-
-        if vent_idx >= len(new_model.mechanical_vents):
-            raise IndexError(
-                f"Mechanical vent index {vent_idx} is out of range. "
-                f"Model has {len(new_model.mechanical_vents)} mechanical vents."
-            )
-
-        target_vent = new_model.mechanical_vents[vent_idx]
-
-        for param, value in kwargs.items():
-            if hasattr(target_vent, param):
-                setattr(target_vent, param, value)
-            else:
-                available_params = self._get_available_attributes(target_vent)
-                raise ValueError(
-                    f"Mechanical vent has no parameter '{param}'. "
-                    f"Available parameters: {', '.join(available_params)}"
-                )
-
-        return new_model
+        identifier = vent if vent is not None else vent_index
+        return self._update_component("mech_vent", identifier, **kwargs)
 
     def update_device_params(
         self,
@@ -1023,37 +867,8 @@ class CFASTModel:
         ...     location=[2.0, 2.0, 2.4]
         ... )
         """
-        new_model = copy.deepcopy(self)
-
-        if not new_model.devices:
-            raise ValueError("Model has no devices to update")
-
-        if device is not None:
-            device_idx = self._resolve_device_identifier(device)
-        elif device_index is not None:
-            device_idx = device_index
-        else:
-            device_idx = 0
-
-        if device_idx >= len(new_model.devices):
-            raise IndexError(
-                f"Device index {device_idx} is out of range. "
-                f"Model has {len(new_model.devices)} devices."
-            )
-
-        target_device = new_model.devices[device_idx]
-
-        for param, value in kwargs.items():
-            if hasattr(target_device, param):
-                setattr(target_device, param, value)
-            else:
-                available_params = self._get_available_attributes(target_device)
-                raise ValueError(
-                    f"Device has no parameter '{param}'. "
-                    f"Available parameters: {', '.join(available_params)}"
-                )
-
-        return new_model
+        identifier = device if device is not None else device_index
+        return self._update_component("device", identifier, **kwargs)
 
     def update_surface_connection_params(
         self,
@@ -1087,35 +902,7 @@ class CFASTModel:
         ...     fraction=0.8
         ... )
         """
-        new_model = copy.deepcopy(self)
-
-        if not new_model.surface_connections:
-            raise ValueError("Model has no surface connections to update")
-
-        if connection_index is not None:
-            conn_idx = connection_index
-        else:
-            conn_idx = 0
-
-        if conn_idx >= len(new_model.surface_connections):
-            raise IndexError(
-                f"Surface connection index {conn_idx} is out of range. "
-                f"Model has {len(new_model.surface_connections)} surface connections."
-            )
-
-        target_connection = new_model.surface_connections[conn_idx]
-
-        for param, value in kwargs.items():
-            if hasattr(target_connection, param):
-                setattr(target_connection, param, value)
-            else:
-                available_params = self._get_available_attributes(target_connection)
-                raise ValueError(
-                    f"Surface connection has no parameter '{param}'. "
-                    f"Available parameters: {', '.join(available_params)}"
-                )
-
-        return new_model
+        return self._update_component("surface_conn", connection_index, **kwargs)
 
     def add_fire(self, fire: Fire) -> CFASTModel:
         """
@@ -1136,9 +923,7 @@ class CFASTModel:
         >>> new_fire = Fire(id="FIRE2", comp_id="ROOM1", location=[2.0, 2.0])
         >>> updated_model = model.add_fire(new_fire)
         """
-        new_model = copy.deepcopy(self)
-        new_model.fires.append(fire)
-        return new_model
+        return self._add_component("fire", fire)
 
     def add_compartment(self, compartment: Compartment) -> CFASTModel:
         """
@@ -1159,9 +944,7 @@ class CFASTModel:
         >>> new_room = Compartment(id="ROOM3", width=5.0, depth=4.0, height=3.0)
         >>> updated_model = model.add_compartment(new_room)
         """
-        new_model = copy.deepcopy(self)
-        new_model.compartments.append(compartment)
-        return new_model
+        return self._add_component("compartment", compartment)
 
     def add_material(self, material: Material) -> CFASTModel:
         """
@@ -1182,9 +965,7 @@ class CFASTModel:
         >>> steel = Material(id="STEEL", conductivity=45.0, density=7850)
         >>> updated_model = model.add_material(steel)
         """
-        new_model = copy.deepcopy(self)
-        new_model.material_properties.append(material)
-        return new_model
+        return self._add_component("material", material)
 
     def add_wall_vent(self, vent: WallVent) -> CFASTModel:
         """
@@ -1205,9 +986,7 @@ class CFASTModel:
         >>> door = WallVent(comp_ids=["ROOM1", "ROOM2"], width=1.0, height=2.0)
         >>> updated_model = model.add_wall_vent(door)
         """
-        new_model = copy.deepcopy(self)
-        new_model.wall_vents.append(vent)
-        return new_model
+        return self._add_component("wall_vent", vent)
 
     def add_ceiling_floor_vent(self, vent: CeilingFloorVent) -> CFASTModel:
         """
@@ -1228,9 +1007,7 @@ class CFASTModel:
         >>> hatch = CeilingFloorVent(comp_ids=["ROOM1", "ROOM2"], area=0.5)
         >>> updated_model = model.add_ceiling_floor_vent(hatch)
         """
-        new_model = copy.deepcopy(self)
-        new_model.ceiling_floor_vents.append(vent)
-        return new_model
+        return self._add_component("cf_vent", vent)
 
     def add_mechanical_vent(self, vent: MechanicalVent) -> CFASTModel:
         """
@@ -1251,9 +1028,7 @@ class CFASTModel:
         >>> hvac = MechanicalVent(comp_ids=["ROOM1", "OUTSIDE"], flow_rate=0.5)
         >>> updated_model = model.add_mechanical_vent(hvac)
         """
-        new_model = copy.deepcopy(self)
-        new_model.mechanical_vents.append(vent)
-        return new_model
+        return self._add_component("mech_vent", vent)
 
     def add_device(self, device: Device) -> CFASTModel:
         """
@@ -1276,9 +1051,7 @@ class CFASTModel:
         ... )
         >>> updated_model = model.add_device(sensor)
         """
-        new_model = copy.deepcopy(self)
-        new_model.devices.append(device)
-        return new_model
+        return self._add_component("device", device)
 
     def add_surface_connection(self, connection: SurfaceConnection) -> CFASTModel:
         """
@@ -1301,226 +1074,72 @@ class CFASTModel:
         ... )
         >>> updated_model = model.add_surface_connection(wall_conn)
         """
+        return self._add_component("surface_conn", connection)
+
+    def _resolve_identifier(self, kind: str, identifier: int | str) -> int:
+        """Resolve an identifier (index or id string) against a component list."""
+        attr, label, id_fields = _COMPONENT_SPECS[kind]
+
+        if isinstance(identifier, int):
+            return identifier
+
+        if isinstance(identifier, str):
+            for idx, item in enumerate(getattr(self, attr)):
+                if any(getattr(item, f, None) == identifier for f in id_fields):
+                    return idx
+            field_label = "/".join(id_fields) if id_fields else "id"
+            raise ValueError(f"No {label} found with {field_label} '{identifier}'")
+
+        raise TypeError(
+            f"{label} identifier must be int or str, got {type(identifier)}"
+        )
+
+    def _update_component(
+        self,
+        kind: str,
+        identifier: int | str | None = None,
+        **kwargs: Any,
+    ) -> CFASTModel:
+        """Update a component's attributes and return a new model instance.
+
+        Deep-copies the model, locates the target component by identifier
+        (defaulting to index 0), applies the kwargs, and returns the new model.
+        Backs every ``update_X_params`` public method.
+        """
+        attr, label, _ = _COMPONENT_SPECS[kind]
         new_model = copy.deepcopy(self)
-        new_model.surface_connections.append(connection)
+        coll = getattr(new_model, attr)
+        if not coll:
+            raise ValueError(f"Model has no {label} to update")
+
+        idx = (
+            self._resolve_identifier(kind, identifier) if identifier is not None else 0
+        )
+        if idx >= len(coll):
+            raise IndexError(
+                f"{label} index {idx} is out of range. Model has {len(coll)} {label}."
+            )
+
+        self._apply_kwargs(coll[idx], label, kwargs)
         return new_model
 
-    def _resolve_fire_identifier(self, identifier: int | str) -> int:
-        """
-        Resolve fire identifier to index.
+    def _add_component(self, kind: str, component: Any) -> CFASTModel:
+        """Append a component to the relevant list and return a new model."""
+        attr, _, _ = _COMPONENT_SPECS[kind]
+        new_model = copy.deepcopy(self)
+        getattr(new_model, attr).append(component)
+        return new_model
 
-        Parameters
-        ----------
-        identifier : int | str
-            Fire identifier (index or id)
-
-        Returns
-        -------
-        int
-            Fire index
-        """
-        if isinstance(identifier, int):
-            return identifier
-
-        if isinstance(identifier, str):
-            for idx, fire in enumerate(self.fires):
-                if hasattr(fire, "id") and fire.id == identifier:
-                    return idx
-                if hasattr(fire, "fire_id") and fire.fire_id == identifier:
-                    return idx
-
-            raise ValueError(f"No fire found with id/fire_id '{identifier}'.")
-
-        raise TypeError(f"Fire identifier must be int or str, got {type(identifier)}")
-
-    def _resolve_compartment_identifier(self, identifier: int | str) -> int:
-        """
-        Resolve compartment identifier to index.
-
-        Parameters
-        ----------
-        identifier : int | str
-            Compartment identifier (index or id)
-
-        Returns
-        -------
-        int
-            Compartment index
-        """
-        if isinstance(identifier, int):
-            return identifier
-
-        if isinstance(identifier, str):
-            for idx, compartment in enumerate(self.compartments):
-                if hasattr(compartment, "id") and compartment.id == identifier:
-                    return idx
-
-            raise ValueError(f"No compartment found with id '{identifier}'. ")
-
-        raise TypeError(
-            f"Compartment identifier must be int or str, got {type(identifier)}"
-        )
-
-    def _resolve_material_identifier(self, identifier: int | str) -> int:
-        """
-        Resolve material identifier to index.
-
-        Parameters
-        ----------
-        identifier : int | str
-            Material identifier (index or id)
-
-        Returns
-        -------
-        int
-            Material index
-
-        """
-        if isinstance(identifier, int):
-            return identifier
-
-        if isinstance(identifier, str):
-            for idx, material in enumerate(self.material_properties):
-                if hasattr(material, "id") and material.id == identifier:
-                    return idx
-
-            raise ValueError(f"No material found with id '{identifier}.'")
-
-        raise TypeError(
-            f"Material identifier must be int or str, got {type(identifier)}"
-        )
-
-    def _resolve_wall_vent_identifier(self, identifier: int | str) -> int:
-        """
-        Resolve wall vent identifier to index.
-
-        Parameters
-        ----------
-        identifier : int | str
-            Wall vent identifier (index or id)
-
-        Returns
-        -------
-        int
-            Wall vent index
-        """
-        if isinstance(identifier, int):
-            return identifier
-
-        if isinstance(identifier, str):
-            for idx, vent in enumerate(self.wall_vents):
-                if hasattr(vent, "id") and vent.id == identifier:
-                    return idx
-
-            raise ValueError(f"No wall vent found with id '{identifier}'")
-
-        raise TypeError(
-            f"Wall vent identifier must be int or str, got {type(identifier)}"
-        )
-
-    def _resolve_ceiling_floor_vent_identifier(self, identifier: int | str) -> int:
-        """
-        Resolve ceiling/floor vent identifier to index.
-
-        Parameters
-        ----------
-        identifier : int | str
-            Ceiling/floor vent identifier (index or id)
-
-        Returns
-        -------
-        int
-            Ceiling/floor vent index
-        """
-        if isinstance(identifier, int):
-            return identifier
-
-        if isinstance(identifier, str):
-            for idx, vent in enumerate(self.ceiling_floor_vents):
-                if hasattr(vent, "id") and vent.id == identifier:
-                    return idx
-
-            raise ValueError(f"No ceiling/floor vent found with id '{identifier}'")
-
-        raise TypeError(
-            f"Ceiling/floor vent identifier must be int or str, got {type(identifier)}"
-        )
-
-    def _resolve_mechanical_vent_identifier(self, identifier: int | str) -> int:
-        """
-        Resolve mechanical vent identifier to index.
-
-        Parameters
-        ----------
-        identifier : int | str
-            Mechanical vent identifier (index or id)
-
-        Returns
-        -------
-        int
-            Mechanical vent index
-
-        """
-        if isinstance(identifier, int):
-            return identifier
-
-        if isinstance(identifier, str):
-            for idx, vent in enumerate(self.mechanical_vents):
-                if hasattr(vent, "id") and vent.id == identifier:
-                    return idx
-
-            raise ValueError(f"No mechanical vent found with id '{identifier}'")
-
-        raise TypeError(
-            f"Mechanical vent identifier must be int or str, got {type(identifier)}"
-        )
-
-    def _resolve_device_identifier(self, identifier: int | str) -> int:
-        """
-        Resolve device identifier to index.
-
-        Parameters
-        ----------
-        identifier : int | str
-            Device identifier (index or id)
-
-        Returns
-        -------
-        int
-            Device index
-        """
-        if isinstance(identifier, int):
-            return identifier
-
-        if isinstance(identifier, str):
-            for idx, device in enumerate(self.devices):
-                if hasattr(device, "id") and device.id == identifier:
-                    return idx
-
-            raise ValueError(f"No device found with id '{identifier}'")
-
-        raise TypeError(f"Device identifier must be int or str, got {type(identifier)}")
-
-    def _resolve_surface_connection_identifier(self, identifier: int) -> int:
-        """
-        Resolve surface connection identifier to index.
-
-        Parameters
-        ----------
-        identifier : int
-            Surface connection identifier (index only !)
-
-        Returns
-        -------
-        int
-            Surface connection index
-        """
-        if isinstance(identifier, int):
-            return identifier
-
-        raise TypeError(
-            f"Surface connection identifier must be int, got {type(identifier)}"
-        )
+    def _apply_kwargs(self, target: Any, label: str, kwargs: dict[str, Any]) -> None:
+        """Apply ``kwargs`` to ``target`` via setattr, raising on unknown params."""
+        for param, value in kwargs.items():
+            if not hasattr(target, param):
+                available = self._get_available_attributes(target)
+                raise ValueError(
+                    f"{label} has no parameter '{param}'. "
+                    f"Available parameters: {', '.join(available)}"
+                )
+            setattr(target, param, value)
 
     def _get_available_attributes(self, obj: Any) -> list[str]:
         """Get list of available non-private, non-callable attributes."""
