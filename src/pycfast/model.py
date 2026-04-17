@@ -33,13 +33,15 @@ from .wall_vent import WallVent
 
 logger = logging.getLogger("pycfast")
 
-# Table used for mapping component types to their identifiers
+# Table used for mapping component types to their identifiers, useful for intenal method
+# that update or add component to the model.
+#
 # Format: component_key: (model_attribute, display_label, identifier_fields)
 #
 # component_key is used internally to acces the table in private methods,
-# model_attribute is the corresponding attribute in CFASTModel,
+# model_attribute is the corresponding attribute of the CFASTModel class,
 # display_label is used for error messages and logging
-# identifier_fields are the fields used to identify components
+# identifier_fields are the fields used to identify components and update it
 #
 # fmt: off
 _COMPONENT_SPECS = {
