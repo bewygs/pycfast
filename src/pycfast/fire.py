@@ -9,16 +9,16 @@ chemical composition, and physical properties.
 from __future__ import annotations
 
 import warnings
-from typing import Any
 
 import numpy as np
 import pandas as pd
 
+from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
 from .utils.theme import build_card
 
 
-class Fire:
+class Fire(CFASTComponent):
     """
     Represents a fire source in a CFAST simulation.
 
@@ -338,35 +338,6 @@ class Fire:
             accent_color="#ff4757",
             body_html=body_html,
         )
-
-    def __getitem__(self, key: str) -> Any:
-        """Get fire property by name for dictionary-like access."""
-        if not hasattr(self, key):
-            raise KeyError(f"Property '{key}' not found in Fire.")
-        return getattr(self, key)
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """Set fire property by name for dictionary-like assignment.
-
-        Validates the object state after setting the attribute to ensure
-        all constraints are still satisfied.
-
-        Raises
-        ------
-        KeyError
-            If the property does not exist.
-        ValueError
-            If setting this value would violate object constraints.
-        """
-        if not hasattr(self, key):
-            raise KeyError(f"Cannot set '{key}'. Property does not exist in Fire.")
-        old_value = getattr(self, key)
-        setattr(self, key, value)
-        try:
-            self._validate()
-        except Exception:
-            setattr(self, key, old_value)
-            raise
 
     def to_input_string(self) -> str:
         """

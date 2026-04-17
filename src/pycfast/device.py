@@ -8,13 +8,13 @@ and sensors in a fire simulation, including both targets and detectors.
 from __future__ import annotations
 
 import warnings
-from typing import Any
 
+from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
 from .utils.theme import build_card
 
 
-class Device:
+class Device(CFASTComponent):
     """
     Represents measurement and fire protection devices in a CFAST simulation.
 
@@ -359,35 +359,6 @@ class Device:
             accent_color=color,
             body_html=body_html,
         )
-
-    def __getitem__(self, key: str) -> Any:
-        """Get device property by name for dictionary-like access."""
-        if not hasattr(self, key):
-            raise KeyError(f"Property '{key}' not found in Device.")
-        return getattr(self, key)
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """Set device property by name for dictionary-like assignment.
-
-        Validates the object state after setting the attribute to ensure
-        all constraints are still satisfied.
-
-        Raises
-        ------
-        KeyError
-            If the property does not exist.
-        ValueError
-            If setting this value would violate object constraints.
-        """
-        if not hasattr(self, key):
-            raise KeyError(f"Cannot set '{key}'. Property does not exist in Device.")
-        old_value = getattr(self, key)
-        setattr(self, key, value)
-        try:
-            self._validate()
-        except Exception:
-            setattr(self, key, old_value)
-            raise
 
     def _validate(self) -> None:
         """Validate the current state of the device attributes.
