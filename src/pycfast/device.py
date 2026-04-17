@@ -11,7 +11,6 @@ import warnings
 
 from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
-from .utils.theme import build_card
 
 
 class Device(CFASTComponent):
@@ -295,70 +294,6 @@ class Device(CFASTComponent):
             details = ", ".join(details_list) if details_list else "configured"
 
         return f"{device_info} in '{self.comp_id}' at {location_str} ({details})"
-
-    def _repr_html_(self) -> str:
-        """Return an HTML representation for Jupyter/interactive environments."""
-        device_type = getattr(self, "type", "UNKNOWN")
-        location_str = f"({', '.join(map(str, getattr(self, 'location', [])))})"
-
-        # Icon and color based on device type
-        if "HEAT" in device_type:
-            icon = "🌡️"
-            color = "#e17055"
-            type_name = "Heat Detector"
-        elif "SMOKE" in device_type:
-            icon = "💨"
-            color = "#636e72"
-            type_name = "Smoke Detector"
-        elif "SPRINKLER" in device_type:
-            icon = "💧"
-            color = "#0984e3"
-            type_name = "Sprinkler"
-        elif "TARGET" in device_type or device_type in {"PLATE", "CYLINDER"}:
-            icon = "🎯"
-            color = "#6c5ce7"
-            type_name = "Target"
-        else:
-            icon = "📊"
-            color = "#00b894"
-            type_name = device_type.replace("_", " ").title()
-
-        # Device-specific properties
-        props_html = ""
-        if hasattr(self, "setpoint") and self.setpoint is not None:
-            unit = "°C" if device_type == "HEAT_DETECTOR" else ""
-            props_html += f"<div><strong>Setpoint:</strong> {self.setpoint}{unit}</div>"
-        if hasattr(self, "rti") and self.rti is not None:
-            props_html += f"<div><strong>RTI:</strong> {self.rti} (m·s)½</div>"
-        if hasattr(self, "material_id") and self.material_id:
-            props_html += f"<div><strong>Material:</strong> {self.material_id}</div>"
-        if hasattr(self, "surface_orientation") and self.surface_orientation:
-            props_html += (
-                f"<div><strong>Orientation:</strong> {self.surface_orientation}</div>"
-            )
-        if hasattr(self, "thickness") and self.thickness is not None:
-            props_html += f"<div><strong>Thickness:</strong> {self.thickness} m</div>"
-        if hasattr(self, "spray_density") and self.spray_density is not None:
-            props_html += (
-                f"<div><strong>Spray density:</strong> {self.spray_density}</div>"
-            )
-
-        body_html = f"""
-            <div class="pycfast-card-grid">
-                <div><strong>Location:</strong> {location_str}</div>
-                <div><strong>Type:</strong> {type_name}</div>
-                {props_html}
-            </div>
-        """
-
-        return build_card(
-            icon=icon,
-            gradient=f"linear-gradient(135deg, {color}, {color}aa)",
-            title=f"Device: {self.id}",
-            subtitle=f"<strong>{type_name}</strong> in <strong>{self.comp_id}</strong>",
-            accent_color=color,
-            body_html=body_html,
-        )
 
     def _validate(self) -> None:
         """Validate the current state of the device attributes.

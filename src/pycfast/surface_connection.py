@@ -12,7 +12,6 @@ import warnings
 
 from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
-from .utils.theme import build_card
 
 
 class SurfaceConnection(CFASTComponent):
@@ -182,46 +181,6 @@ class SurfaceConnection(CFASTComponent):
         """Return a user-friendly string representation of the SurfaceConnection."""
         connection = f"{self.comp_id} -> {self.comp_ids}"
         return f"Surface Connection ({self.conn_type}): {connection}"
-
-    def _repr_html_(self) -> str:
-        """Return an HTML representation for Jupyter/interactive environments."""
-        conn_type_str = getattr(self, "conn_type", "Unknown").title()
-
-        # Icon and color based on connection type
-        if self.conn_type == "WALL":
-            icon = "🧱"
-            color = "#e17055"
-        elif self.conn_type == "FLOOR":
-            icon = "🏗️"
-            color = "#636e72"
-        elif self.conn_type == "CEILING":
-            icon = "🏠"
-            color = "#74b9ff"
-        else:
-            icon = "🔗"
-            color = "#6c5ce7"
-
-        fraction_info = ""
-        if hasattr(self, "fraction") and self.fraction is not None:
-            fraction_info = f"<div><strong>Fraction:</strong> {self.fraction}</div>"
-
-        body_html = f"""
-            <div class="pycfast-card-grid">
-                <div><strong>Type:</strong> {conn_type_str}</div>
-                <div><strong>From:</strong> {self.comp_id}</div>
-                <div><strong>To:</strong> {self.comp_ids}</div>
-                {fraction_info}
-            </div>
-        """
-
-        return build_card(
-            icon=icon,
-            gradient=f"linear-gradient(135deg, {color}, {color}aa)",
-            title="Surface Connection",
-            subtitle=f"<strong>{conn_type_str}</strong>: {self.comp_id} → {self.comp_ids}",
-            accent_color=color,
-            body_html=body_html,
-        )
 
     def to_input_string(self) -> str:
         """

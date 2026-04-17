@@ -11,7 +11,6 @@ import warnings
 
 from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
-from .utils.theme import build_card
 
 
 class Material(CFASTComponent):
@@ -136,27 +135,6 @@ class Material(CFASTComponent):
             f"Material '{self.id}' ({self.material}): "
             f"k={self.conductivity}, ρ={self.density}, c={self.specific_heat}, "
             f"t={self.thickness}, ε={self.emissivity}"
-        )
-
-    def _repr_html_(self) -> str:
-        """Return an HTML representation for Jupyter/interactive environments."""
-        body_html = f"""
-            <div class="pycfast-card-grid">
-                <div><strong>Conductivity:</strong> {getattr(self, "conductivity", "N/A")} W/m·K</div>
-                <div><strong>Density:</strong> {getattr(self, "density", "N/A")} kg/m³</div>
-                <div><strong>Specific Heat:</strong> {getattr(self, "specific_heat", "N/A")} kJ/kg·K</div>
-                <div><strong>Thickness:</strong> {getattr(self, "thickness", "N/A")} m</div>
-                <div><strong>Emissivity:</strong> {getattr(self, "emissivity", "N/A")}</div>
-            </div>
-        """
-
-        return build_card(
-            icon="🧱",
-            gradient="linear-gradient(135deg, #2d3436, #636e72)",
-            title=f"Material: {self.id}",
-            subtitle=f"<strong>{getattr(self, 'material', 'Material')}</strong>",
-            accent_color="#636e72",
-            body_html=body_html,
         )
 
     def to_input_string(self) -> str:

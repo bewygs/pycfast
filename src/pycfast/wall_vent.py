@@ -11,7 +11,6 @@ import warnings
 
 from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
-from .utils.theme import build_card
 
 
 class WallVent(CFASTComponent):
@@ -212,35 +211,6 @@ class WallVent(CFASTComponent):
         position_info = f"bottom: {self.bottom} m"
 
         return f"Wall Vent '{self.id}': {connection}, {size_info}, {position_info}"
-
-    def _repr_html_(self) -> str:
-        """Return an HTML representation for Jupyter/interactive environments."""
-        area = (getattr(self, "width", 0) or 0) * (getattr(self, "height", 0) or 0)
-        face_str = getattr(self, "face", "Unknown")
-
-        criterion_info = ""
-        if hasattr(self, "open_close_criterion") and self.open_close_criterion:
-            criterion_info = f"<div><strong>Control:</strong> {self.open_close_criterion} @ {getattr(self, 'set_point', 'N/A')}</div>"
-
-        body_html = f"""
-            <div class="pycfast-card-grid">
-                <div><strong>Dimensions:</strong> {getattr(self, "width", "N/A")}×{getattr(self, "height", "N/A")} m</div>
-                <div><strong>Area:</strong> {area:.2f} m²</div>
-                <div><strong>Wall face:</strong> {face_str}</div>
-                <div><strong>Bottom height:</strong> {getattr(self, "bottom", "N/A")} m</div>
-                <div><strong>Offset:</strong> {getattr(self, "offset", "N/A")} m</div>
-                {criterion_info}
-            </div>
-        """
-
-        return build_card(
-            icon="🚪",
-            gradient="linear-gradient(135deg, #fd79a8, #e84393)",
-            title=f"Wall Vent: {self.id}",
-            subtitle=f"<strong>{self.comps_ids[0]} ↔ {self.comps_ids[1]}</strong>",
-            accent_color="#e84393",
-            body_html=body_html,
-        )
 
     def to_input_string(self) -> str:
         """
