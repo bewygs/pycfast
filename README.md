@@ -203,9 +203,8 @@ If you use PyCFAST in your projects, please consider citing the following:
   title     = {PyCFAST},
   year      = {2026},
   publisher = {Zenodo},
-  version   = {v0.1.3},
-  doi       = {10.5281/zenodo.18818212},
-  url       = {https://doi.org/10.5281/zenodo.18818212}
+  doi       = {10.5281/zenodo.18703351},
+  url       = {https://doi.org/10.5281/zenodo.18703351}
 }
 ```
 
