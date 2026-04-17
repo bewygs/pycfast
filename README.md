@@ -120,10 +120,9 @@ results["devices"].head()
 
 **Note:** When importing an existing model, ensure that all component names (such as TITLE, MATERIAL, ID, etc.) use **only alphanumeric characters**. Avoid **special characters** like quotes and slashes, as these may cause parsing issues and will be automatically sanitized where possible.
 
-You can also inspect the model interactively on Jupyter or VS Code, or use text-based methods:
+You can also inspect the model using text-based methods:
 
 ```python
-model             # interactive HTML card in Jupyter/VS Code
 model.summary()   # text summary to stdout
 model.save()      # writes the CFAST input file to disk
 model.view_cfast_input_file()  # view the generated input file
