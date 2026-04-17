@@ -8,9 +8,7 @@ the CFAST simulation.
 
 from __future__ import annotations
 
-from typing import Any
-
-from .component import CFASTComponent
+from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
 from .utils.theme import build_card
 
@@ -341,37 +339,6 @@ class Compartment(CFASTComponent):
             accent_color="#5f27cd",
             body_html=body_html,
         )
-
-    def __getitem__(self, key: str) -> Any:
-        """Get compartment property by name for dictionary-like access."""
-        if not hasattr(self, key):
-            raise KeyError(f"Property '{key}' not found in Compartment.")
-        return getattr(self, key)
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """Set compartment property by name for dictionary-like assignment.
-
-        Validates the object state after setting the attribute to ensure
-        all constraints are still satisfied.
-
-        Raises
-        ------
-        KeyError
-            If the property does not exist.
-        ValueError
-            If setting this value would violate object constraints.
-        """
-        if not hasattr(self, key):
-            raise KeyError(
-                f"Cannot set '{key}'. Property does not exist in Compartment."
-            )
-        old_value = getattr(self, key)
-        setattr(self, key, value)
-        try:
-            self._validate()
-        except Exception:
-            setattr(self, key, old_value)
-            raise
 
     def to_input_string(self) -> str:
         """

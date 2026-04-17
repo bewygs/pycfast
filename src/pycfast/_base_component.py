@@ -1,9 +1,4 @@
-"""
-Base class for every component (Fire, Device, Material, MechcnicalVent) in CFAST.
-
-This module provides a Component Class that will be herited from every component
-in the library. This class contain serveral common method used by all component.
-"""
+"""Base class for every CFAST components (Fire, Device, Material, ...)."""
 
 from __future__ import annotations
 
@@ -35,7 +30,7 @@ class CFASTComponent(ABC):
         """
         if not hasattr(self, key):
             raise KeyError(
-                f"Cannot set '{key}'. Property does not exist in Compartment."
+                f"Cannot set '{key}'. Property does not exist in {self.__class__.__name__}."
             )
         old_value = getattr(self, key)
         setattr(self, key, value)

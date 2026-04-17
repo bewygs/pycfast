@@ -8,13 +8,13 @@ flow vent connections between compartments.
 from __future__ import annotations
 
 import warnings
-from typing import Any
 
+from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
 from .utils.theme import build_card
 
 
-class CeilingFloorVent:
+class CeilingFloorVent(CFASTComponent):
     """
     Represents vertical flow vent connections between compartments.
 
@@ -244,37 +244,6 @@ class CeilingFloorVent:
             accent_color="#6c5ce7",
             body_html=body_html,
         )
-
-    def __getitem__(self, key: str) -> Any:
-        """Get vent property by name for dictionary-like access."""
-        if not hasattr(self, key):
-            raise KeyError(f"Property '{key}' not found in CeilingFloorVent.")
-        return getattr(self, key)
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """Set vent property by name for dictionary-like assignment.
-
-        Validates the object state after setting the attribute to ensure
-        all constraints are still satisfied.
-
-        Raises
-        ------
-        KeyError
-            If the property does not exist.
-        ValueError
-            If setting this value would violate object constraints.
-        """
-        if not hasattr(self, key):
-            raise KeyError(
-                f"Cannot set '{key}'. Property does not exist in CeilingFloorVent."
-            )
-        old_value = getattr(self, key)
-        setattr(self, key, value)
-        try:
-            self._validate()
-        except Exception:
-            setattr(self, key, old_value)
-            raise
 
     def to_input_string(self) -> str:
         """
