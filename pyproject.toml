@@ -74,6 +74,9 @@ examples = [
     "bokeh>=3.8.0",
     "torch>=2.8.0",
 ]
+all = [
+    "pycfast[docs,dev,examples]",
+]
 
 [build-system]
 requires = [
