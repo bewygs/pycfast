@@ -34,7 +34,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/bewygs/pycfast"
-Documentation = "https://bewygs.github.io/pycfast"
+Documentation = "https://pycfast.org"
 Repository = "https://github.com/bewygs/pycfast"
 Issues = "https://github.com/bewygs/pycfast/issues"
 Changelog = "https://github.com/bewygs/pycfast/blob/main/CHANGELOG.md"
