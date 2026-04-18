@@ -42,10 +42,7 @@ class NamelistRecord:
     Examples
     --------
     >>> rec = NamelistRecord("COMP")
-    >>> rec.add_field("ID", "ROOM1")
-    NamelistRecord('COMP')
-    >>> rec.add_field("WIDTH", 3.0)
-    NamelistRecord('COMP')
+    >>> _ = rec.add_field("ID", "ROOM1").add_field("WIDTH", 3.0)
     >>> rec.build()
     "&COMP ID = 'ROOM1' WIDTH = 3.0 /\n"
     """

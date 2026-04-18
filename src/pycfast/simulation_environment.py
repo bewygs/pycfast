@@ -228,9 +228,11 @@ class SimulationEnvironment(CFASTComponent):
         >>> config = SimulationEnvironment("Test", 300, print=10)
         >>> print(config.to_input_string())
         &HEAD VERSION = 7700 TITLE = 'Test' /
-
+        <BLANKLINE>
         !! Scenario Configuration
-        &TIME SIMULATION = 300 PRINT = 10 ...
+        &TIME SIMULATION = 300 PRINT = 10 SMOKEVIEW = 15 SPREADSHEET = 15 /
+        &INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+        <BLANKLINE>
         """
         head = (
             NamelistRecord("HEAD")

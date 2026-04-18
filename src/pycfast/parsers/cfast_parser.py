@@ -80,8 +80,9 @@ class CFASTParser:
     Examples
     --------
     >>> parser = CFASTParser()
-    >>> model = parser.parse_file("example.in")
-    >>> print(model.simulation_environment.title)
+    >>> parsed = parser.parse_file(example_in_path)
+    >>> parsed.simulation_environment.title
+    'CFAST Doctest Example'
     """
 
     def __init__(self) -> None:
@@ -148,9 +149,10 @@ class CFASTParser:
 
         Examples
         --------
-            >>> parser = CFASTParser()
-            >>> model = parser.parse_file("/path/to/simulation.in")
-            >>> print(f"Parsed {len(model.compartments)} compartments")
+        >>> parser = CFASTParser()
+        >>> parsed = parser.parse_file(example_in_path)
+        >>> len(parsed.compartments)
+        2
         """
         file_path = Path(file_path)
         if not file_path.exists():
@@ -359,11 +361,12 @@ class CFASTParser:
 
         Examples
         --------
-            >>> params = {'WIDTH': '1.5', 'HEIGHT': '2.0'}
-            >>> self._get_param(params, 'WIDTH', param_type=float)
-            1.5
-            >>> self._get_param(params, 'MISSING', default=0.0)
-            0.0
+        >>> parser = CFASTParser()
+        >>> params = {'WIDTH': '1.5', 'HEIGHT': '2.0'}
+        >>> parser._get_param(params, 'WIDTH', param_type=float)
+        1.5
+        >>> parser._get_param(params, 'MISSING', default=0.0)
+        0.0
         """
         value = params.get(key, default)
         if required and value is None:
@@ -443,13 +446,15 @@ class CFASTParser:
 
         Examples
         --------
+        >>> parser = CFASTParser()
+        >>> params = {'ID': 'ROOM1', 'WIDTH': '3.0'}
         >>> param_map = {
         ...     'id': {'source': 'ID', 'required': True, 'type': str},
         ...     'width': {'source': 'WIDTH', 'required': True, 'type': float},
-        ...     'active': {'source': 'ACTIVE', 'default': False, 'type': bool}
         ... }
-        >>> extracted = self._extract_params(params, param_map)
-        >>> device = Device(**extracted)
+        >>> extracted = parser._extract_params(params, param_map)
+        >>> extracted
+        {'id': 'ROOM1', 'width': 3.0}
         """
         extracted = {}
 
@@ -992,9 +997,11 @@ def parse_cfast_file(
 
     Examples
     --------
-    >>> model = parse_cfast_file("simulation.in")
-    >>> print(f"Title: {model.simulation_environment.title}")
-    >>> print(f"Compartment: {len(model.compartments)}")
+    >>> parsed = parse_cfast_file(example_in_path)
+    >>> parsed.simulation_environment.title
+    'CFAST Doctest Example'
+    >>> len(parsed.compartments)
+    2
     """
     parser = CFASTParser()
     return parser.parse_file(file_path, output_path)

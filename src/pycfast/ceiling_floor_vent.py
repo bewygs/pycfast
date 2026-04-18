@@ -233,9 +233,15 @@ class CeilingFloorVent(CFASTComponent):
 
         Examples
         --------
-        >>> vent = CeilingFloorVent("HOLE1", ["RM_UP", "RM_LOW"], 1.0, "ROUND")
+        >>> vent = CeilingFloorVent(
+        ...     id="HOLE1",
+        ...     comps_ids=["RM_UP", "RM_LOW"],
+        ...     area=1.0,
+        ...     shape="ROUND",
+        ... )
         >>> print(vent.to_input_string())
-        &VENT TYPE = 'FLOOR' ID = 'HOLE1' COMP_IDS = 'RM_UP', 'RM_LOW' ...
+        &VENT TYPE = 'FLOOR' ID = 'HOLE1' COMP_IDS = 'RM_UP', 'RM_LOW' AREA = 1.0 SHAPE = 'ROUND' OFFSETS = 0, 0 /
+        <BLANKLINE>
         """
         rec = NamelistRecord("VENT")
         rec.add_field("TYPE", self.type)

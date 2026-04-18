@@ -140,27 +140,18 @@ class CFASTModel:
 
     Examples
     --------
-    Create and run a simple fire simulation:
+    Inspect a pre-built model (see ``conftest.py`` for the ``model`` fixture):
 
-    >>> model = CFASTModel(
-    ...     simulation_environment=simulation_env,
-    ...     compartments=[room1, room2],
-    ...     material_properties=[concrete, gypsum],
-    ...     wall_vents=[door],
-    ...     fires=[fire1],
-    ...     devices=[temp_sensor],
-    ...     file_name="simulation.in"
-    ... )
+    >>> model.compartments[0].id
+    'ROOM1'
+    >>> len(model.wall_vents)
+    1
+
+    Run the simulation and inspect the resulting DataFrames:
+
     >>> results = model.run()
-    >>> print(results['simulation_compartments.csv'].head())
-
-    Create a minimal simulation with just compartments:
-
-    >>> minimal_model = CFASTModel(
-    ...     scenario_configuration=scenario_config,
-    ...     compartments=[room1]
-    ... )
-    >>> results = minimal_model.run()
+    >>> sorted(results.keys())  # doctest: +ELLIPSIS
+    [...'compartments'...]
     """
 
     def __init__(
@@ -304,12 +295,10 @@ class CFASTModel:
         Examples
         --------
         >>> results = model.run()
-        >>> if results:
-        ...     temp_data = results['simulation_compartments.csv']
-        ...     print(f"Max temperature: {temp_data['CEILT'].max()}")
-
-        >>> # Run with custom filename for sensitivity analysis
-        >>> results = model.run(file_name="sensitivity_case_1.in")
+        >>> isinstance(results, dict)
+        True
+        >>> "compartments" in results
+        True
         """
         original_file_name = self.file_name
         if file_name is not None:
@@ -427,48 +416,40 @@ class CFASTModel:
 
         Examples
         --------
-        >>> # Update scalar fire properties
+        Update scalar fire properties:
+
         >>> new_model = model.update_fire_params(
         ...     heat_of_combustion=20000,
-        ...     radiative_fraction=0.35
+        ...     radiative_fraction=0.35,
         ... )
+        >>> new_model.fires[0].heat_of_combustion
+        20000
 
-        >>> # Update fire data table with pandas DataFrame
+        Update the fire data table with a pandas DataFrame:
+
         >>> fire_data = pd.DataFrame({
-        ...     'time': [0, 60, 120],
-        ...     'heat_release_rate': [0, 1000, 2000],
-        ...     'height': [0.5, 0.5, 0.5],
-        ...     'area': [1.0, 1.0, 1.0],
-        ...     'co_yield': [0.004, 0.004, 0.004],
-        ...     'soot_yield': [0.01, 0.01, 0.01],
-        ...     'hcn_yield': [0.0, 0.0, 0.0],
-        ...     'hcl_yield': [0.0, 0.0, 0.0],
-        ...     'trace_yield': [0.0, 0.0, 0.0]
+        ...     "TIME": [0, 60, 120],
+        ...     "HRR": [0, 1000, 2000],
+        ...     "HEIGHT": [0.5, 0.5, 0.5],
+        ...     "AREA": [1.0, 1.0, 1.0],
+        ...     "CO_YIELD": [0.004, 0.004, 0.004],
+        ...     "SOOT_YIELD": [0.01, 0.01, 0.01],
+        ...     "HCN_YIELD": [0.0, 0.0, 0.0],
+        ...     "HCL_YIELD": [0.0, 0.0, 0.0],
+        ...     "TRACE_YIELD": [0.0, 0.0, 0.0],
         ... })
         >>> new_model = model.update_fire_params(data_table=fire_data)
+        >>> len(new_model.fires[0].data_table)
+        3
 
-        >>> # Update fire data table with numpy array
-        >>> import numpy as np
-        >>> fire_array = np.array([
-        ...     [0, 0, 0.5, 1.0, 0.004, 0.01, 0.0, 0.0, 0.0],
-        ...     [60, 1000, 0.5, 1.0, 0.004, 0.01, 0.0, 0.0, 0.0],
-        ...     [120, 2000, 0.5, 1.0, 0.004, 0.01, 0.0, 0.0, 0.0]
-        ... ])
-        >>> new_model = model.update_fire_params(data_table=fire_array)
+        Update the fire by id:
 
-        >>> # Update fire data table with list of lists
-        >>> fire_list = [
-        ...     [0, 0, 0.5, 1.0, 0.004, 0.01, 0.0, 0.0, 0.0],
-        ...     [60, 1000, 0.5, 1.0, 0.004, 0.01, 0.0, 0.0, 0.0],
-        ...     [120, 2000, 0.5, 1.0, 0.004, 0.01, 0.0, 0.0, 0.0]
-        ... ]
-        >>> new_model = model.update_fire_params(data_table=fire_list)
-
-        >>> # Update by fire name
         >>> new_model = model.update_fire_params(
-        ...     fire="main_fire",
-        ...     heat_of_combustion=18000
+        ...     fire="FIRE1",
+        ...     heat_of_combustion=18000,
         ... )
+        >>> new_model.fires[0].heat_of_combustion
+        18000
         """
         identifier = fire
         new_model = self._update_component("fire", identifier, **kwargs)
@@ -513,8 +494,10 @@ class CFASTModel:
         >>> new_model = model.update_simulation_params(
         ...     time_simulation=1800,
         ...     print=10,
-        ...     interior_temperature=25.0
+        ...     interior_temperature=25.0,
         ... )
+        >>> new_model.simulation_environment.time_simulation
+        1800
         """
         new_model = copy.deepcopy(self)
         if getattr(new_model, "simulation_environment", None) is None:
@@ -552,15 +535,19 @@ class CFASTModel:
         Examples
         --------
         >>> new_model = model.update_compartment_params(
+        ...     compartment=1,
         ...     width=5.0,
         ...     height=3.0,
-        ...     compartment=1
         ... )
+        >>> new_model.compartments[1].width
+        5.0
 
         >>> new_model = model.update_compartment_params(
-        ...     compartment="living_room",
-        ...     width=6.0
+        ...     compartment="ROOM1",
+        ...     width=6.0,
         ... )
+        >>> new_model.compartments[0].width
+        6.0
         """
         identifier = compartment
         return self._update_component("compartment", identifier, **kwargs)
@@ -592,10 +579,12 @@ class CFASTModel:
         Examples
         --------
         >>> new_model = model.update_material_params(
-        ...     material="concrete",
+        ...     material="GYPSUM",
         ...     conductivity=1.5,
-        ...     density=2300
+        ...     density=2300,
         ... )
+        >>> new_model.material_properties[0].density
+        2300
         """
         identifier = material
         return self._update_component("material", identifier, **kwargs)
@@ -629,8 +618,10 @@ class CFASTModel:
         >>> new_model = model.update_wall_vent_params(
         ...     vent=0,
         ...     width=1.2,
-        ...     height=2.0
+        ...     height=2.0,
         ... )
+        >>> new_model.wall_vents[0].width
+        1.2
         """
         return self._update_component("wall_vent", vent, **kwargs)
 
@@ -662,8 +653,10 @@ class CFASTModel:
         --------
         >>> new_model = model.update_ceiling_floor_vent_params(
         ...     vent=0,
-        ...     area=0.5
+        ...     area=0.8,
         ... )
+        >>> new_model.ceiling_floor_vents[0].area
+        0.8
         """
         return self._update_component("cf_vent", vent, **kwargs)
 
@@ -695,8 +688,10 @@ class CFASTModel:
         --------
         >>> new_model = model.update_mechanical_vent_params(
         ...     vent=0,
-        ...     flow_rate=0.5
+        ...     flow=0.5,
         ... )
+        >>> new_model.mechanical_vents[0].flow
+        0.5
         """
         return self._update_component("mech_vent", vent, **kwargs)
 
@@ -728,8 +723,10 @@ class CFASTModel:
         --------
         >>> new_model = model.update_device_params(
         ...     device=0,
-        ...     location=[2.0, 2.0, 2.4]
+        ...     location=[2.0, 2.0, 2.4],
         ... )
+        >>> new_model.devices[0].location
+        [2.0, 2.0, 2.4]
         """
         return self._update_component("device", device, **kwargs)
 
@@ -760,8 +757,10 @@ class CFASTModel:
         --------
         >>> new_model = model.update_surface_connection_params(
         ...     connection=0,
-        ...     fraction=0.8
+        ...     fraction=0.8,
         ... )
+        >>> new_model.surface_connections[0].fraction
+        0.8
         """
         return self._update_component("surface_conn", connection, **kwargs)
 
@@ -781,8 +780,16 @@ class CFASTModel:
 
         Examples
         --------
-        >>> new_fire = Fire(id="FIRE2", comp_id="ROOM1", location=[2.0, 2.0])
+        >>> new_fire = Fire(
+        ...     id="FIRE2",
+        ...     comp_id="ROOM1",
+        ...     fire_id="WOOD",
+        ...     location=[2.0, 2.0],
+        ...     data_table=[[0, 500, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]],
+        ... )
         >>> updated_model = model.add_fire(new_fire)
+        >>> len(updated_model.fires)
+        2
         """
         return self._add_component("fire", fire)
 
@@ -804,6 +811,8 @@ class CFASTModel:
         --------
         >>> new_room = Compartment(id="ROOM3", width=5.0, depth=4.0, height=3.0)
         >>> updated_model = model.add_compartment(new_room)
+        >>> len(updated_model.compartments)
+        3
         """
         return self._add_component("compartment", compartment)
 
@@ -823,8 +832,15 @@ class CFASTModel:
 
         Examples
         --------
-        >>> steel = Material(id="STEEL", conductivity=45.0, density=7850)
+        >>> steel = Material(
+        ...     id="STEEL",
+        ...     material="Steel",
+        ...     conductivity=45.0,
+        ...     density=7850,
+        ... )
         >>> updated_model = model.add_material(steel)
+        >>> updated_model.material_properties[-1].id
+        'STEEL'
         """
         return self._add_component("material", material)
 
@@ -844,8 +860,16 @@ class CFASTModel:
 
         Examples
         --------
-        >>> door = WallVent(comp_ids=["ROOM1", "ROOM2"], width=1.0, height=2.0)
+        >>> door = WallVent(
+        ...     id="DOOR2",
+        ...     comps_ids=["ROOM1", "ROOM2"],
+        ...     width=1.0,
+        ...     height=2.0,
+        ...     face="RIGHT",
+        ... )
         >>> updated_model = model.add_wall_vent(door)
+        >>> len(updated_model.wall_vents)
+        2
         """
         return self._add_component("wall_vent", vent)
 
@@ -865,8 +889,14 @@ class CFASTModel:
 
         Examples
         --------
-        >>> hatch = CeilingFloorVent(comp_ids=["ROOM1", "ROOM2"], area=0.5)
+        >>> hatch = CeilingFloorVent(
+        ...     id="HATCH2",
+        ...     comps_ids=["ROOM1", "ROOM2"],
+        ...     area=0.5,
+        ... )
         >>> updated_model = model.add_ceiling_floor_vent(hatch)
+        >>> len(updated_model.ceiling_floor_vents)
+        2
         """
         return self._add_component("cf_vent", vent)
 
@@ -886,8 +916,14 @@ class CFASTModel:
 
         Examples
         --------
-        >>> hvac = MechanicalVent(comp_ids=["ROOM1", "OUTSIDE"], flow_rate=0.5)
+        >>> hvac = MechanicalVent(
+        ...     id="FAN2",
+        ...     comps_ids=["ROOM1", "OUTSIDE"],
+        ...     flow=0.5,
+        ... )
         >>> updated_model = model.add_mechanical_vent(hvac)
+        >>> len(updated_model.mechanical_vents)
+        2
         """
         return self._add_component("mech_vent", vent)
 
@@ -908,9 +944,15 @@ class CFASTModel:
         Examples
         --------
         >>> sensor = Device.create_heat_detector(
-        ...     comp_id="ROOM1", location=[2.0, 2.0, 2.4], temperature=68.0
+        ...     id="HEAT_DET_1",
+        ...     comp_id="ROOM1",
+        ...     location=[2.0, 2.0, 2.4],
+        ...     setpoint=68.0,
+        ...     rti=50.0,
         ... )
         >>> updated_model = model.add_device(sensor)
+        >>> len(updated_model.devices)
+        2
         """
         return self._add_component("device", device)
 
@@ -931,9 +973,11 @@ class CFASTModel:
         Examples
         --------
         >>> wall_conn = SurfaceConnection.wall_connection(
-        ...     comp_ids=["ROOM1", "ROOM2"], fraction=0.5
+        ...     comp_id="ROOM2", comp_ids="ROOM1", fraction=0.5,
         ... )
         >>> updated_model = model.add_surface_connection(wall_conn)
+        >>> len(updated_model.surface_connections)
+        2
         """
         return self._add_component("surface_conn", connection)
 
@@ -1030,11 +1074,18 @@ class CFASTModel:
 
         Examples
         --------
-        >>> # Save with default filename
-        >>> path = model.save()
+        Save the input file to the model's configured path:
 
-        >>> # Save backup without changing model's file_name
-        >>> backup_path = model.save(file_name="backup/model_v1.in")
+        >>> path = model.save()
+        >>> path.endswith(".in")
+        True
+
+        Save a variant to a different path without mutating ``model``:
+
+        >>> alt_path = str(tmp_path / "variant.in")
+        >>> saved = model.save(file_name=alt_path)
+        >>> saved == alt_path
+        True
         """
         original_file_name = self.file_name
         if file_name is not None:
@@ -1060,15 +1111,11 @@ class CFASTModel:
 
         Examples
         --------
-        >>> print(model.summary())
-        Model: my_simulation.in
-        Simulation: 'Building Fire Test' (3600s)
-
-        Material Properties (2):
-            Material(material='GYPSUM', conductivity=0.17, density=800...)
-
-        Compartment (2):
-            Compartment(id='ROOM1', width=4.0, depth=3.0, height=2.5...)
+        >>> summary = model.summary()
+        >>> "Simulation:" in summary
+        True
+        >>> "Components:" in summary
+        True
         """
         lines: list[str] = []
 
@@ -1150,9 +1197,10 @@ class CFASTModel:
 
         Examples
         --------
-        >>> print(model.view_cfast_input_file())  # Pretty-printed with line numbers
-        >>> content = model.view_cfast_input_file(pretty_print=False)  # Raw content
-        >>> print(content)
+        >>> _ = model.save()
+        >>> content = model.view_cfast_input_file(pretty_print=False)
+        >>> "&HEAD" in content
+        True
         """
         if not self._input_written:
             raise RuntimeError(

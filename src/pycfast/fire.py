@@ -342,13 +342,19 @@ class Fire(CFASTComponent):
 
         Examples
         --------
-        >>> fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="WOOD",
-        ...               location=[1.0, 1.0], data_table=[[0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]])
+        >>> fire = Fire(
+        ...     id="FIRE1",
+        ...     comp_id="ROOM1",
+        ...     fire_id="WOOD",
+        ...     location=[1.0, 1.0],
+        ...     data_table=[[0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]],
+        ... )
         >>> print(fire.to_input_string())
         &FIRE ID = 'FIRE1' COMP_ID = 'ROOM1' FIRE_ID = 'WOOD' LOCATION = 1.0, 1.0 /
-        &CHEM ID = 'WOOD' CARBON = 1 ... /
-        &TABL ID = 'WOOD' LABELS = 'TIME', 'HRR', ... /
-        &TABL ID = 'WOOD' DATA = 0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0 /
+        &CHEM ID = 'WOOD' CARBON = 1 ... RADIATIVE_FRACTION = 0.35 /
+        &TABL ID = 'WOOD' LABELS = 'TIME', 'HRR', ... 'TRACE_YIELD' /
+        &TABL ID = 'WOOD' DATA = 0.0, 1000.0, 0.5, 1.0, 0.01, 0.01, 0.0, 0.0, 0.0 /
+        <BLANKLINE>
         """
         # &FIRE record
         fire_rec = NamelistRecord("FIRE")
@@ -413,11 +419,15 @@ class Fire(CFASTComponent):
 
         Examples
         --------
-        >>> fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="WOOD",
-        ...               location=[1.0, 1.0],
-        ...               data_table=[[0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]])
+        >>> fire = Fire(
+        ...     id="FIRE1",
+        ...     comp_id="ROOM1",
+        ...     fire_id="WOOD",
+        ...     location=[1.0, 1.0],
+        ...     data_table=[[0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]],
+        ... )
         >>> df = fire.to_dataframe()
-        >>> df['HRR'].max()  # Find peak heat release rate
+        >>> float(df['HRR'].max())  # Find peak heat release rate
         1000.0
         """
         return pd.DataFrame(self.data_table, columns=self.LABELS)

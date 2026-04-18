@@ -7,9 +7,10 @@ help:
 	@echo "  make install-docs       Install the package with documentation dependencies"
 	@echo "  make install-examples   Install the package with examples dependencies"
 	@echo "  make install-all        Install all dependencies (dev, docs, examples)"
-	@echo "  make test               Run all tests"
+	@echo "  make test               Run all tests (units + verification + doctests)"
 	@echo "  make test-units         Run unit tests only"
 	@echo "  make test-verif         Run verification tests only"
+	@echo "  make test-doctest       Run docstring examples validation only"
 	@echo "  make cov                Run tests with coverage report"
 	@echo "  make check              Lint the code with ruff"
 	@echo "  make format             Format the code with ruff"
@@ -37,13 +38,16 @@ install-all:
 	uv sync --extra all
 
 test:
-	uv run pytest tests/
+	uv run pytest
 
 test-units:
 	uv run pytest tests/units/
 
 test-verif:
 	uv run pytest tests/verification_tests/
+
+test-doctest:
+	uv run pytest --doctest-modules src/pycfast/
 
 cov:
 	uv run pytest --cov=src/pycfast tests/ --cov-report=term-missing --cov-report=html
