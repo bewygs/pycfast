@@ -295,6 +295,12 @@ class CFASTModel:
         pd.errors.ParserError:
             If output CSV files cannot be parsed
 
+        Warns
+        -----
+        RuntimeWarning
+            If CFAST execution exceeds the timeout, or if an expected output
+            CSV file is missing, empty, or cannot be read.
+
         Examples
         --------
         >>> results = model.run()
@@ -363,12 +369,17 @@ class CFASTModel:
                         df = pd.read_csv(csv_file, **read_args)  # type: ignore[call-overload]
                         dataframes[suffix] = df
                     except pd.errors.EmptyDataError:
-                        warnings.warn(f"Output CSV is empty: {csv_file}", stacklevel=2)
+                        warnings.warn(
+                            f"Output CSV is empty: {csv_file}",
+                            RuntimeWarning,
+                            stacklevel=2,
+                        )
                         dataframes[suffix] = pd.DataFrame()
                         continue
                     except Exception as e:
                         warnings.warn(
                             f"Failed to read CSV file: {csv_file}. Error: {e}",
+                            RuntimeWarning,
                             stacklevel=2,
                         )
                         dataframes[suffix] = None
@@ -376,6 +387,7 @@ class CFASTModel:
                     if suffix not in optional_csvs:
                         warnings.warn(
                             f"Expected output CSV file not found: {csv_file}",
+                            RuntimeWarning,
                             stacklevel=2,
                         )
                     dataframes[suffix] = None
@@ -506,7 +518,7 @@ class CFASTModel:
         """
         new_model = copy.deepcopy(self)
         if getattr(new_model, "simulation_environment", None) is None:
-            raise AttributeError("Model has no simulation_environment object")
+            raise ValueError("Model has no simulation_environment object")
 
         self._apply_kwargs(
             new_model.simulation_environment, "Simulation environment", kwargs

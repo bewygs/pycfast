@@ -233,32 +233,44 @@ class Fire(CFASTComponent):
         ------
         ValueError
             If any attribute violates the constraints.
+
+        Warns
+        -----
+        UserWarning
+            If carbon and hydrogen are both 0 (no hydrocarbon fuel), or if
+            radiative_fraction is outside [0, 1].
         """
         if len(self.location) != 2:
-            raise ValueError("Location must be a list of two floats [x, y].")
+            raise ValueError(
+                f"Fire '{self.id}': location must be a list of two floats [x, y]."
+            )
 
         if self.heat_of_combustion <= 0:
             raise ValueError(
-                f"heat_of_combustion must be positive, got {self.heat_of_combustion}."
+                f"Fire '{self.id}': heat_of_combustion must be positive, "
+                f"got {self.heat_of_combustion}."
             )
 
         for attr in ("carbon", "hydrogen", "nitrogen", "oxygen", "chlorine"):
             val = getattr(self, attr)
             if val < 0:
-                raise ValueError(f"{attr} must be non-negative, got {val}.")
+                raise ValueError(
+                    f"Fire '{self.id}': {attr} must be non-negative, got {val}."
+                )
 
         if self.carbon == 0 and self.hydrogen == 0:
             warnings.warn(
-                "carbon=0 and hydrogen=0: fuel contains no hydrocarbon. "
-                "CFAST requires a hydrocarbon fuel, this may cause inaccurate results.",
+                f"Fire '{self.id}': carbon=0 and hydrogen=0: fuel contains no "
+                "hydrocarbon. CFAST requires a hydrocarbon fuel, this may cause "
+                "inaccurate results.",
                 UserWarning,
                 stacklevel=2,
             )
 
         if not 0.0 <= self.radiative_fraction <= 1.0:
             warnings.warn(
-                f"radiative_fraction={self.radiative_fraction} is outside [0, 1]. "
-                "This may cause inaccurate results.",
+                f"Fire '{self.id}': radiative_fraction={self.radiative_fraction} "
+                "is outside [0, 1]. This may cause inaccurate results.",
                 UserWarning,
                 stacklevel=2,
             )
@@ -432,10 +444,24 @@ class Fire(CFASTComponent):
         -------
         list[list[float]]
             Standardized data table as list of lists.
+
+        Raises
+        ------
+        TypeError
+            If data_table is not one of the supported types.
+        ValueError
+            If data_table has the wrong shape, missing keys, mismatched column
+            lengths, or non-numeric values.
+
+        Warns
+        -----
+        UserWarning
+            If data_table is None (default zero-filled row is used).
         """
         if data_table is None:
             warnings.warn(
-                "data_table is None: will use default data with values set to 0.",
+                f"Fire '{self.id}': data_table is None, using default data with "
+                "values set to 0.",
                 UserWarning,
                 stacklevel=2,
             )
