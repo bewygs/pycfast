@@ -80,7 +80,7 @@ class TestMaterial:
     def test_init_invalid_id_length(self):
         """Test that initialization fails with ID too long."""
         with pytest.raises(
-            TypeError, match="id must be a string with no more than 16 characters"
+            ValueError, match="id must be no more than 16 characters long"
         ):
             Material(id="THIS_ID_IS_TOO_LONG_FOR_CFAST", material="Test Material")
 
@@ -396,16 +396,21 @@ class TestMaterialSetItemValidation:
     """Test validation in __setitem__ to ensure data integrity."""
 
     @pytest.mark.parametrize(
-        "invalid_id",
+        "invalid_id, expected_exc, expected_match",
         [
-            pytest.param("A" * 17, id="too-long"),
-            pytest.param(123, id="not-a-string"),
+            pytest.param(
+                "A" * 17,
+                ValueError,
+                "id must be no more than 16 characters long",
+                id="too-long",
+            ),
+            pytest.param(123, TypeError, "id must be a string", id="not-a-string"),
         ],
     )
-    def test_setitem_invalid_id(self, invalid_id):
+    def test_setitem_invalid_id(self, invalid_id, expected_exc, expected_match):
         """Test that __setitem__ rejects invalid id values."""
         mat = Material(id="VALID", material="Concrete", conductivity=1.6, density=2400)
-        with pytest.raises(TypeError, match="id must be a string"):
+        with pytest.raises(expected_exc, match=expected_match):
             mat["id"] = invalid_id
 
     def test_setitem_valid_id(self):
@@ -426,7 +431,7 @@ class TestMaterialSetItemValidation:
             id="VALID_ID", material="Concrete", conductivity=1.6, density=2400
         )
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             mat["id"] = "A" * 17  # Too long
 
         assert mat.id == "VALID_ID"
