@@ -142,6 +142,11 @@ class SurfaceConnection(CFASTComponent):
         ------
         ValueError
             If any attribute violates the constraints.
+
+        Warns
+        -----
+        UserWarning
+            If fraction is provided for a FLOOR connection (should be None).
         """
         valid_types = {"WALL", "FLOOR"}
         if self.conn_type not in valid_types:

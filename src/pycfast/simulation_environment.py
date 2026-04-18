@@ -142,6 +142,13 @@ class SimulationEnvironment(CFASTComponent):
         ------
         ValueError
             If any attribute violates the constraints.
+
+        Warns
+        -----
+        UserWarning
+            If time_simulation exceeds 86400 s (CFAST maximum), title exceeds
+            50 characters (will be truncated), relative_humidity is outside
+            [0, 100] %, or an ambient temperature is below absolute zero.
         """
         if self.time_simulation is not None and self.time_simulation <= 0:
             raise ValueError(

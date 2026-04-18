@@ -94,10 +94,20 @@ class Material(CFASTComponent):
         Raises
         ------
         TypeError
-            If id is not a string or exceeds 16 characters.
+            If id is not a string.
+        ValueError
+            If id is longer than 16 characters, or if conductivity, density,
+            specific_heat, or thickness is not positive.
+
+        Warns
+        -----
+        UserWarning
+            If emissivity is outside [0, 1].
         """
-        if not isinstance(self.id, str) or len(self.id) > 16:
-            raise TypeError("id must be a string with no more than 16 characters.")
+        if not isinstance(self.id, str):
+            raise TypeError("id must be a string.")
+        if len(self.id) > 16:
+            raise ValueError("id must be no more than 16 characters long.")
 
         for prop, val in (
             ("conductivity", self.conductivity),
@@ -112,8 +122,8 @@ class Material(CFASTComponent):
 
         if self.emissivity is not None and not 0.0 <= self.emissivity <= 1.0:
             warnings.warn(
-                f"Material '{self.id}': emissivity={self.emissivity} is outside [0, 1]."
-                "This may cause inaccurate results.",
+                f"Material '{self.id}': emissivity={self.emissivity} is outside "
+                "[0, 1]. This may cause inaccurate results.",
                 UserWarning,
                 stacklevel=2,
             )

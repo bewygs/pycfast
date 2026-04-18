@@ -302,6 +302,11 @@ class Device(CFASTComponent):
         ------
         ValueError
             If any attribute violates the constraints.
+
+        Warns
+        -----
+        UserWarning
+            For SMOKE_DETECTOR devices, if obscuration is outside [0, 100] %/m.
         """
         if len(self.location) != 3 or not all(
             isinstance(coord, int | float) for coord in self.location

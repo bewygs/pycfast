@@ -103,7 +103,7 @@ class TestFire:
     )
     def test_init_invalid_location_length(self, location: list[float]):
         """Test that initialization fails with wrong location dimensions."""
-        with pytest.raises(ValueError, match="Location must be a list of two floats"):
+        with pytest.raises(ValueError, match="location must be a list of two floats"):
             Fire(
                 id="FIRE1",
                 comp_id="ROOM1",
@@ -859,13 +859,13 @@ class TestFireSetItemValidation:
     def test_setitem_invalid_location_too_few(self, make_fire):
         """Test that __setitem__ rejects location with wrong length."""
         fire = make_fire()
-        with pytest.raises(ValueError, match="Location must be a list of two floats"):
+        with pytest.raises(ValueError, match="location must be a list of two floats"):
             fire["location"] = [1.0]
 
     def test_setitem_invalid_location_too_many(self, make_fire):
         """Test that __setitem__ rejects location with too many elements."""
         fire = make_fire()
-        with pytest.raises(ValueError, match="Location must be a list of two floats"):
+        with pytest.raises(ValueError, match="location must be a list of two floats"):
             fire["location"] = [1.0, 2.0, 3.0]
 
     def test_setitem_valid_location(self, make_fire):

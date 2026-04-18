@@ -198,6 +198,11 @@ class MechanicalVent(CFASTComponent):
         ------
         ValueError
             If any attribute violates the constraints.
+
+        Warns
+        -----
+        UserWarning
+            If filter_time is negative.
         """
         if len(self.comps_ids) != 2:
             raise ValueError("comps_ids must contain exactly 2 compartment IDs.")

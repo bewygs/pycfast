@@ -143,6 +143,11 @@ class WallVent(CFASTComponent):
         ------
         ValueError
             If any attribute violates the constraints.
+
+        Warns
+        -----
+        UserWarning
+            If height or width is 0 (no flow will occur through this vent).
         """
         if len(self.comps_ids) != 2:
             raise ValueError("Wall vent must connect exactly 2 compartments")

@@ -1286,7 +1286,7 @@ class TestCFASTModel:
         delattr(model, "simulation_environment")
 
         with pytest.raises(
-            AttributeError, match="Model has no simulation_environment object"
+            ValueError, match="Model has no simulation_environment object"
         ):
             model.update_simulation_params(time_simulation=1000)
 
