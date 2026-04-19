@@ -1001,6 +1001,7 @@ class CFASTModel:
                     f"Available parameters: {', '.join(available)}"
                 )
             setattr(target, param, value)
+        target._validate()  # type: ignore[union-attr] # Ensure new values are valid
 
     def _get_available_attributes(self, obj: Any) -> list[str]:
         """Get list of available non-private, non-callable attributes."""
