@@ -52,6 +52,7 @@ docs = [
     "sphinx-copybutton>=0.5.2",
     "pydata-sphinx-theme>=0.16.1",
     "sphinx-autodoc-typehints>=3.0.1",
+    "sphinx-sitemap>=2.9.0",
 ]
 dev = [
     "ruff>=0.15.1",
