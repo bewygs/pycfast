@@ -266,17 +266,40 @@ class TestCompartment:
         assert "DEPTH" not in result
         assert "HEIGHT" not in result
 
-    def test_init_cross_sect_areas_only(self):
-        """Test initialization with cross_sect_areas but no heights."""
-        comp = Compartment(id="ROOM1", cross_sect_areas=[10.0, 15.0])
-        assert comp.cross_sect_areas == [10.0, 15.0]
-        assert comp.cross_sect_heights is None
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            pytest.param({"cross_sect_areas": [10.0, 15.0]}, id="areas-only"),
+            pytest.param({"cross_sect_heights": [1.0, 2.0]}, id="heights-only"),
+        ],
+    )
+    def test_init_cross_sect_one_sided(self, kwargs):
+        """Test that providing only one of cross_sect_areas/heights raises ValueError."""
+        with pytest.raises(
+            ValueError,
+            match="cross_sect_areas and cross_sect_heights must both be provided or both be None",
+        ):
+            Compartment(id="ROOM1", **kwargs)
 
-    def test_init_cross_sect_heights_only(self):
-        """Test initialization with cross_sect_heights but no areas."""
-        comp = Compartment(id="ROOM1", cross_sect_heights=[1.0, 2.0])
-        assert comp.cross_sect_heights == [1.0, 2.0]
-        assert comp.cross_sect_areas is None
+    @pytest.mark.parametrize(
+        ("param", "value"),
+        [
+            pytest.param("leak_area_ratio", (0.1, 0.2), id="leak_area_ratio-tuple"),
+            pytest.param("cross_sect_areas", (10.0, 15.0), id="cross_sect_areas-tuple"),
+            pytest.param(
+                "cross_sect_heights", (1.0, 2.0), id="cross_sect_heights-tuple"
+            ),
+        ],
+    )
+    def test_init_type_error_list_params(self, param: str, value):
+        """Test that non-list values for list parameters raise TypeError."""
+        kwargs: dict = {"id": "ROOM1"}
+        if param == "cross_sect_areas":
+            kwargs["cross_sect_heights"] = [1.0, 2.0]
+        if param == "cross_sect_heights":
+            kwargs["cross_sect_areas"] = [10.0, 15.0]
+        with pytest.raises(TypeError, match=f"{param} must be a list"):
+            Compartment(**kwargs, **{param: value})
 
     # Tests for dunder methods
     def test_repr(self) -> None:
@@ -409,11 +432,25 @@ class TestCompartment:
         comp["leak_area_ratio"] = [0.001, 0.002]
         assert comp.leak_area_ratio == [0.001, 0.002]
 
-        comp["cross_sect_areas"] = [10.0, 15.0, 20.0]
-        assert comp.cross_sect_areas == [10.0, 15.0, 20.0]
+    def test_setitem_cross_sect_requires_both_set(self) -> None:
+        """Test that cross_sect_areas/heights cannot be set individually via __setitem__.
 
-        comp["cross_sect_heights"] = [1.0, 2.0, 3.0]
-        assert comp.cross_sect_heights == [1.0, 2.0, 3.0]
+        Both fields must be provided together at construction time. Setting one while
+        the other is None violates the constraint set by _validate().
+        """
+        comp = Compartment(id="ROOM1")
+        with pytest.raises(ValueError, match="must both be provided or both be None"):
+            comp["cross_sect_areas"] = [10.0, 15.0, 20.0]
+
+    def test_setitem_cross_sect_update_when_both_set(self) -> None:
+        """Test updating cross_sect_areas when both lists are pre-set and lengths match."""
+        comp = Compartment(
+            id="ROOM1",
+            cross_sect_areas=[10.0, 15.0],
+            cross_sect_heights=[1.0, 2.0],
+        )
+        comp["cross_sect_areas"] = [12.0, 18.0]
+        assert comp.cross_sect_areas == [12.0, 18.0]
 
     def test_setitem_invalid_key(self) -> None:
         """Test __setitem__ method with invalid key."""
