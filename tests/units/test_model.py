@@ -1703,6 +1703,7 @@ class TestCFASTModelValidateDependencies:
                     comps_ids=["ROOM1", "ROOM2"],
                     area=1.0,
                     open_close_criterion="TEMPERATURE",
+                    set_point=70.0,
                     device_id="UNKNOWN",
                 ),
                 id="ceiling-floor-vent",
