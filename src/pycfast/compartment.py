@@ -177,6 +177,22 @@ class Compartment(CFASTComponent):
                 f"Compartment '{self.id}': shaft and hall cannot both be True."
             )
 
+        for param, list_val in (
+            ("leak_area_ratio", self.leak_area_ratio),
+            ("cross_sect_areas", self.cross_sect_areas),
+            ("cross_sect_heights", self.cross_sect_heights),
+        ):
+            if list_val is not None and not isinstance(list_val, list):
+                raise TypeError(
+                    f"Compartment '{self.id}': {param} must be a list, got {type(list_val).__name__}."
+                )
+
+        if (self.cross_sect_areas is None) != (self.cross_sect_heights is None):
+            raise ValueError(
+                f"Compartment '{self.id}': cross_sect_areas and cross_sect_heights "
+                "must both be provided or both be None."
+            )
+
         if self.cross_sect_areas is not None and self.cross_sect_heights is not None:
             if len(self.cross_sect_areas) != len(self.cross_sect_heights):
                 raise ValueError(
@@ -300,7 +316,7 @@ class Compartment(CFASTComponent):
             sanitized = [v if v is not None else 0 for v in origin_values]
             rec.add_list_field("ORIGIN", sanitized)
 
-        rec.add_list_field("GRID", [50, 50, 50])
+        rec.add_list_field("GRID", [50, 50, 50])  # Fixed by CFAST
         rec.add_list_field("LEAK_AREA_RATIO", self.leak_area_ratio)
 
         return rec.build()
