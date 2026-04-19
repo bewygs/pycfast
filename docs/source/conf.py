@@ -74,6 +74,7 @@ add_function_parentheses = False
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 html_title = "PyCFAST"
 html_baseurl = "https://pycfast.org/"
+sitemap_url_scheme = "{link}"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 templates_path = ["_templates"]
