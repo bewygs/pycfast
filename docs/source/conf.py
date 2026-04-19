@@ -29,6 +29,7 @@ extensions = [
     "sphinx_autodoc_typehints",
     "myst_parser",  # markdown support (MyST)
     "sphinx_gallery.gen_gallery",
+    "sphinx_sitemap",
 ]
 autosummary_generate = True
 autodoc_default_options = {"members": False, "undoc-members": False, "inherited-members": True}
@@ -72,6 +73,7 @@ add_function_parentheses = False
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 html_title = "PyCFAST"
+html_baseurl = "https://pycfast.org/"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 templates_path = ["_templates"]
