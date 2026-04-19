@@ -777,7 +777,7 @@ class CFASTParser:
         """Parse DEVC namelist block."""
         device_type = self._get_param(params, "TYPE", required=True, param_type=str)
 
-        if device_type in ("CYLINDER", "PLATE"):
+        if device_type in {"CYLINDER", "PLATE"}:
             param_map = {
                 "id": {"source": "ID", "required": True, "type": str},
                 "comp_id": {"source": "COMP_ID", "required": True, "type": str},

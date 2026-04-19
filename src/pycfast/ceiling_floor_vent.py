@@ -212,12 +212,12 @@ class CeilingFloorVent(CFASTComponent):
                 f"CeilingFloorVent '{self.id}': offsets must be a list of two values [x_offset, y_offset], got {self.offsets}."
             )
 
-        if self.type not in ("FLOOR", "CEILING"):
+        if self.type not in {"FLOOR", "CEILING"}:
             raise ValueError(
                 f"CeilingFloorVent '{self.id}': type must be 'FLOOR' or 'CEILING', got '{self.type}'."
             )
 
-        if self.shape not in ("ROUND", "SQUARE"):
+        if self.shape not in {"ROUND", "SQUARE"}:
             raise ValueError(
                 f"CeilingFloorVent '{self.id}': shape must be 'ROUND' or 'SQUARE', got '{self.shape}'."
             )
@@ -228,20 +228,20 @@ class CeilingFloorVent(CFASTComponent):
             )
 
         if self.open_close_criterion is not None:
-            valid_criteria = ("TIME", "TEMPERATURE", "FLUX")
+            valid_criteria = {"TIME", "TEMPERATURE", "FLUX"}
             if self.open_close_criterion not in valid_criteria:
                 raise ValueError(
                     f"CeilingFloorVent '{self.id}': open_close_criterion must be one of {valid_criteria}, got '{self.open_close_criterion}'."
                 )
             if (
-                self.open_close_criterion in ("TEMPERATURE", "FLUX")
+                self.open_close_criterion in {"TEMPERATURE", "FLUX"}
                 and self.set_point is None
             ):
                 raise ValueError(
                     f"CeilingFloorVent '{self.id}': set_point must be specified when open_close_criterion is '{self.open_close_criterion}', got set_point={self.set_point}."
                 )
             if (
-                self.open_close_criterion in ("TEMPERATURE", "FLUX")
+                self.open_close_criterion in {"TEMPERATURE", "FLUX"}
                 and self.device_id is None
             ):
                 raise ValueError(
@@ -325,7 +325,7 @@ class CeilingFloorVent(CFASTComponent):
 
         if self.open_close_criterion is not None:
             rec.add_field("CRITERION", self.open_close_criterion)
-            if self.open_close_criterion in ("TEMPERATURE", "FLUX"):
+            if self.open_close_criterion in {"TEMPERATURE", "FLUX"}:
                 rec.add_numeric_field("SETPOINT", self.set_point)
                 rec.add_field("DEVC_ID", self.device_id)
                 rec.add_field("PRE_FRACTION", self.pre_fraction)
