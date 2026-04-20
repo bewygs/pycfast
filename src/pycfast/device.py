@@ -76,21 +76,19 @@ class Device(CFASTComponent):
     depth_units : str
         Units for depth measurement. Default: "M" for meters.
     setpoint : float, optional
-        For heat detectors and sprinklers: the temperature at or above which the
-        detector link activates. Default units: °C, default value: dependent on type.
-        For smoke detectors: the obscuration at or above which the detector activates.
-        Default units: %/m, default value: 23.93 %/m (8 %/ft).
+        Temperature at or above which the detector link activates.
+        Required for HEAT_DETECTOR and SPRINKLER. Default units: °C.
     rti : float, optional
         The Response Time Index (RTI) for the sprinkler or detection device.
-        Default units: (m·s)^(1/2).
+        Required for HEAT_DETECTOR and SPRINKLER. Default units: (m·s)^(1/2).
     obscuration : float
         The obscuration at or above which the smoke detector activates.
-        Default units: %/m, default value: 23.93 %/m (8 %/ft).
+        Only used for SMOKE_DETECTOR. Default units: %/m, default value: 23.93 %/m (8 %/ft).
     spray_density : float, optional
         The amount of water dispersed by a sprinkler. The units for spray density
         are length/time, derived by dividing the volumetric flow rate by the spray
         area. The suppression calculation is based upon an experimental correlation
-        by Evans. Default units: m/s.
+        by Evans. Required for SPRINKLER. Default units: m/s.
     adiabatic : bool
         Usually should never be used, only when DIAG. Default: False.
     convection_coefficients : list[float], optional
@@ -98,12 +96,14 @@ class Device(CFASTComponent):
 
     Raises
     ------
+    TypeError
+        If location, normal, or convection_coefficients is not a list.
     ValueError
-        If location is not a list of 3 numbers.
+        If location does not contain exactly 3 numeric values.
         If target type is specified but required target parameters are missing.
         If detector type is specified but required detector parameters are missing.
         If both normal and surface_orientation are specified or both are None.
-        If normal vector is not a list of 3 numbers.
+        If normal vector does not contain exactly 3 numeric values.
         If unknown device type is specified.
 
     Examples
@@ -129,8 +129,7 @@ class Device(CFASTComponent):
     ...     type="HEAT_DETECTOR",
     ...     material_id="STEEL",
     ...     setpoint=68,
-    ...     rti=50,
-    ...     temperature_depth=0.5
+    ...     rti=50
     ... )
 
     Create a sprinkler:
@@ -143,8 +142,7 @@ class Device(CFASTComponent):
     ...     material_id="STEEL",
     ...     setpoint=74,
     ...     rti=100,
-    ...     spray_density=0.002,
-    ...     temperature_depth=0.5
+    ...     spray_density=0.002
     ... )
 
     Create a smoke detector:
@@ -155,8 +153,7 @@ class Device(CFASTComponent):
     ...     location=[5.0, 1.0, 2.4],
     ...     type="SMOKE_DETECTOR",
     ...     material_id="PLASTIC",
-    ...     obscuration=23.93,
-    ...     temperature_depth=0.5
+    ...     obscuration=23.93
     ... )
 
     Notes
@@ -223,11 +220,14 @@ class Device(CFASTComponent):
             self.temperature_depth = temperature_depth
             self.depth_units = depth_units
 
-        elif type in detector_types:
+        elif type == "SMOKE_DETECTOR":
+            self.obscuration = obscuration
+
+        elif type in {"HEAT_DETECTOR", "SPRINKLER"}:
             self.setpoint = setpoint
             self.rti = rti
-            self.spray_density = spray_density
-            self.obscuration = obscuration
+            if type == "SPRINKLER":
+                self.spray_density = spray_density
 
         else:
             raise ValueError(
@@ -595,7 +595,6 @@ class Device(CFASTComponent):
         id: str,
         comp_id: str,
         location: list[float | int],
-        setpoint: float,
         obscuration: float = 23.93,
     ) -> Device:
         """
@@ -609,23 +608,29 @@ class Device(CFASTComponent):
             Compartment ID
         location: list[float | int]
             [x, y, z] position
-        setpoint: float
-            Activation threshold (e.g., obscuration)
         obscuration: float
-            Obscuration value, default: 23.93 %/m
+            Obscuration threshold in %/m, default: 23.93 %/m (8 %/ft)
 
         Returns
         -------
         Device
             Device instance configured as a smoke detector
+
+        Examples
+        --------
+        >>> smoke_det = Device.create_smoke_detector(
+        ...     id="SMOKE_DET_1",
+        ...     comp_id="ROOM1",
+        ...     location=[5.0, 1.0, 2.4],
+        ...     obscuration=23.93
+        ... )
         """
         return cls(
             id=id,
             comp_id=comp_id,
             location=location,
             type="SMOKE_DETECTOR",
-            material_id="",  # Not used for detectors
-            setpoint=setpoint,
+            material_id="",
             obscuration=obscuration,
         )
 

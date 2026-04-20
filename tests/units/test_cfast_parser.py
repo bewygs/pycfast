@@ -682,7 +682,6 @@ class TestCFASTParser:
             "ID": "SD1",
             "COMP_ID": "Room1",
             "LOCATION": [2.0, 2.0, 2.5],
-            "SETPOINT": 3.0,
             "OBSCURATION": 0.1,
         }
 

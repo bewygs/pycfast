@@ -820,7 +820,6 @@ class CFASTParser:
                 "id": {"source": "ID", "required": True, "type": str},
                 "comp_id": {"source": "COMP_ID", "required": True, "type": str},
                 "location": {"source": "LOCATION", "required": True, "type": list},
-                "setpoint": {"source": "SETPOINT", "required": True, "type": float},
                 "obscuration": {
                     "source": "OBSCURATION",
                     "default": 23.9334605082804,

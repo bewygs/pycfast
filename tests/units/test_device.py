@@ -572,7 +572,6 @@ class TestDevice:
                     "id": "SD1",
                     "comp_id": "ROOM1",
                     "location": [2.0, 2.0, 2.3],
-                    "setpoint": 25.0,
                     "obscuration": 25.0,
                 },
                 "SMOKE_DETECTOR",
@@ -694,14 +693,12 @@ class TestDevice:
             id="SD_01",
             comp_id="HALLWAY",
             location=[3.0, 1.0, 2.4],
-            setpoint=5.0,
             obscuration=20.0,
         )
 
         str_repr = str(device)
         assert "Detector 'SD_01' (Smoke Detector)" in str_repr
         assert "in 'HALLWAY'" in str_repr
-        assert "setpoint: 5.0" in str_repr
 
     def test_str_sprinkler(self):
         """Test __str__ method for sprinkler."""
@@ -870,7 +867,6 @@ class TestDeviceSetItemValidation:
             id="SD1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 3.0],
-            setpoint=5.0,
         )
         device["location"] = [4.0, 5.0, 6.0]
         assert device.location == [4.0, 5.0, 6.0]
