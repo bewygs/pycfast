@@ -638,7 +638,6 @@ class CFASTParser:
             },
             "area": {"source": "AREA", "default": 0.0, "type": float},
             "shape": {"source": "SHAPE", "default": "ROUND", "type": str},
-            "width": {"source": "WIDTH", "type": float},
             "offsets": {"source": "OFFSETS", "default": [0, 0], "type": list},
             "open_close_criterion": {"source": "CRITERION", "type": str},
             "time": {"source": "T", "type": list},

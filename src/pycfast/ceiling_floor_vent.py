@@ -42,8 +42,6 @@ class CeilingFloorVent(CFASTComponent):
     shape : str, optional
         The shape factor changes the calculation of the effective diameter of the vent and
         flow coefficients for flow through the vent. Options: "ROUND" or "SQUARE".
-    width : float, optional
-        Characteristic dimension for visualization purposes.
     offsets : list[float], optional
         For visualization only, the horizontal distances between the center of the vent and
         the origin of the X and Y axes in the upper compartment. Format: [x_offset, y_offset].
@@ -101,7 +99,6 @@ class CeilingFloorVent(CFASTComponent):
     ...     comps_ids=["UPPER_RM", "LOWER_RM"],
     ...     area=1.0,
     ...     shape="ROUND",
-    ...     width=1.13,
     ...     offsets=[2.0, 3.0]
     ... )
     """
@@ -113,7 +110,6 @@ class CeilingFloorVent(CFASTComponent):
         area: float = 0,
         type: str = "FLOOR",  # "FLOOR" or "CEILING" this doesn't seem to change final results
         shape: str = "ROUND",  # "ROUND" or "SQUARE"
-        width: float | None = None,
         offsets: list[float] | None = None,  # [x, y] position in meters
         open_close_criterion: str | None = None,  # can be "TIME","FLUX","TEMPERATURE"
         time: list[float] | None = None,  # Time series for opening changes
@@ -132,7 +128,6 @@ class CeilingFloorVent(CFASTComponent):
         self.comps_ids = comps_ids
         self.area = area
         self.shape = shape
-        self.width = width
         self.offsets = offsets
         self.open_close_criterion = open_close_criterion
         self.time = time
@@ -222,11 +217,6 @@ class CeilingFloorVent(CFASTComponent):
                 f"CeilingFloorVent '{self.id}': shape must be 'ROUND' or 'SQUARE', got '{self.shape}'."
             )
 
-        if self.width is not None and self.width <= 0:
-            raise ValueError(
-                f"CeilingFloorVent '{self.id}': width must be positive, got {self.width}."
-            )
-
         if self.open_close_criterion is not None:
             valid_criteria = {"TIME", "TEMPERATURE", "FLUX"}
             if self.open_close_criterion not in valid_criteria:
@@ -272,7 +262,7 @@ class CeilingFloorVent(CFASTComponent):
             f"id='{self.id}', "
             f"comps_ids={self.comps_ids}, "
             f"area={self.area}, type='{self.type}', shape='{self.shape}', "
-            f"width={self.width}, offsets={self.offsets}"
+            f"offsets={self.offsets}"
             ")"
         )
 
@@ -283,8 +273,6 @@ class CeilingFloorVent(CFASTComponent):
         shape_info = f"shape: {self.shape}"
 
         optional_info = []
-        if self.width:
-            optional_info.append(f"width: {self.width}")
         if self.open_close_criterion:
             optional_info.append(f"criterion: {self.open_close_criterion}")
 

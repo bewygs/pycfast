@@ -35,7 +35,6 @@ class TestCeilingFloorVent:
         assert vent.comps_ids == ["UPPER", "LOWER"]
         assert vent.area == 1.0
         assert vent.shape == "ROUND"
-        assert vent.width is None
         assert vent.offsets == [0, 0]
 
     def test_init_with_all_parameters(self):
@@ -45,7 +44,6 @@ class TestCeilingFloorVent:
             comps_ids=["UPPER", "LOWER"],
             area=2.5,
             shape="SQUARE",
-            width=1.58,
             offsets=[2.0, 3.0],
             open_close_criterion="TEMPERATURE",
             set_point=150.0,
@@ -57,7 +55,6 @@ class TestCeilingFloorVent:
         assert vent.comps_ids == ["UPPER", "LOWER"]
         assert vent.area == 2.5
         assert vent.shape == "SQUARE"
-        assert vent.width == 1.58
         assert vent.offsets == [2.0, 3.0]
         assert vent.open_close_criterion == "TEMPERATURE"
         assert vent.set_point == 150.0
@@ -155,20 +152,6 @@ class TestCeilingFloorVent:
                 comps_ids=["UPPER", "LOWER"],
                 area=1.0,
                 shape=invalid_shape,
-            )
-
-    @pytest.mark.parametrize(
-        "invalid_width",
-        [pytest.param(0.0, id="zero"), pytest.param(-1.0, id="negative")],
-    )
-    def test_invalid_width(self, invalid_width: float):
-        """Test that non-positive width values are rejected."""
-        with pytest.raises(ValueError, match="width must be positive"):
-            CeilingFloorVent(
-                id="VENT1",
-                comps_ids=["UPPER", "LOWER"],
-                area=1.0,
-                width=invalid_width,
             )
 
     def test_invalid_offsets_length(self):
@@ -419,7 +402,6 @@ class TestCeilingFloorVent:
             comps_ids=["TOP_ROOM", "BOTTOM_ROOM"],
             area=3.14,
             shape="ROUND",
-            width=2.0,
             offsets=[1.0, 2.0],
             open_close_criterion="TIME",
             time=[0.0, 50.0, 100.0],
@@ -452,7 +434,6 @@ class TestCeilingFloorVent:
             comps_ids=["UPPER_FLOOR", "LOWER_FLOOR"],
             area=2.0,
             shape="SQUARE",
-            width=1.4,
             offsets=[1.0, 2.0],
         )
 
@@ -462,7 +443,6 @@ class TestCeilingFloorVent:
         assert "comps_ids=['UPPER_FLOOR', 'LOWER_FLOOR']" in repr_str
         assert "area=2.0" in repr_str
         assert "shape='SQUARE'" in repr_str
-        assert "width=1.4" in repr_str
         assert "offsets=[1.0, 2.0]" in repr_str
 
     def test_str(self):
@@ -472,7 +452,6 @@ class TestCeilingFloorVent:
             comps_ids=["UPPER_ROOM", "LOWER_ROOM"],
             area=3.5,
             shape="ROUND",
-            width=2.1,
         )
 
         str_repr = str(vent)
@@ -480,7 +459,6 @@ class TestCeilingFloorVent:
         assert "UPPER_ROOM ↕ LOWER_ROOM" in str_repr
         assert "area: 3.5 m²" in str_repr
         assert "shape: ROUND" in str_repr
-        assert "width: 2.1" in str_repr
 
     def test_str_with_criterion(self):
         """Test __str__ method with opening criterion."""
@@ -504,7 +482,6 @@ class TestCeilingFloorVent:
             comps_ids=["ROOM1", "ROOM2"],
             area=2.5,
             shape="SQUARE",
-            width=1.6,
             offsets=[1.0, 2.0],
         )
 
@@ -512,7 +489,6 @@ class TestCeilingFloorVent:
         assert vent["comps_ids"] == ["ROOM1", "ROOM2"]
         assert vent["area"] == 2.5
         assert vent["shape"] == "SQUARE"
-        assert vent["width"] == 1.6
         assert vent["offsets"] == [1.0, 2.0]
 
     def test_getitem_invalid_key(self) -> None:
@@ -536,9 +512,6 @@ class TestCeilingFloorVent:
 
         vent["shape"] = "SQUARE"
         assert vent.shape == "SQUARE"
-
-        vent["width"] = 1.8
-        assert vent.width == 1.8
 
     def test_setitem_invalid_key(self) -> None:
         """Test __setitem__ method with invalid key."""
