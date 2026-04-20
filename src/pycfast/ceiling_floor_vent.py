@@ -98,11 +98,11 @@ class CeilingFloorVent(CFASTComponent):
 
     >>> vent = CeilingFloorVent(
     ...     id="HOLE1",
-    ...     comps_ids=["UPPER_RM", "LOWER_RM"],  # top, bottom
-    ...     area=1.0,           # 1.0 m² cross-sectional area
+    ...     comps_ids=["UPPER_RM", "LOWER_RM"],
+    ...     area=1.0,
     ...     shape="ROUND",
-    ...     width=1.13,         # characteristic dimension
-    ...     offsets=[2.0, 3.0]   # 2m in X, 3m in Y from origin
+    ...     width=1.13,
+    ...     offsets=[2.0, 3.0]
     ... )
     """
 
