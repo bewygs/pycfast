@@ -178,6 +178,10 @@ class Device(CFASTComponent):
     obscuration due to limitations in the two-zone soot calculation.
     """
 
+    VALID_SURFACE_ORIENTATIONS: frozenset[str] = frozenset(
+        {"CEILING", "FRONT WALL", "BACK WALL", "LEFT WALL", "RIGHT WALL"}
+    )
+
     def __init__(
         self,
         id: str,
@@ -185,7 +189,9 @@ class Device(CFASTComponent):
         location: list[float | int],
         type: str,
         material_id: str,
-        surface_orientation: str | None = None,
+        surface_orientation: str
+        | None = None,  # can be a VALID_SURFACE_ORIENTATIONS value or a fire id
+        # we allow every string because device can't be linked to fire.id (not fire.fire_id) until CFASTModel is built
         normal: list[float | int] | None = None,
         thickness: float | None = None,
         temperature_depth: float = 0.5,

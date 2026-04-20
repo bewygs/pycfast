@@ -1455,3 +1455,17 @@ class CFASTModel:
                         UserWarning,
                         stacklevel=2,
                     )
+
+        avail_fire_ids = {fire.id for fire in self.fires}
+        for device in self.devices:
+            if device.type in {"PLATE", "CYLINDER"}:
+                if device.normal is None and device.surface_orientation is not None:
+                    if (
+                        device.surface_orientation
+                        not in Device.VALID_SURFACE_ORIENTATIONS
+                    ):
+                        if device.surface_orientation not in avail_fire_ids:
+                            raise ValueError(
+                                f"Device '{device.id}': surface_orientation='{device.surface_orientation}' "
+                                "is not a valid orientation and does not match any defined fire id."
+                            )
