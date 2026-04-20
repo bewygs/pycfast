@@ -248,9 +248,9 @@ class TestDevice:
                 temperature_depth=0.0005,
             )
 
-    def test_init_invalid_temperature_depth(self):
-        """Test that target initialization fails with invalid temperature_depth."""
-        with pytest.raises(ValueError, match=r"must be in \[0, 1\]\."):
+    def test_init_invalid_temperature_depth_fraction(self):
+        """Test that temperature_depth outside [0, 1] fails when depth_units is not 'M'."""
+        with pytest.raises(ValueError, match=r"must be in \[0, 1\]"):
             Device(
                 id="TARGET1",
                 comp_id="ROOM1",
@@ -258,8 +258,37 @@ class TestDevice:
                 type="PLATE",
                 material_id="STEEL",
                 normal=[0, 0, -1],
-                temperature_depth=1.5,  # Invalid value
+                depth_units="FRACTION",
+                temperature_depth=1.5,
             )
+
+    def test_init_invalid_temperature_depth_meters(self):
+        """Test that temperature_depth <= 0 fails when depth_units='M'."""
+        with pytest.raises(ValueError, match=r"must be > 0 when depth_units='M'"):
+            Device(
+                id="TARGET1",
+                comp_id="ROOM1",
+                location=[1.0, 2.0, 1.5],
+                type="PLATE",
+                material_id="STEEL",
+                normal=[0, 0, -1],
+                depth_units="M",
+                temperature_depth=-0.1,
+            )
+
+    def test_init_temperature_depth_meters_above_one(self):
+        """Test that temperature_depth > 1 is valid when depth_units='M'."""
+        device = Device(
+            id="TARGET1",
+            comp_id="ROOM1",
+            location=[1.0, 2.0, 1.5],
+            type="PLATE",
+            material_id="STEEL",
+            normal=[0, 0, -1],
+            depth_units="M",
+            temperature_depth=1.5,
+        )
+        assert device.temperature_depth == 1.5
 
     @pytest.mark.parametrize(
         ("device_type", "extra_kwargs"),

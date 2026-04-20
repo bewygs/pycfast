@@ -1697,6 +1697,56 @@ class TestCFASTModelValidateDependencies:
         with pytest.raises(ValueError, match="material_id='UNKNOWN' does not match"):
             self._make(sim_env, [room1], devices=[device])
 
+    def test_device_temperature_depth_exceeds_material_thickness(self, sim_env, room1):
+        """Test that temperature_depth >= material thickness raises ValueError."""
+        mat = Material(
+            id="STEEL",
+            material="Steel",
+            conductivity=45.8,
+            density=7850,
+            specific_heat=0.46,
+            thickness=0.01,
+        )
+        device = Device(
+            id="T1",
+            comp_id="ROOM1",
+            location=[1.0, 2.0, 1.5],
+            type="PLATE",
+            material_id="STEEL",
+            surface_orientation="CEILING",
+            depth_units="M",
+            temperature_depth=0.02,
+        )
+        with pytest.raises(
+            ValueError, match="temperature_depth=0.02 m must be less than"
+        ):
+            self._make(sim_env, [room1], devices=[device], material_properties=[mat])
+
+    def test_device_temperature_depth_valid_meters(self, sim_env, room1):
+        """Test that temperature_depth < material thickness is valid."""
+        mat = Material(
+            id="STEEL",
+            material="Steel",
+            conductivity=45.8,
+            density=7850,
+            specific_heat=0.46,
+            thickness=0.01,
+        )
+        device = Device(
+            id="T1",
+            comp_id="ROOM1",
+            location=[1.0, 2.0, 1.5],
+            type="PLATE",
+            material_id="STEEL",
+            surface_orientation="CEILING",
+            depth_units="M",
+            temperature_depth=0.005,
+        )
+        model = self._make(
+            sim_env, [room1], devices=[device], material_properties=[mat]
+        )
+        assert model.devices[0].temperature_depth == 0.005
+
     @pytest.mark.parametrize(
         "mat_attr", ["ceiling_mat_id", "wall_mat_id", "floor_mat_id"]
     )
