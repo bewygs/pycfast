@@ -178,8 +178,9 @@ class Device(CFASTComponent):
     obscuration due to limitations in the two-zone soot calculation.
     """
 
+    # FLOOR option is not available in CEdit but is used in verification file
     VALID_SURFACE_ORIENTATIONS: frozenset[str] = frozenset(
-        {"CEILING", "FRONT WALL", "BACK WALL", "LEFT WALL", "RIGHT WALL"}
+        {"CEILING", "FRONT WALL", "BACK WALL", "LEFT WALL", "RIGHT WALL", "FLOOR"}
     )
 
     def __init__(
