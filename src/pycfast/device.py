@@ -113,11 +113,11 @@ class Device(CFASTComponent):
     >>> target = Device(
     ...     id="WALL_TARGET",
     ...     comp_id="ROOM1",
-    ...     location=[2.0, 3.0, 1.5],     # 2m from left, 3m from front, 1.5m high
+    ...     location=[2.0, 3.0, 1.5],
     ...     type="PLATE",
     ...     material_id="GYPSUM",
-    ...     normal=[-1, 0, 0],            # Facing left wall
-    ...     temperature_depth=0.5         # Center of target
+    ...     normal=[-1, 0, 0],
+    ...     temperature_depth=0.5
     ... )
 
     Create a heat detector:
@@ -125,11 +125,11 @@ class Device(CFASTComponent):
     >>> detector = Device(
     ...     id="HEAT_DET_1",
     ...     comp_id="KITCHEN",
-    ...     location=[2.5, 2.5, 2.4],     # Ceiling mounted
+    ...     location=[2.5, 2.5, 2.4],
     ...     type="HEAT_DETECTOR",
-    ...     material_id="STEEL",          # Detector material
-    ...     setpoint=68,                  # Activate at 68°C
-    ...     rti=50,                       # RTI of 50 (m·s)^(1/2)
+    ...     material_id="STEEL",
+    ...     setpoint=68,
+    ...     rti=50,
     ...     temperature_depth=0.5
     ... )
 
@@ -138,12 +138,12 @@ class Device(CFASTComponent):
     >>> sprinkler = Device(
     ...     id="SPRINKLER_1",
     ...     comp_id="OFFICE",
-    ...     location=[3.0, 3.0, 2.4],     # Ceiling mounted
+    ...     location=[3.0, 3.0, 2.4],
     ...     type="SPRINKLER",
     ...     material_id="STEEL",
-    ...     setpoint=74,                  # Activate at 74°C
-    ...     rti=100,                      # RTI of 100 (m·s)^(1/2)
-    ...     spray_density=0.002,          # 2 mm/s spray density
+    ...     setpoint=74,
+    ...     rti=100,
+    ...     spray_density=0.002,
     ...     temperature_depth=0.5
     ... )
 
@@ -152,10 +152,10 @@ class Device(CFASTComponent):
     >>> smoke_det = Device(
     ...     id="SMOKE_DET_1",
     ...     comp_id="CORRIDOR",
-    ...     location=[5.0, 1.0, 2.4],     # Ceiling mounted
+    ...     location=[5.0, 1.0, 2.4],
     ...     type="SMOKE_DETECTOR",
     ...     material_id="PLASTIC",
-    ...     obscuration=23.93,            # Default obscuration threshold
+    ...     obscuration=23.93,
     ...     temperature_depth=0.5
     ... )
 
@@ -204,13 +204,6 @@ class Device(CFASTComponent):
         adiabatic: bool = False,
         convection_coefficients: list[float] | None = None,
     ):
-        if len(location) != 3 or not all(
-            isinstance(coord, int | float) for coord in location
-        ):
-            raise ValueError(
-                "location must be a list of 3 numbers representing [x, y, z] position."
-            )
-
         # Define target and detector types
         target_types = {"PLATE", "CYLINDER"}
         detector_types = {"HEAT_DETECTOR", "SMOKE_DETECTOR", "SPRINKLER"}
@@ -315,6 +308,19 @@ class Device(CFASTComponent):
         UserWarning
             For SMOKE_DETECTOR devices, if obscuration is outside [0, 100] %/m.
         """
+        for param, list_val in (("location", self.location),):
+            if not isinstance(list_val, list):
+                raise TypeError(
+                    f"Device '{self.id}': {param} must be a list, got {type(list_val).__name__}."
+                )
+        if self.convection_coefficients is not None and not isinstance(
+            self.convection_coefficients, list
+        ):
+            raise TypeError(
+                f"Device '{self.id}': convection_coefficients must be a list, "
+                f"got {type(self.convection_coefficients).__name__}."
+            )
+
         if len(self.location) != 3 or not all(
             isinstance(coord, int | float) for coord in self.location
         ):
@@ -337,10 +343,12 @@ class Device(CFASTComponent):
                     "surface_orientation (but not both)"
                 )
             if self.normal is not None and self.surface_orientation is None:
-                if (
-                    not isinstance(self.normal, list)
-                    or len(self.normal) != 3
-                    or not all(isinstance(n, int | float) for n in self.normal)
+                if not isinstance(self.normal, list):
+                    raise TypeError(
+                        f"Device '{self.id}': normal must be a list, got {type(self.normal).__name__}."
+                    )
+                if len(self.normal) != 3 or not all(
+                    isinstance(n, int | float) for n in self.normal
                 ):
                     raise ValueError(
                         "normal must be a list of 3 numbers representing [nx, ny, nz]."
@@ -398,7 +406,7 @@ class Device(CFASTComponent):
                         stacklevel=2,
                     )
 
-        elif self.type not in target_types | detector_types:
+        else:
             raise ValueError(
                 f"Unknown device type '{self.type}'. "
                 f"Must be one of: {target_types | detector_types}"
@@ -455,6 +463,7 @@ class Device(CFASTComponent):
             rec.add_field("RTI", self.rti)
             rec.add_field("SPRAY_DENSITY", self.spray_density)
 
+        # Usually should never be used, only when DIAG is specified
         if self.adiabatic:
             rec.add_field("ADIABATIC_TARGET", True)
         if self.convection_coefficients:
@@ -515,15 +524,6 @@ class Device(CFASTComponent):
             If both surface_orientation and normal are provided,
             or if neither is provided
         """
-        # Validate that exactly one of surface_orientation or normal is provided
-        if (normal is None and surface_orientation is None) or (
-            normal is not None and surface_orientation is not None
-        ):
-            raise ValueError(
-                f"Target type '{type}' requires either normal or "
-                "surface_orientation (but not both)"
-            )
-
         return cls(
             id=id,
             comp_id=comp_id,
@@ -568,6 +568,16 @@ class Device(CFASTComponent):
         -------
         Device
             Device instance configured as a heat detector
+
+        Examples
+        --------
+        >>> heat_det = Device.create_heat_detector(
+        ...     id="HEAT_DET_1",
+        ...     comp_id="ROOM1",
+        ...     location=[2.5, 2.5, 2.4],
+        ...     setpoint=68,
+        ...     rti=50
+        ...     )
         """
         return cls(
             id=id,
