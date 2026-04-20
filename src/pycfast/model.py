@@ -20,6 +20,7 @@ from typing import Any, cast
 import numpy as np
 import pandas as pd
 
+from ._base_component import CFASTComponent
 from .ceiling_floor_vent import CeilingFloorVent
 from .compartment import Compartment
 from .device import Device
@@ -991,7 +992,9 @@ class CFASTModel:
         getattr(new_model, attr).append(component)
         return new_model
 
-    def _apply_kwargs(self, target: Any, label: str, kwargs: dict[str, Any]) -> None:
+    def _apply_kwargs(
+        self, target: CFASTComponent, label: str, kwargs: dict[str, Any]
+    ) -> None:
         """Apply ``kwargs`` to ``target`` via setattr, raising on unknown params."""
         for param, value in kwargs.items():
             if not hasattr(target, param):
@@ -1001,7 +1004,7 @@ class CFASTModel:
                     f"Available parameters: {', '.join(available)}"
                 )
             setattr(target, param, value)
-        target._validate()  # type: ignore[union-attr] # Ensure new values are valid
+        target._validate()
 
     def _get_available_attributes(self, obj: Any) -> list[str]:
         """Get list of available non-private, non-callable attributes."""

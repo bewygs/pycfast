@@ -701,7 +701,13 @@ class CFASTParser:
         }
 
         fire_params = self._extract_params(params, param_map)
-        fire = Fire(**fire_params)
+        with warnings.catch_warnings():
+            # TODO: need to refactor _parse_fire_block to add data_table in this step
+            # to remove the Warning in _validate steps in Fire class
+            warnings.filterwarnings(
+                "ignore", category=UserWarning, message="data_table is None"
+            )
+            fire = Fire(**fire_params)
 
         fire.data_table = []
 
