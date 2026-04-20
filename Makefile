@@ -38,7 +38,7 @@ install-all:
 	uv sync --extra all
 
 test:
-	uv run pytest tests/
+	uv run pytest src/pycfast tests/ 
 
 test-units:
 	uv run pytest tests/units/
