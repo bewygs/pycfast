@@ -95,7 +95,6 @@ def test_run_returns_results(tmp_path):
             area=0.01,
             type="FLOOR",
             shape="SQUARE",
-            width=None,
             offsets=[0.84, 0.86],
         )
     ]
