@@ -245,6 +245,7 @@ class TestMechanicalVent:
     def test_to_input_string_with_time_fraction(self, make_mechanical_vent):
         """Test input string generation with time and fraction data."""
         vent = make_mechanical_vent(
+            open_close_criterion="TIME",
             time=[0.0, 100.0, 200.0],
             fraction=[1.0, 0.5, 0.0],
         )
@@ -294,13 +295,16 @@ class TestMechanicalVent:
     def test_to_input_string_criterion_without_optional_params(
         self, make_mechanical_vent
     ):
-        """Test input string generation with criterion but no optional parameters."""
-        vent = make_mechanical_vent(open_close_criterion="FLUX")
+        """Test that SETPOINT is omitted when set_point is None."""
+        vent = make_mechanical_vent(
+            open_close_criterion="FLUX",
+            device_id="FLUX_SENSOR",
+        )
         result = vent.to_input_string()
 
         assert "CRITERION = 'FLUX'" in result
         assert "SETPOINT" not in result
-        assert "DEVC_ID" not in result
+        assert "DEVC_ID = 'FLUX_SENSOR'" in result
         assert "PRE_FRACTION = 1" in result
         assert "POST_FRACTION = 1" in result
 
@@ -427,9 +431,8 @@ class TestMechanicalVent:
             filter_time=10.0,
             filter_efficiency=85.0,
             open_close_criterion="TEMPERATURE",
-            time=[0.0, 300.0],
-            fraction=[1.0, 0.0],
             set_point=80.0,
+            device_id="TEMP_SENSOR",
         )
 
         assert vent["id"] == "TEST_VENT"
@@ -443,9 +446,8 @@ class TestMechanicalVent:
         assert vent["filter_time"] == 10.0
         assert vent["filter_efficiency"] == 85.0
         assert vent["open_close_criterion"] == "TEMPERATURE"
-        assert vent["time"] == [0.0, 300.0]
-        assert vent["fraction"] == [1.0, 0.0]
         assert vent["set_point"] == 80.0
+        assert vent["device_id"] == "TEMP_SENSOR"
 
     def test_getitem_with_none_values(self) -> None:
         """Test __getitem__ method with None values."""
@@ -601,9 +603,13 @@ class TestMechanicalVentSetItemValidation:
     )
     def test_setitem_mismatched_time_fraction(self, make_mechanical_vent, key, value):
         """Test that __setitem__ rejects mismatched time/fraction list lengths."""
-        vent = make_mechanical_vent(time=[0.0, 100.0], fraction=[1.0, 0.5])
+        vent = make_mechanical_vent(
+            open_close_criterion="TIME",
+            time=[0.0, 100.0],
+            fraction=[1.0, 0.5],
+        )
         with pytest.raises(
-            ValueError, match="Time and fraction lists must be of equal length"
+            ValueError, match="time and fraction lists must have the same length"
         ):
             vent[key] = value
 
