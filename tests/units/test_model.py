@@ -46,7 +46,14 @@ class TestCFASTModel:
         compartment1 = Compartment(id="ROOM1", width=3.0, depth=4.0, height=2.4)
         compartment2 = Compartment(id="ROOM2", width=4.0, depth=4.0, height=2.4)
 
-        material = Material(id="GYPSUM", material="Gypsum Board")
+        material = Material(
+            id="GYPSUM",
+            material="Gypsum Board",
+            conductivity=0.17,
+            density=790,
+            specific_heat=0.9,
+            thickness=0.016,
+        )
 
         wall_vent = WallVent(
             id="DOOR1",
@@ -1106,7 +1113,14 @@ class TestCFASTModel:
         model = self.create_full_model()
         original_mat_count = len(model.material_properties)
 
-        steel = Material(id="STEEL", material="Steel", conductivity=45.0, density=7850)
+        steel = Material(
+            id="STEEL",
+            material="Steel",
+            conductivity=45.0,
+            density=7850,
+            specific_heat=0.465,
+            thickness=0.0015,
+        )
         updated_model = model.add_material(steel)
 
         # Check that original model is unchanged
@@ -1218,7 +1232,14 @@ class TestCFASTModel:
             )
             .add_compartment(Compartment(id="ROOM3", width=5.0, depth=4.0, height=3.0))
             .add_material(
-                Material(id="STEEL", material="Steel", conductivity=45.0, density=7850)
+                Material(
+                    id="STEEL",
+                    material="Steel",
+                    conductivity=45.0,
+                    density=7850,
+                    specific_heat=0.465,
+                    thickness=0.0015,
+                )
             )
         )
 
@@ -1261,7 +1282,12 @@ class TestCFASTModel:
             rti=50.0,
         )
         material = Material(
-            id="CONCRETE", material="Concrete", conductivity=1.4, density=2300
+            id="CONCRETE",
+            material="Concrete",
+            conductivity=1.4,
+            density=2300,
+            specific_heat=0.88,
+            thickness=0.15,
         )
 
         updated_model = model.add_fire(fire).add_device(device).add_material(material)
@@ -1537,8 +1563,22 @@ class TestCFASTModelValidateDependencies:
 
     def test_duplicate_material_ids(self, sim_env, room1):
         """Test that duplicate material IDs raises ValueError."""
-        mat = Material(id="GYPSUM", material="Gypsum Board")
-        mat_dup = Material(id="GYPSUM", material="Gypsum Board")
+        mat = Material(
+            id="GYPSUM",
+            material="Gypsum Board",
+            conductivity=0.17,
+            density=790,
+            specific_heat=0.9,
+            thickness=0.016,
+        )
+        mat_dup = Material(
+            id="GYPSUM",
+            material="Gypsum Board",
+            conductivity=0.17,
+            density=790,
+            specific_heat=0.9,
+            thickness=0.016,
+        )
         with pytest.raises(ValueError, match="Duplicate id 'GYPSUM'"):
             self._make(sim_env, [room1], material_properties=[mat, mat_dup])
 
