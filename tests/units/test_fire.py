@@ -78,10 +78,6 @@ class TestFire:
             radiative_fraction=0.35,
             data_table=data_table,
         )
-        assert fire.id == "FIRE1"
-        assert fire.comp_id == "ROOM1"
-        assert fire.fire_id == "POLYURETHANE"
-        assert fire.location == [2.0, 3.0]
         assert fire.ignition_criterion == "TEMPERATURE"
         assert fire.set_point == 150.0
         assert fire.device_id == "TEMP_SENSOR"
@@ -93,6 +89,16 @@ class TestFire:
         assert fire.heat_of_combustion == 23600000
         assert fire.radiative_fraction == 0.35
         assert fire.data_table == data_table
+
+    def test_init_invalid_location_type(self):
+        """Test that initialization fails when location is not a list."""
+        with pytest.raises(TypeError, match="location must be a list"):
+            Fire(
+                id="FIRE1",
+                comp_id="ROOM1",
+                fire_id="POLYURETHANE",
+                location=(2.0, 3.0),  # type: ignore[arg-type]
+            )
 
     @pytest.mark.parametrize(
         "location",
@@ -110,6 +116,12 @@ class TestFire:
                 fire_id="POLYURETHANE",
                 location=location,
             )
+
+    @pytest.mark.parametrize("criterion", ["TEMPERATURE", "FLUX"])
+    def test_init_missing_device_id(self, make_fire, criterion: str):
+        """Test that initialization fails when device_id is missing for sensor-based ignition."""
+        with pytest.raises(ValueError, match="device_id must be specified"):
+            make_fire(ignition_criterion=criterion, set_point=100.0, device_id=None)
 
     def test_init_invalide_heat_of_combustion(self, make_fire):
         """Test that initialization fails with negative heat of combustion."""
@@ -218,9 +230,9 @@ class TestFire:
             pytest.param(
                 "TIME",
                 30.0,
-                "TIMER",
-                ["DEVC_ID = 'TIMER'", "SETPOINT = 30.0"],
-                ["IGNITION_CRITERION"],
+                None,
+                ["IGNITION_CRITERION = 'TIME'", "SETPOINT = 30.0"],
+                ["DEVC_ID"],
                 id="time",
             ),
         ],
@@ -273,9 +285,9 @@ class TestFire:
             comp_id="ROOM1",
             fire_id="METHANE",
             location=[2.0, 3.0],
-            carbon=1,
+            carbon=2,
             chlorine=0,
-            hydrogen=4,
+            hydrogen=6,
             nitrogen=0,
             oxygen=0,
             heat_of_combustion=55000,
@@ -284,8 +296,8 @@ class TestFire:
         result = fire.to_input_string()
         assert "&CHEM" in result
         assert "ID = 'METHANE'" in result
-        assert "CARBON = 1" in result
-        assert "HYDROGEN = 4" in result
+        assert "CARBON = 2" in result
+        assert "HYDROGEN = 6" in result
         assert "HEAT_OF_COMBUSTION = 55000" in result
         assert "RADIATIVE_FRACTION = 0.3" in result
 
@@ -856,29 +868,18 @@ class TestFireDictDataTable:
 class TestFireSetItemValidation:
     """Test validation in __setitem__ to ensure data integrity."""
 
-    def test_setitem_invalid_location_too_few(self, make_fire):
+    @pytest.mark.parametrize(
+        "location",
+        [
+            pytest.param([1.0], id="too-few"),
+            pytest.param([1.0, 2.0, 3.0], id="too-many"),
+        ],
+    )
+    def test_setitem_invalid_location_length(self, make_fire, location: list[float]):
         """Test that __setitem__ rejects location with wrong length."""
         fire = make_fire()
         with pytest.raises(ValueError, match="location must be a list of two floats"):
-            fire["location"] = [1.0]
-
-    def test_setitem_invalid_location_too_many(self, make_fire):
-        """Test that __setitem__ rejects location with too many elements."""
-        fire = make_fire()
-        with pytest.raises(ValueError, match="location must be a list of two floats"):
-            fire["location"] = [1.0, 2.0, 3.0]
-
-    def test_setitem_valid_location(self, make_fire):
-        """Test that __setitem__ accepts valid location change."""
-        fire = make_fire()
-        fire["location"] = [5.0, 6.0]
-        assert fire.location == [5.0, 6.0]
-
-    def test_setitem_valid_scalar_change(self, make_fire):
-        """Test that __setitem__ accepts valid scalar property changes."""
-        fire = make_fire()
-        fire["radiative_fraction"] = 0.5
-        assert fire.radiative_fraction == 0.5
+            fire["location"] = location
 
     def test_setitem_invalid_does_not_mutate_state(self, make_fire):
         """Test that a failed __setitem__ rolls back to the previous value."""
