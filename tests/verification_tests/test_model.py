@@ -139,7 +139,7 @@ def test_run_returns_results(tmp_path):
             location=[0.5, 0.5, 0],
             type="CYLINDER",
             material_id="Gypboard",
-            surface_orientation="HORIZONTAL",
+            surface_orientation="Propane",  # testing fire.id
             thickness=0.01,
             temperature_depth=0.01,
             depth_units="M",

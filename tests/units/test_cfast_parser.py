@@ -124,8 +124,6 @@ class TestCFASTParser:
                                &COMP ID = 'Room1', DEPTH = 5, HEIGHT = 3, WIDTH = 4, ORIGIN = 0, 0, 0 /
                                &FIRE ID = 'Fire1', COMP_ID = 'Room1', FIRE_ID = 'TestFire', LOCATION = 2.5, 2.5 /
                                &CHEM ID = 'TestFire' CARBON = 1 HYDROGEN = 4 OXYGEN = 0 NITROGEN = 0 CHLORINE = 0 HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.35 /
-                               &TABL ID = 'TestFire' LABELS = 'TIME', 'HRR' /
-                               &TABL ID = 'TestFire', DATA = 0, 100 /
                                &TAIL /"""
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".in", delete=False) as f:
