@@ -115,6 +115,57 @@ class TestDevice:
                 temperature_depth=0.0005,
             )
 
+    def test_init_location_not_a_list(self):
+        """Test that initialization fails with TypeError when location is not a list."""
+        with pytest.raises(TypeError, match="location must be a list"):
+            Device(
+                id="DEV1",
+                comp_id="ROOM1",
+                location=(1.0, 2.0, 1.5),  # type: ignore  # tuple, not list
+                type="PLATE",
+                material_id="STEEL",
+                normal=[0, 0, -1],
+                temperature_depth=0.0005,
+            )
+
+    def test_init_normal_not_a_list(self):
+        """Test that initialization fails with TypeError when normal is not a list."""
+        with pytest.raises(TypeError, match="normal must be a list"):
+            Device(
+                id="DEV1",
+                comp_id="ROOM1",
+                location=[1.0, 2.0, 1.5],
+                type="PLATE",
+                material_id="STEEL",
+                normal=(0, 0, -1),  # type: ignore  # tuple, not list
+                temperature_depth=0.0005,
+            )
+
+    def test_init_convection_coefficients_not_a_list(self):
+        """Test that initialization fails with TypeError when convection_coefficients is not a list."""
+        with pytest.raises(TypeError, match="convection_coefficients must be a list"):
+            Device(
+                id="DEV1",
+                comp_id="ROOM1",
+                location=[1.0, 2.0, 1.5],
+                type="PLATE",
+                material_id="STEEL",
+                normal=[0, 0, -1],
+                convection_coefficients=(10.0, 20.0),  # type: ignore  # tuple, not list
+            )
+
+    def test_valid_surface_orientations_constant(self):
+        """Test that VALID_SURFACE_ORIENTATIONS contains the expected values."""
+        expected = {
+            "CEILING",
+            "FRONT WALL",
+            "BACK WALL",
+            "LEFT WALL",
+            "RIGHT WALL",
+            "FLOOR",
+        }
+        assert Device.VALID_SURFACE_ORIENTATIONS == expected
+
     def test_init_invalid_location_type(self):
         """Test that initialization fails with non-numeric location values."""
         with pytest.raises(ValueError, match="location must be a list of 3 numbers"):
