@@ -114,11 +114,18 @@ class Compartment(CFASTComponent):
 
     >>> room = Compartment(
     ...     id="BEDROOM",
-    ...     width=3.5, depth=4.0, height=2.4,
-    ...     ceiling_mat_id="GYPSUM", ceiling_thickness=0.016,
-    ...     wall_mat_id="GYPSUM", wall_thickness=0.016,
-    ...     floor_mat_id="CONCRETE", floor_thickness=0.10,
-    ...     origin_x=0.0, origin_y=0.0, origin_z=0.0
+    ...     width=3.5,
+    ...     depth=4.0,
+    ...     height=2.4,
+    ...     ceiling_mat_id="GYPSUM",
+    ...     ceiling_thickness=0.016,
+    ...     wall_mat_id="GYPSUM",
+    ...     wall_thickness=0.016,
+    ...     floor_mat_id="CONCRETE",
+    ...     floor_thickness=0.10,
+    ...     origin_x=0.0,
+    ...     origin_y=0.0,
+    ...     origin_z=0.0
     ... )
     """
 
@@ -277,11 +284,21 @@ class Compartment(CFASTComponent):
 
         Examples
         --------
-        >>> comp = Compartment("ROOM1", width=3.0, depth=4.0, height=2.4,
-        ...                    ceiling_mat_id="GYPSUM", ceiling_thickness=0.016,
-        ...                    wall_mat_id="GYPSUM", wall_thickness=0.016,
-        ...                    floor_mat_id="CONCRETE", floor_thickness=0.10,
-        ...                    origin_x=0.0, origin_y=0.0, origin_z=0.0)
+        >>> comp = Compartment(
+        ...     id="ROOM1",
+        ...     width=3.0,
+        ...     depth=4.0,
+        ...     height=2.4,
+        ...     ceiling_mat_id="GYPSUM",
+        ...     ceiling_thickness=0.016,
+        ...     wall_mat_id="GYPSUM",
+        ...     wall_thickness=0.016,
+        ...     floor_mat_id="CONCRETE",
+        ...     floor_thickness=0.10,
+        ...     origin_x=0.0,
+        ...     origin_y=0.0,
+        ...     origin_z=0.0
+        ... )
         >>> print(comp.to_input_string())
         &COMP ID = 'ROOM1' DEPTH = 4.0 HEIGHT = 2.4 WIDTH = 3.0 ...
         """

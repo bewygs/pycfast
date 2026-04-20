@@ -523,6 +523,18 @@ class Device(CFASTComponent):
         ValueError
             If both surface_orientation and normal are provided,
             or if neither is provided
+
+        Examples
+        --------
+        >>> target = Device.create_target(
+        ...     id="TARGET",
+        ...     comp_id="ROOM1",
+        ...     location=[2.0, 3.0, 1.5],
+        ...     type="PLATE",
+        ...     material_id="GYPSUM",
+        ...     normal=[-1, 0, 0],
+        ...     temperature_depth=0.5
+        ... )
         """
         return cls(
             id=id,
@@ -577,7 +589,7 @@ class Device(CFASTComponent):
         ...     location=[2.5, 2.5, 2.4],
         ...     setpoint=68,
         ...     rti=50
-        ...     )
+        ... )
         """
         return cls(
             id=id,
@@ -666,6 +678,17 @@ class Device(CFASTComponent):
         -------
         Device
             Device instance configured as a sprinkler
+
+        Examples
+        --------
+        >>> sprinkler = Device.create_sprinkler(
+        ...     id="SPRINKLER_1",
+        ...     comp_id="ROOM1",
+        ...     location=[3.0, 3.0, 2.4],
+        ...     setpoint=74,
+        ...     rti=100,
+        ...     spray_density=0.002
+        ... )
         """
         return cls(
             id=id,
