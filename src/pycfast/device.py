@@ -72,7 +72,8 @@ class Device(CFASTComponent):
         is the temperature at the center of the target. This input allows the user
         to override this default position. The input represents the position as a
         fraction of the thickness from the front surface to the back surface of the
-        material. Default units: none, default value: 0.5.
+        material (default, unitless, default value: 0.5), or an absolute depth in
+        meters from the front surface when ``depth_units='M'``.
     depth_units : str
         Units for depth measurement. Default: "M" for meters.
     setpoint : float, optional
@@ -354,13 +355,17 @@ class Device(CFASTComponent):
                         "normal must be a list of 3 numbers representing [nx, ny, nz]."
                     )
 
-            if (
-                self.temperature_depth is not None
-                and not 0.0 <= self.temperature_depth <= 1.0
-            ):
-                raise ValueError(
-                    f"Target '{self.id}': temperature_depth={self.temperature_depth} must be in [0, 1]."
-                )
+            if self.temperature_depth is not None:
+                if self.depth_units == "M":
+                    if self.temperature_depth <= 0.0:
+                        raise ValueError(
+                            f"Target '{self.id}': temperature_depth={self.temperature_depth} must be > 0 when depth_units='M'."
+                        )
+                elif not 0.0 <= self.temperature_depth <= 1.0:
+                    raise ValueError(
+                        f"Target '{self.id}': temperature_depth={self.temperature_depth} must be in [0, 1] when depth_units is not 'M'."
+                    )
+                # upper bound (< material thickness) is checked in CFASTModel._validate_dependencies
 
         elif self.type in detector_types:
             if self.type == "HEAT_DETECTOR":

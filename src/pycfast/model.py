@@ -1375,20 +1375,34 @@ class CFASTModel:
                     f"SurfaceConnection: comp_ids='{sc.comp_ids}' does not match any defined compartment."
                 )
 
+        material_map = {m.id: m for m in self.material_properties}
+
         # material_id of Device/Compartment must exist in material_properties
         for device in self.devices:
-            mid = getattr(device, "material_id", None)
-            if mid is not None and mid not in material_ids:
+            m_id = getattr(device, "material_id", None)
+            if m_id is not None and m_id not in material_ids:
                 raise ValueError(
-                    f"Device '{device.id}': material_id='{mid}' does not match any defined material."
+                    f"Device '{device.id}': material_id='{m_id}' does not match any defined material."
+                )
+            if (
+                m_id is not None
+                and m_id in material_map
+                and device.type in {"PLATE", "CYLINDER"}
+                and getattr(device, "depth_units", None) == "M"
+                and device.temperature_depth is not None
+                and device.temperature_depth >= material_map[m_id].thickness
+            ):
+                raise ValueError(
+                    f"Device '{device.id}': temperature_depth={device.temperature_depth} m must be less than "
+                    f"material '{m_id}' thickness={material_map[m_id].thickness} m."
                 )
 
         for comp in self.compartments:
             for attr in ("ceiling_mat_id", "wall_mat_id", "floor_mat_id"):
-                mid = getattr(comp, attr, None)
-                if mid is not None and mid != "OFF" and mid not in material_ids:
+                m_id = getattr(comp, attr, None)
+                if m_id is not None and m_id != "OFF" and m_id not in material_ids:
                     raise ValueError(
-                        f"Compartment '{comp.id}': {attr}='{mid}' does not match any defined material."
+                        f"Compartment '{comp.id}': {attr}='{m_id}' does not match any defined material."
                     )
 
         # device_id referenced in Fire or Vent must exist in devices
