@@ -117,14 +117,14 @@ class MechanicalVent(CFASTComponent):
     >>> supply_fan = MechanicalVent(
     ...     id="SUPPLY_1",
     ...     comps_ids=["OUTSIDE", "ROOM1"],
-    ...     area=[0.1, 0.1],              # 0.1 m² grilles
-    ...     heights=[3.0, 2.8],           # Near ceiling
+    ...     area=[0.1, 0.1],
+    ...     heights=[3.0, 2.8],
     ...     orientations=["HORIZONTAL", "HORIZONTAL"],
-    ...     flow=0.5,                     # 0.5 m³/s supply
-    ...     cutoffs=[200, 300],           # Standard pressure cutoffs
-    ...     offsets=[0, 1.0],             # Positions along walls
-    ...     filter_time=0,                # Start filtering immediately
-    ...     filter_efficiency=0.0,        # No filtration (0%)
+    ...     flow=0.5,
+    ...     cutoffs=[200, 300],
+    ...     offsets=[0, 1.0],
+    ...     filter_time=0,
+    ...     filter_efficiency=0.0,
     ... )
 
     Create an exhaust fan with time-based control:
@@ -132,24 +132,28 @@ class MechanicalVent(CFASTComponent):
     >>> exhaust_fan = MechanicalVent(
     ...     id="EXHAUST_1",
     ...     comps_ids=["KITCHEN", "OUTSIDE"],
-    ...     area=[0.05, 0.05],            # Smaller exhaust grilles
-    ...     heights=[2.5, 0],             # Kitchen ceiling to outside
-    ...     flow=-0.3,                    # Negative for exhaust
-    ...     time=[0, 300, 600],           # Control times
-    ...     fraction=[0, 1, 0]            # Off, on, off sequence
+    ...     area=[0.05, 0.05],
+    ...     heights=[2.5, 0],
+    ...     flow=-0.3,
+    ...     open_close_criterion="TIME",
+    ...     time=[0, 300, 600],
+    ...     fraction=[0, 1, 0],
     ... )
     """
 
     def __init__(
         self,
         id: str,
-        comps_ids: list[str],
-        area: list[float] | None = None,
-        heights: list[float] | None = None,
-        orientations: list[str] | None = None,
+        comps_ids: list[str],  # [compartment_from, compartment_to] or "OUTSIDE"
+        area: list[float] | None = None,  # [area_from, area_to] in m²
+        heights: list[float] | None = None,  # [height_from, height_to] in m
+        orientations: list[str]
+        | None = None,  # ["HORIZONTAL" or "VERTICAL", "HORIZONTAL" or "VERTICAL"]
         flow: float = 0,
-        cutoffs: list[float] | None = None,
-        offsets: list[float] | None = None,
+        cutoffs: list[float]
+        | None = None,  # [begin_drop_off_pressure, zero_flow_pressure] in Pa
+        offsets: list[float]
+        | None = None,  # [x_offset, y_offset] in m for visualization
         filter_time: float = 0,
         filter_efficiency: float = 0,
         open_close_criterion: str | None = None,
@@ -229,9 +233,30 @@ class MechanicalVent(CFASTComponent):
             )
         if len(self.offsets) != 2:
             raise ValueError("offsets must have exactly 2 elements for x, y location.")
-        if self.time is not None and self.fraction is not None:
-            if len(self.time) != len(self.fraction):
-                raise ValueError("Time and fraction lists must be of equal length")
+        if self.open_close_criterion is not None:
+            valid_criteria = {"TIME", "TEMPERATURE", "FLUX"}
+            if self.open_close_criterion not in valid_criteria:
+                raise ValueError(
+                    f"MechanicalVent '{self.id}': open_close_criterion="
+                    f"'{self.open_close_criterion}' must be one of {valid_criteria}."
+                )
+            if self.open_close_criterion == "TIME":
+                if self.time is None or self.fraction is None:
+                    raise ValueError(
+                        f"MechanicalVent '{self.id}': time and fraction must be "
+                        "provided when open_close_criterion='TIME'."
+                    )
+                if len(self.time) != len(self.fraction):
+                    raise ValueError(
+                        f"MechanicalVent '{self.id}': time and fraction lists must "
+                        "have the same length."
+                    )
+            elif self.open_close_criterion in {"TEMPERATURE", "FLUX"}:
+                if self.device_id is None:
+                    raise ValueError(
+                        f"MechanicalVent '{self.id}': device_id must be provided "
+                        f"when open_close_criterion='{self.open_close_criterion}'."
+                    )
 
         for i, a in enumerate(self.area):
             if a < 0:
@@ -254,6 +279,15 @@ class MechanicalVent(CFASTComponent):
                     raise ValueError(
                         f"MechanicalVent '{self.id}': fraction[{i}]={f} must be in [0, 1]."
                     )
+
+        for name, val in (
+            ("pre_fraction", self.pre_fraction),
+            ("post_fraction", self.post_fraction),
+        ):
+            if val is not None and not 0.0 <= val <= 1.0:
+                raise ValueError(
+                    f"MechanicalVent '{self.id}': {name}={val} must be in [0, 1]."
+                )
 
         if self.filter_time is not None and self.filter_time < 0:
             warnings.warn(
@@ -291,11 +325,22 @@ class MechanicalVent(CFASTComponent):
 
         Examples
         --------
-        >>> vent = MechanicalVent("FAN1", ["OUT", "RM1"], [0.1, 0.1],
-        ...                       [3, 2.8], ["HORIZ", "HORIZ"], 0.5,
-        ...                       [100, 100], [0, 1], 0, 0)
+        >>> vent = MechanicalVent(
+        ...     id="VENT1",
+        ...     comps_ids=["ROOM1", "OUTSIDE"],
+        ...     area=[0.1, 0.1],
+        ...     heights=[2.5, 0],
+        ...     flow=0.5,
+        ...     cutoffs=[200, 300],
+        ...     offsets=[0, 0],
+        ...     filter_time=0,
+        ...     filter_efficiency=0,
+        ...     open_close_criterion="TIME",
+        ...     time=[0, 300, 600],
+        ...     fraction=[0, 1, 0],
+        ... )
         >>> print(vent.to_input_string())
-        &VENT TYPE = 'MECHANICAL' ID = 'FAN1' COMP_IDS = 'OUT', 'RM1' ...
+        &VENT TYPE = 'MECHANICAL' ID = 'VENT1' COMP_IDS = 'ROOM1', 'OUTSIDE' AREAS = 0.1, 0.1 ...
         """
         rec = NamelistRecord("VENT")
         rec.add_field("TYPE", "MECHANICAL")
@@ -310,13 +355,15 @@ class MechanicalVent(CFASTComponent):
 
         if self.open_close_criterion is not None:
             rec.add_field("CRITERION", self.open_close_criterion)
-            rec.add_numeric_field("SETPOINT", self.set_point)
-            rec.add_field("DEVC_ID", self.device_id)
-            rec.add_field("PRE_FRACTION", self.pre_fraction)
-            rec.add_field("POST_FRACTION", self.post_fraction)
+            if self.open_close_criterion == "TIME":
+                rec.add_list_field("T", self.time)
+                rec.add_list_field("F", self.fraction)
+            elif self.open_close_criterion in {"TEMPERATURE", "FLUX"}:
+                rec.add_numeric_field("SETPOINT", self.set_point)
+                rec.add_field("DEVC_ID", self.device_id)
+                rec.add_field("PRE_FRACTION", self.pre_fraction)
+                rec.add_field("POST_FRACTION", self.post_fraction)
 
-        rec.add_list_field("T", self.time)
-        rec.add_list_field("F", self.fraction)
         rec.add_field("FILTER_TIME", self.filter_time)
         rec.add_field("FILTER_EFFICIENCY", self.filter_efficiency)
 
