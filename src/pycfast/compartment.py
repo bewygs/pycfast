@@ -146,7 +146,7 @@ class Compartment(CFASTComponent):
         origin_z: float | None = 0,
         shaft: bool | None = None,
         hall: bool | None = None,
-        leak_area_ratio: list[float] | None = None,
+        leak_area_ratio: list[float] | None = None,  # [wall_leak, floor_leak]
         cross_sect_areas: list[float] | None = None,
         cross_sect_heights: list[float] | None = None,
     ):
@@ -194,6 +194,12 @@ class Compartment(CFASTComponent):
                     f"Compartment '{self.id}': {param} must be a list, got {type(list_val).__name__}."
                 )
 
+        if self.leak_area_ratio is not None and len(self.leak_area_ratio) != 2:
+            raise ValueError(
+                f"Compartment '{self.id}': leak_area_ratio must contain exactly 2 values "
+                "[wall_leak, floor_leak]"
+            )
+
         if (self.cross_sect_areas is None) != (self.cross_sect_heights is None):
             raise ValueError(
                 f"Compartment '{self.id}': cross_sect_areas and cross_sect_heights "
@@ -206,12 +212,6 @@ class Compartment(CFASTComponent):
                     f"Compartment '{self.id}': cross_sect_areas and cross_sect_heights "
                     "must have the same length"
                 )
-
-        if self.leak_area_ratio is not None and len(self.leak_area_ratio) != 2:
-            raise ValueError(
-                f"Compartment '{self.id}': leak_area_ratio must contain exactly 2 values "
-                "[wall_leak, floor_leak]"
-            )
 
         for dim, val in (
             ("width", self.width),
