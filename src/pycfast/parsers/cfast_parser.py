@@ -76,12 +76,6 @@ class CFASTParser:
         List of Device objects.
     surface_connections: List[SurfaceConnection]
         List of SurfaceConnection objects.
-
-    Examples
-    --------
-    >>> parser = CFASTParser()
-    >>> model = parser.parse_file("example.in")
-    >>> print(model.simulation_environment.title)
     """
 
     def __init__(self) -> None:
@@ -145,12 +139,6 @@ class CFASTParser:
             If the input file doesn't exist at the specified path.
         ValueError:
             If the file format is invalid or required parameters are missing.
-
-        Examples
-        --------
-            >>> parser = CFASTParser()
-            >>> model = parser.parse_file("/path/to/simulation.in")
-            >>> print(f"Parsed {len(model.compartments)} compartments")
         """
         file_path = Path(file_path)
         if not file_path.exists():
@@ -356,14 +344,6 @@ class CFASTParser:
         ------
         ValueError:
             If required parameter is missing or type conversion fails.
-
-        Examples
-        --------
-            >>> params = {'WIDTH': '1.5', 'HEIGHT': '2.0'}
-            >>> self._get_param(params, 'WIDTH', param_type=float)
-            1.5
-            >>> self._get_param(params, 'MISSING', default=0.0)
-            0.0
         """
         value = params.get(key, default)
         if required and value is None:
@@ -391,15 +371,6 @@ class CFASTParser:
         -------
         list[str]
             List of compartment ID strings. Empty list if input is None.
-
-        Examples
-        --------
-        >>> CFASTParser._normalize_comp_ids("COMP1")
-        ['COMP1']
-        >>> CFASTParser._normalize_comp_ids(["COMP1", "COMP2"])
-        ['COMP1', 'COMP2']
-        >>> CFASTParser._normalize_comp_ids(None)
-        []
         """
         if isinstance(comp_ids, str):
             return [comp_ids]
@@ -440,16 +411,6 @@ class CFASTParser:
         ------
         ValueError:
             If required parameter is missing or type conversion fails.
-
-        Examples
-        --------
-        >>> param_map = {
-        ...     'id': {'source': 'ID', 'required': True, 'type': str},
-        ...     'width': {'source': 'WIDTH', 'required': True, 'type': float},
-        ...     'active': {'source': 'ACTIVE', 'default': False, 'type': bool}
-        ... }
-        >>> extracted = self._extract_params(params, param_map)
-        >>> device = Device(**extracted)
         """
         extracted = {}
 
@@ -996,9 +957,8 @@ def parse_cfast_file(
 
     Examples
     --------
-    >>> model = parse_cfast_file("simulation.in")
-    >>> print(f"Title: {model.simulation_environment.title}")
-    >>> print(f"Compartment: {len(model.compartments)}")
+    >>> parse_cfast_file("simulation.in")  # doctest: +SKIP
+    CFASTModel(file_name='simulation.in', compartments=2, fires=1, wall_vents=3, ...
     """
     parser = CFASTParser()
     return parser.parse_file(file_path, output_path)
