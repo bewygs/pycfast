@@ -141,9 +141,66 @@ class TestWallVent:
             WallVent(
                 id="DOOR1",
                 comps_ids=["ROOM1", "ROOM2"],
+                open_close_criterion="TIME",
                 time=[0.0, 100.0],
                 fraction=[1.0],
             )
+
+    @pytest.mark.parametrize(
+        "face",
+        ["BACK", "TOP", "BOTTOM", "invalid"],
+    )
+    def test_init_invalid_face(self, make_wall_vent, face: str):
+        """Test that initialization fails with invalid face value."""
+        with pytest.raises(ValueError, match="face must be one of"):
+            make_wall_vent(face=face)
+
+    @pytest.mark.parametrize(
+        "criterion",
+        ["WIND", "PRESSURE", "invalid"],
+    )
+    def test_init_invalid_open_close_criterion(self, make_wall_vent, criterion: str):
+        """Test that initialization fails with invalid open_close_criterion."""
+        with pytest.raises(ValueError, match="open_close_criterion must be one of"):
+            make_wall_vent(open_close_criterion=criterion)
+
+    def test_init_temperature_criterion_missing_set_point(self, make_wall_vent):
+        """Test that TEMPERATURE criterion without set_point raises."""
+        with pytest.raises(ValueError, match="set_point must be specified"):
+            make_wall_vent(open_close_criterion="TEMPERATURE", device_id="SENSOR")
+
+    def test_init_temperature_criterion_missing_device_id(self, make_wall_vent):
+        """Test that TEMPERATURE criterion without device_id raises."""
+        with pytest.raises(ValueError, match="device_id must be specified"):
+            make_wall_vent(open_close_criterion="TEMPERATURE", set_point=150.0)
+
+    def test_init_time_criterion_missing_lists(self, make_wall_vent):
+        """Test that TIME criterion without time/fraction raises."""
+        with pytest.raises(ValueError, match="time and fraction must be specified"):
+            make_wall_vent(open_close_criterion="TIME")
+
+    def test_init_time_criterion_negative_time(self, make_wall_vent):
+        """Test that negative time values raise."""
+        with pytest.raises(ValueError, match="non-negative"):
+            make_wall_vent(
+                open_close_criterion="TIME",
+                time=[-10.0, 100.0],
+                fraction=[1.0, 0.5],
+            )
+
+    def test_init_time_criterion_non_monotonic(self, make_wall_vent):
+        """Test that non-monotonically increasing time values raise."""
+        with pytest.raises(ValueError, match="monotonically increasing"):
+            make_wall_vent(
+                open_close_criterion="TIME",
+                time=[0.0, 200.0, 100.0],
+                fraction=[1.0, 0.5, 0.0],
+            )
+
+    def test_init_invalid_comps_ids_type(self):
+        """Test that non-list comps_ids raises TypeError."""
+        with pytest.raises(TypeError, match="comps_ids must be a list"):
+            WallVent(id="DOOR1", comps_ids="ROOM1,ROOM2")  # type: ignore[arg-type]
 
     def test_to_input_string_basic(self, make_wall_vent):
         """Test basic input string generation."""
@@ -182,6 +239,8 @@ class TestWallVent:
             "device_id",
             "pre_frac",
             "post_frac",
+            "time",
+            "fraction",
             "expected",
             "unexpected",
         ),
@@ -192,6 +251,8 @@ class TestWallVent:
                 "TEMP_SENSOR",
                 0.8,
                 0.2,
+                None,
+                None,
                 [
                     "CRITERION = 'TEMPERATURE'",
                     "SETPOINT = 150.0",
@@ -205,44 +266,35 @@ class TestWallVent:
             pytest.param(
                 "FLUX",
                 50.0,
-                None,
+                "FLUX_SENSOR",
                 1.0,
+                None,
+                None,
                 None,
                 [
                     "CRITERION = 'FLUX'",
                     "SETPOINT = 50.0",
+                    "DEVC_ID = 'FLUX_SENSOR'",
                     "PRE_FRACTION = 1.0",
-                    "POST_FRACTION = 1",
                 ],
                 [],
-                id="flux-no-device",
+                id="flux-with-device",
             ),
             pytest.param(
                 "TIME",
-                30.0,
-                "TIMER",
                 None,
                 None,
+                None,
+                None,
+                [0.0, 100.0],
+                [1.0, 0.5],
                 [
                     "CRITERION = 'TIME'",
-                    "SETPOINT = 30.0",
-                    "DEVC_ID = 'TIMER'",
+                    "T = 0.0, 100.0",
+                    "F = 1.0, 0.5",
                 ],
                 [],
-                id="time-with-device",
-            ),
-            pytest.param(
-                "TEMPERATURE",
-                None,
-                "TEMP_SENSOR",
-                None,
-                None,
-                [
-                    "CRITERION = 'TEMPERATURE'",
-                    "DEVC_ID = 'TEMP_SENSOR'",
-                ],
-                ["SETPOINT"],
-                id="temperature-no-setpoint",
+                id="time-with-lists",
             ),
         ],
     )
@@ -254,11 +306,13 @@ class TestWallVent:
         device_id,
         pre_frac,
         post_frac,
+        time,
+        fraction,
         expected,
         unexpected,
     ):
         """Test input string generation with various open/close criteria."""
-        extra_kwargs: dict[str, str | float] = {"open_close_criterion": criterion}
+        extra_kwargs: dict[str, object] = {"open_close_criterion": criterion}
         if set_point is not None:
             extra_kwargs["set_point"] = set_point
         if device_id is not None:
@@ -267,6 +321,10 @@ class TestWallVent:
             extra_kwargs["pre_fraction"] = pre_frac
         if post_frac is not None:
             extra_kwargs["post_fraction"] = post_frac
+        if time is not None:
+            extra_kwargs["time"] = time
+        if fraction is not None:
+            extra_kwargs["fraction"] = fraction
 
         vent = make_wall_vent(**extra_kwargs)
         result = vent.to_input_string()
@@ -276,17 +334,7 @@ class TestWallVent:
         for nml_field in unexpected:
             assert nml_field not in result
 
-    def test_to_input_string_with_time_fraction(self, make_wall_vent):
-        """Test input string generation with time and fraction data."""
-        vent = make_wall_vent(
-            time=[0.0, 100.0, 200.0],
-            fraction=[1.0, 0.5, 0.0],
-        )
-        result = vent.to_input_string()
-        assert "T = 0.0, 100.0, 200.0" in result
-        assert "F = 1.0, 0.5, 0.0" in result
-
-    @pytest.mark.parametrize("face", ["FRONT", "BACK", "RIGHT", "LEFT"])
+    @pytest.mark.parametrize("face", ["FRONT", "REAR", "RIGHT", "LEFT"])
     def test_to_input_string_face(self, make_wall_vent, face):
         """Test input string generation with different face orientations."""
         vent = make_wall_vent(id=f"VENT_{face}", face=face)
@@ -301,11 +349,9 @@ class TestWallVent:
             bottom=0.1,
             height=1.9,
             width=0.8,
-            face="BACK",
+            face="REAR",
             offset=2.5,
             open_close_criterion="TEMPERATURE",
-            time=[0.0, 50.0, 100.0, 150.0],
-            fraction=[0.0, 0.3, 0.8, 1.0],
             set_point=75.0,
             device_id="CONTROLLER",
             pre_fraction=0.1,
@@ -313,7 +359,6 @@ class TestWallVent:
         )
         result = vent.to_input_string()
 
-        # Check all components are present
         assert "ID = 'COMPLEX_DOOR'" in result
         assert "COMP_IDS = 'LIVING', 'KITCHEN'" in result
         assert "BOTTOM = 0.1" in result
@@ -324,24 +369,8 @@ class TestWallVent:
         assert "DEVC_ID = 'CONTROLLER'" in result
         assert "PRE_FRACTION = 0.1" in result
         assert "POST_FRACTION = 0.9" in result
-        assert "T = 0.0, 50.0, 100.0, 150.0" in result
-        assert "F = 0.0, 0.3, 0.8, 1.0" in result
-        assert "FACE = 'BACK'" in result
+        assert "FACE = 'REAR'" in result
         assert "OFFSET = 2.5" in result
-
-    def test_compartment_ids_formatting(self):
-        """Test that compartment IDs are properly quoted in output."""
-        vent = WallVent(
-            id="TEST_VENT",
-            comps_ids=["COMP_A", "COMP_B"],
-            bottom=0.0,
-            height=2.0,
-            width=1.0,
-            face="FRONT",
-            offset=0.0,
-        )
-        result = vent.to_input_string()
-        assert "COMP_IDS = 'COMP_A', 'COMP_B'" in result
 
     # Tests for dunder methods
     def test_repr(self) -> None:
@@ -354,8 +383,6 @@ class TestWallVent:
             width=0.9,
             face="RIGHT",
             offset=1.5,
-            open_close_criterion="TIME",
-            set_point=60.0,
         )
 
         repr_str = repr(vent)
@@ -379,6 +406,7 @@ class TestWallVent:
             offset=2.0,
             open_close_criterion="TEMPERATURE",
             set_point=150.0,
+            device_id="TEMP_SENSOR",
         )
 
         str_repr = str(vent)
@@ -395,7 +423,7 @@ class TestWallVent:
             bottom=0.5,
             height=1.8,
             width=0.8,
-            face="BACK",
+            face="REAR",
             offset=2.5,
             open_close_criterion="TEMPERATURE",
             set_point=100.0,
@@ -409,7 +437,7 @@ class TestWallVent:
         assert vent["bottom"] == 0.5
         assert vent["height"] == 1.8
         assert vent["width"] == 0.8
-        assert vent["face"] == "BACK"
+        assert vent["face"] == "REAR"
         assert vent["offset"] == 2.5
         assert vent["open_close_criterion"] == "TEMPERATURE"
         assert vent["set_point"] == 100.0
@@ -468,21 +496,6 @@ class TestWallVent:
         vent["offset"] = 3.0
         assert vent.offset == 3.0
 
-    def test_setitem_invalid_key(self) -> None:
-        """Test __setitem__ method with invalid key."""
-        vent = WallVent(
-            id="VENT1",
-            comps_ids=["A", "B"],
-            bottom=0.0,
-            height=1.0,
-            width=1.0,
-            face="FRONT",
-            offset=0.0,
-        )
-
-        with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
-            vent["invalid_key"] = "value"
-
 
 class TestWallVentSetItemValidation:
     """Test validation in __setitem__ to ensure data integrity."""
@@ -523,10 +536,10 @@ class TestWallVentSetItemValidation:
     )
     def test_setitem_mismatched_time_fraction(self, make_wall_vent, key, value):
         """Test that __setitem__ rejects mismatched time/fraction list lengths."""
-        vent = make_wall_vent(time=[0.0, 100.0], fraction=[1.0, 0.5])
-        with pytest.raises(
-            ValueError, match="Time and fraction lists must be of equal length"
-        ):
+        vent = make_wall_vent(
+            open_close_criterion="TIME", time=[0.0, 100.0], fraction=[1.0, 0.5]
+        )
+        with pytest.raises(ValueError, match="equal length"):
             vent[key] = value
 
     def test_setitem_valid_matching_time_fraction(self, make_wall_vent):
@@ -548,18 +561,6 @@ class TestWallVentSetItemValidation:
         vent = make_wall_vent()
         with pytest.raises(KeyError, match="Cannot set 'nonexistent'"):
             vent["nonexistent"] = "value"
-
-    def test_setitem_valid_dimension_changes(self, make_wall_vent):
-        """Test that __setitem__ accepts valid dimension changes."""
-        vent = make_wall_vent()
-
-        vent["width"] = 2.5
-        vent["height"] = 3.0
-        vent["bottom"] = 0.5
-
-        assert vent.width == 2.5
-        assert vent.height == 3.0
-        assert vent.bottom == 0.5
 
     def test_setitem_invalid_does_not_mutate_state(self, make_wall_vent):
         """Test that a failed __setitem__ rolls back to the previous value."""
