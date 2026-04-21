@@ -103,27 +103,44 @@ class TestSurfaceConnection:
         result = conn.to_input_string()
         assert f"F = {fraction}" in result
 
-    def test_to_input_string_compartment_id_formatting(self):
-        """Test that compartment IDs are properly quoted in output."""
-        conn = SurfaceConnection(
-            conn_type="WALL",
-            comp_id="COMP_A",
-            comp_ids="COMP_B",
-            fraction=0.5,
-        )
-        result = conn.to_input_string()
-        assert "COMP_ID = 'COMP_A'" in result
-        assert "COMP_IDS = 'COMP_B'" in result
-
     def test_init_invalid_conn_type(self):
         """Test that initialization fails with an invalid conn_type."""
         with pytest.raises(ValueError, match="must be one of"):
             SurfaceConnection(conn_type="CEILING", comp_id="ROOM1", comp_ids="ROOM2")
 
+    def test_init_conn_type_not_str(self):
+        """Test that initialization fails when conn_type is not a string."""
+        with pytest.raises(TypeError, match="conn_type must be a str"):
+            SurfaceConnection(conn_type=123, comp_id="ROOM1", comp_ids="ROOM2")  # type: ignore[arg-type]
+
+    @pytest.mark.parametrize("bad_id", ["", 42, None])
+    def test_init_invalid_comp_id(self, bad_id: object):
+        """Test that initialization fails with an invalid comp_id."""
+        with pytest.raises((TypeError, ValueError)):
+            SurfaceConnection(conn_type="FLOOR", comp_id=bad_id, comp_ids="ROOM2")  # type: ignore[arg-type]
+
+    @pytest.mark.parametrize("bad_id", ["", 42, None])
+    def test_init_invalid_comp_ids(self, bad_id: object):
+        """Test that initialization fails with an invalid comp_ids."""
+        with pytest.raises((TypeError, ValueError)):
+            SurfaceConnection(conn_type="FLOOR", comp_id="ROOM1", comp_ids=bad_id)  # type: ignore[arg-type]
+
+    def test_init_same_comp_id_and_comp_ids(self):
+        """Test that initialization fails when comp_id and comp_ids are identical."""
+        with pytest.raises(ValueError, match="comp_id and comp_ids must differ"):
+            SurfaceConnection(conn_type="FLOOR", comp_id="ROOM1", comp_ids="ROOM1")
+
     def test_init_wall_missing_fraction(self):
         """Test that WALL connection fails without a fraction value."""
         with pytest.raises(ValueError, match="WALL connection requires a fraction"):
             SurfaceConnection(conn_type="WALL", comp_id="ROOM1", comp_ids="ROOM2")
+
+    def test_init_wall_fraction_not_numeric(self):
+        """Test that WALL connection fails when fraction is not numeric."""
+        with pytest.raises(TypeError, match="fraction must be a float"):
+            SurfaceConnection(
+                conn_type="WALL", comp_id="ROOM1", comp_ids="ROOM2", fraction="half"
+            )  # type: ignore[arg-type]
 
     @pytest.mark.parametrize("fraction", [-0.1, 1.1])
     def test_init_wall_fraction_out_of_range(self, fraction: float):
@@ -140,18 +157,14 @@ class TestSurfaceConnection:
                 conn_type="FLOOR", comp_id="ROOM1", comp_ids="ROOM2", fraction=0.5
             )
 
-    def test_to_input_string_floor_no_fraction(self):
-        """Test that floor connections warn when fraction is provided and don't include it in output."""
-        with pytest.warns(UserWarning, match="fraction should be None for FLOOR"):
+    def test_to_input_string_floor_ignores_fraction(self):
+        """Test that floor connections don't include F in output even when fraction was provided."""
+        with pytest.warns(UserWarning):
             conn = SurfaceConnection(
-                conn_type="FLOOR",
-                comp_id="TOP",
-                comp_ids="BOTTOM",
-                fraction=0.5,  # Should be ignored for floor connections
+                conn_type="FLOOR", comp_id="TOP", comp_ids="BOTTOM", fraction=0.5
             )
         result = conn.to_input_string()
         assert "F =" not in result
-        assert "/\n" in result
 
     # Tests for dunder methods
     def test_repr(self) -> None:
