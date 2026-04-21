@@ -93,11 +93,11 @@ class WallVent(CFASTComponent):
     >>> door = WallVent(
     ...     id="DOOR_1_2",
     ...     comps_ids=["ROOM1", "ROOM2"],
-    ...     bottom=0,           # Bottom at floor level (relative to first)
-    ...     height=2.0,         # Height of opening relative to bottom
-    ...     width=0.9,          # Width of the opening
-    ...     face="RIGHT",       # Wall on which vent is positioned
-    ...     offset=1.0          # Distance from origin for visualization
+    ...     bottom=0,
+    ...     height=2.0,
+    ...     width=0.9,
+    ...     face="RIGHT",
+    ...     offset=1.0
     ... )
     """
 
@@ -108,7 +108,7 @@ class WallVent(CFASTComponent):
         bottom: float | None = 0,
         height: float | None = 0,
         width: float | None = 0,
-        face: str = "",
+        face: str = "",  # can be "FRONT","REAR","RIGHT","LEFT"
         offset: float | None = 0,
         open_close_criterion: str | None = None,  # can be "TIME","FLUX","TEMPERATURE"
         time: list[float] | None = None,
@@ -141,6 +141,8 @@ class WallVent(CFASTComponent):
 
         Raises
         ------
+        TypeError
+            If list parameters (comps_ids, time, fraction) are not lists.
         ValueError
             If any attribute violates the constraints.
 
@@ -149,6 +151,19 @@ class WallVent(CFASTComponent):
         UserWarning
             If height or width is 0 (no flow will occur through this vent).
         """
+        if not isinstance(self.comps_ids, list):
+            raise TypeError(
+                f"WallVent '{self.id}': comps_ids must be a list, got {type(self.comps_ids).__name__}."
+            )
+        for param, opt_list_val in (
+            ("time", self.time),
+            ("fraction", self.fraction),
+        ):
+            if opt_list_val is not None and not isinstance(opt_list_val, list):
+                raise TypeError(
+                    f"WallVent '{self.id}': {param} must be a list, got {type(opt_list_val).__name__}."
+                )
+
         if len(self.comps_ids) != 2:
             raise ValueError("Wall vent must connect exactly 2 compartments")
 
@@ -157,10 +172,6 @@ class WallVent(CFASTComponent):
                 "Compartment order is incorrect. "
                 "Outside must always be second compartment."
             )
-
-        if self.time is not None and self.fraction is not None:
-            if len(self.time) != len(self.fraction):
-                raise ValueError("Time and fraction lists must be of equal length")
 
         for dim, val in (
             ("height", self.height),
@@ -186,6 +197,44 @@ class WallVent(CFASTComponent):
                 if not 0.0 <= f <= 1.0:
                     raise ValueError(
                         f"WallVent '{self.id}': fraction[{i}]={f} must be in [0, 1]."
+                    )
+
+        if self.face and self.face.upper() not in {"FRONT", "REAR", "RIGHT", "LEFT"}:
+            raise ValueError(
+                f"WallVent '{self.id}': face must be one of {{'FRONT', 'REAR', 'RIGHT', 'LEFT'}}, got '{self.face}'."
+            )
+
+        if self.open_close_criterion is not None:
+            valid_criteria = {"TIME", "TEMPERATURE", "FLUX"}
+            if self.open_close_criterion not in valid_criteria:
+                raise ValueError(
+                    f"WallVent '{self.id}': open_close_criterion must be one of {valid_criteria}, got '{self.open_close_criterion}'."
+                )
+            if self.open_close_criterion in {"TEMPERATURE", "FLUX"}:
+                if self.set_point is None:
+                    raise ValueError(
+                        f"WallVent '{self.id}': set_point must be specified when open_close_criterion is '{self.open_close_criterion}'."
+                    )
+                if self.device_id is None:
+                    raise ValueError(
+                        f"WallVent '{self.id}': device_id must be specified when open_close_criterion is '{self.open_close_criterion}'."
+                    )
+            if self.open_close_criterion == "TIME":
+                if self.time is None or self.fraction is None:
+                    raise ValueError(
+                        f"WallVent '{self.id}': time and fraction must be specified when open_close_criterion is 'TIME'."
+                    )
+                if len(self.time) != len(self.fraction):
+                    raise ValueError(
+                        f"WallVent '{self.id}': time and fraction lists must be of equal length, got {len(self.time)} and {len(self.fraction)}."
+                    )
+                if any(t < 0 for t in self.time):
+                    raise ValueError(
+                        f"WallVent '{self.id}': all time values must be non-negative, got {self.time}."
+                    )
+                if self.time != sorted(self.time):
+                    raise ValueError(
+                        f"WallVent '{self.id}': time values must be monotonically increasing, got {self.time}."
                     )
 
         if (self.height is not None and self.height == 0) or (
@@ -242,14 +291,14 @@ class WallVent(CFASTComponent):
 
         if self.open_close_criterion is not None:
             rec.add_field("CRITERION", self.open_close_criterion)
-            rec.add_field("SETPOINT", self.set_point)
-            rec.add_field("DEVC_ID", self.device_id)
-            rec.add_field("PRE_FRACTION", self.pre_fraction)
-            rec.add_field("POST_FRACTION", self.post_fraction)
-
-        if self.time is not None and self.fraction is not None:
-            rec.add_list_field("T", self.time)
-            rec.add_list_field("F", self.fraction)
+            if self.open_close_criterion in {"TEMPERATURE", "FLUX"}:
+                rec.add_numeric_field("SETPOINT", self.set_point)
+                rec.add_field("DEVC_ID", self.device_id)
+                rec.add_field("PRE_FRACTION", self.pre_fraction)
+                rec.add_field("POST_FRACTION", self.post_fraction)
+            if self.open_close_criterion == "TIME":
+                rec.add_list_field("T", self.time)
+                rec.add_list_field("F", self.fraction)
 
         rec.add_field("FACE", self.face)
         rec.add_field("OFFSET", self.offset)
