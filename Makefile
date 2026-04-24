@@ -50,7 +50,7 @@ test-verif:
 	uv run pytest tests/verification_tests/
 
 cov:
-	uv run pytest --cov=src/pycfast tests/ --cov-report=term-missing --cov-report=html
+	uv run pytest --cov=src/pycfast src/pycfast tests/  --cov-report=term-missing --cov-report=html
 
 check:
 	uv run ruff check .
