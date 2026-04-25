@@ -851,7 +851,7 @@ class TestCFASTModel:
         # Test with invalid data_table type
         with pytest.raises(
             TypeError,
-            match="data_table must be a pandas DataFrame, numpy ndarray, or list of lists",
+            match="data_table must be a list of lists, dict, NumPy array, pandas DataFrame, or None",
         ):
             model_with_fire.update_fire_params(data_table="invalid")  # type: ignore[arg-type]
 
@@ -1296,7 +1296,6 @@ class TestCFASTModel:
         assert len(updated_model.devices) == 1
         assert len(updated_model.material_properties) == 1
 
-    # Additional tests for missing coverage
     def test_update_fire_params_default_first_fire(self) -> None:
         """Test update_fire_params with no fire identifier (should update first fire)."""
         model = self.create_full_model()
@@ -1782,6 +1781,7 @@ class TestCFASTModelValidateDependencies:
                     face="RIGHT",
                     offset=0,
                     open_close_criterion="TEMPERATURE",
+                    set_point=100.0,
                     device_id="UNKNOWN",
                 ),
                 id="wall-vent",
