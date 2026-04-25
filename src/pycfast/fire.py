@@ -91,13 +91,58 @@ class Fire(CFASTComponent):
     radiative_fraction : float
         The fraction of the combustion energy that is emitted in the form of thermal
         radiation. Default units: none, default value: 0.35.
-    data_table : list[list[float]], dict, np.ndarray, or pd.DataFrame
+    data_table : list[list[float]], dict, np.ndarray, or pd.DataFrame, optional
         Time-dependent fire properties with columns for TIME, HRR, HEIGHT, AREA,
         CO_YIELD, SOOT_YIELD, HCN_YIELD, HCL_YIELD, TRACE_YIELD. Properties are linearly
-        interpolated between specified points. Each row must contain exactly 9 values
-        corresponding to the LABELS columns.
+        interpolated between specified points. Defaults to ``DEFAULT_DATA_TABLE``
+        (a single all-zero row) when not provided.
 
-        If a dict format is used keys must match column names from LABELS and values
+        .. list-table::
+           :header-rows: 1
+           :widths: 10 25 15 50
+
+           * - Index
+             - Name
+             - Unit
+             - Description
+           * - 0
+             - ``TIME``
+             - s
+             - Simulation time
+           * - 1
+             - ``HRR``
+             - kW
+             - Heat release rate
+           * - 2
+             - ``HEIGHT``
+             - m
+             - Flame height
+           * - 3
+             - ``AREA``
+             - m²
+             - Fire base area
+           * - 4
+             - ``CO_YIELD``
+             - kg/kg
+             - Carbon monoxide yield
+           * - 5
+             - ``SOOT_YIELD``
+             - kg/kg
+             - Soot yield
+           * - 6
+             - ``HCN_YIELD``
+             - kg/kg
+             - Hydrogen cyanide yield
+           * - 7
+             - ``HCL_YIELD``
+             - kg/kg
+             - Hydrogen chloride yield
+           * - 8
+             - ``TRACE_YIELD``
+             - kg/kg
+             - Trace species yield
+
+        If a dict is used, keys must match column names from ``LABELS`` and values
         can be either a list of floats (one per timestep) or a scalar float (repeated for
         all timesteps). All list-valued columns must have the same length.
 

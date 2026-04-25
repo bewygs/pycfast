@@ -254,9 +254,8 @@ class CFASTModel:
         """
         Execute the CFAST simulation and return results.
 
-        This method writes the input file, runs CFAST, and reads the output
-        CSV files into pandas DataFrames. The simulation creates several
-        output files with different types of data.
+        Writes the input file, runs CFAST, and reads the output CSV files
+        into :class:`pandas.DataFrame` objects.
 
         Parameters
         ----------
@@ -274,18 +273,31 @@ class CFASTModel:
 
         Returns
         -------
-        dict[str, pd.DataFrame]
-            Dictionary mapping CSV filenames to pandas DataFrames containing
-            simulation results. Keys include:
-            - 'compartments': Compartment conditions over time
-            - 'devices': Device/target measurements
-            - 'masses': Mass flow data
-            - 'vents': Vent flow data
-            - 'walls': Wall heat transfer data
-            - 'zone': Zone-specific data
-            - 'diagnostics': Diagnostic information (if generated with &DIAG)
+        dict[str, :class:`pandas.DataFrame`]
+            Dictionary mapping output type to simulation results.
 
-            Returns None if simulation fails.
+            .. list-table::
+               :header-rows: 1
+               :widths: 25 75
+
+               * - Key
+                 - Description
+               * - ``'compartments'``
+                 - Conditions in each compartment over time.
+               * - ``'devices'``
+                 - Measurements from devices/targets over time.
+               * - ``'masses'``
+                 - Mass flow data for each compartment.
+               * - ``'vents'``
+                 - Flow data for each vent over time.
+               * - ``'walls'``
+                 - Heat transfer data for each wall over time.
+               * - ``'zone'``
+                 - Zone-specific data.
+               * - ``'diagnostics'``
+                 - Diagnostic information (only present if the input file contains ``&DIAG``).
+
+            Returns ``None`` if the simulation fails.
 
         Raises
         ------
