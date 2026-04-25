@@ -231,6 +231,8 @@ class Fire(CFASTComponent):
         "TRACE_YIELD",
     ]
 
+    DEFAULT_DATA_TABLE: list[list[float]] = [[0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
     def __init__(
         self,
         id: str,
@@ -267,7 +269,9 @@ class Fire(CFASTComponent):
         self.oxygen = oxygen
         self.heat_of_combustion = heat_of_combustion
         self.radiative_fraction = radiative_fraction
-        self.data_table = self._process_data_table(data_table)
+        if data_table is None:
+            data_table = self.DEFAULT_DATA_TABLE
+        self._data_table = self._process_data_table(data_table)
 
         self._validate()
 
@@ -347,6 +351,21 @@ class Fire(CFASTComponent):
                 UserWarning,
                 stacklevel=2,
             )
+
+    @property
+    def data_table(self) -> list[list[float]]:
+        """Fire time-dependent data table as list of lists."""
+        return self._data_table
+
+    @data_table.setter
+    def data_table(
+        self,
+        value: list[list[float]]
+        | dict[str, list[float] | float]
+        | np.ndarray
+        | pd.DataFrame,
+    ) -> None:
+        self._data_table = self._process_data_table(value)
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the Fire."""
@@ -511,15 +530,14 @@ class Fire(CFASTComponent):
         data_table: list[list[float]]
         | dict[str, list[float] | float]
         | np.ndarray
-        | pd.DataFrame
-        | None,
+        | pd.DataFrame,
     ) -> list[list[float]]:
         """
         Process and validate data_table input from various formats.
 
         Parameters
         ----------
-        data_table : list[list[float]], dict, np.ndarray, pd.DataFrame, or None
+        data_table : list[list[float]], dict, np.ndarray, or pd.DataFrame
             Fire data in various formats. Must have columns/keys corresponding to
             LABELS: ["TIME", "HRR", "HEIGHT", "AREA", "CO_YIELD", "SOOT_YIELD",
             "HCN_YIELD", "HCL_YIELD", "TRACE_YIELD"].
@@ -536,21 +554,7 @@ class Fire(CFASTComponent):
         ValueError
             If data_table has the wrong shape, missing keys, mismatched column
             lengths, or non-numeric values.
-
-        Warns
-        -----
-        UserWarning
-            If data_table is None (default zero-filled row is used).
         """
-        if data_table is None:
-            warnings.warn(
-                f"Fire '{self.id}': data_table is None, using default data with "
-                "values set to 0.",
-                UserWarning,
-                stacklevel=2,
-            )
-            return [[0, 0, 0, 0, 0, 0, 0, 0, 0]]
-
         if isinstance(data_table, dict):
             return self._process_dict_data_table(data_table)
 

@@ -100,9 +100,8 @@ class CFASTParser:
         self.devices: list[Device] = []
         self.surface_connections: list[SurfaceConnection] = []
 
-        self._fire_hash_map: dict[
-            str, Fire
-        ] = {}  # will be useful for merging chemistry, data tables, and fire
+        self._fire_hash_map: dict[str, Fire] = {}
+        self._fire_data_rows: dict[str, list[list[float]]] = {}
 
     def parse_file(
         self, file_path: str | Path, output_path: str | Path | None = None
@@ -257,7 +256,10 @@ class CFASTParser:
         chemistry and data table information has been properly associated
         with fire objects.
         """
-        for fire in self._fire_hash_map.values():
+        for fire_id, fire in self._fire_hash_map.items():
+            rows = self._fire_data_rows.get(fire_id, [])
+            if rows:
+                fire.data_table = rows
             self.fires.append(fire)
 
     def _clean_content(self, content: str) -> str:
@@ -661,18 +663,10 @@ class CFASTParser:
         }
 
         fire_params = self._extract_params(params, param_map)
-        with warnings.catch_warnings():
-            # TODO: need to refactor _parse_fire_block to add data_table in this step
-            # to remove the Warning in _validate steps in Fire class
-            warnings.filterwarnings(
-                "ignore", category=UserWarning, message="data_table is None"
-            )
-            fire = Fire(**fire_params)
+        fire = Fire(**fire_params)
 
-        fire.data_table = []
-
-        # Store in hash map using fire_id for later merging with CHEM and TABL blocks
         self._fire_hash_map[fire.fire_id] = fire
+        self._fire_data_rows[fire.fire_id] = []
 
     def _parse_chemistry_block(self, params: dict[str, Any]) -> None:
         """Parse CHEM namelist block for fire chemistry."""
@@ -734,10 +728,9 @@ class CFASTParser:
                     f"FIRE_ID {fire_id} in TABL block not found in any FIRE block."
                 )
 
-            fire = self._fire_hash_map[fire_id]
-            if not hasattr(fire, "data_table"):
-                fire.data_table = []
-            fire.data_table.append(current_row)
+            if fire_id not in self._fire_data_rows:
+                self._fire_data_rows[fire_id] = []
+            self._fire_data_rows[fire_id].append(current_row)
 
     def _parse_device_block(self, params: dict[str, Any]) -> None:
         """Parse DEVC namelist block."""
