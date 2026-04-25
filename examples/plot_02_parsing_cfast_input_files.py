@@ -3,7 +3,9 @@
 02 Parsing Existing CFAST Input Files
 =====================================
 
-This example explains how to use PyCFAST's parser to read and analyze existing CFAST input files (.in) to a :class:`~pycfast.CFASTModel` object. This allows users to use their existing models, modify them, and re-run simulations with minimal effort.
+This example explains how to use PyCFAST's parser to read and analyze existing
+CFAST input files (.in) to a :class:`~pycfast.CFASTModel` object. This allows users
+to use their existing models, modify them, and re-run simulations with minimal effort.
 """
 
 # %%
@@ -19,8 +21,10 @@ from pycfast.parsers import parse_cfast_file
 # %%
 # Step 2: Parse CFAST File
 # ------------------------
-# The :func:`~pycfast.parsers.parse_cfast_file` is a convenience function to parse input CFAST files.
-# Here we will parse the PRISME `PRS_D1.in <https://github.com/firemodels/cfast/blob/master/Validation/PRISME/PRS_D1.in>`_ input file for demonstration purposes.
+# The :func:`~pycfast.parsers.parse_cfast_file` is a convenience function to parse
+# input CFAST files. Here we will parse the PRISME
+# `PRS_D1.in <https://github.com/firemodels/cfast/blob/master/Validation/PRISME/PRS_D1.in>`_
+# input file for demonstration purposes.
 
 model = parse_cfast_file(r"data/PRS_D1.in", r"parsed_PRS_D1.in")
 
@@ -78,7 +82,8 @@ updated_model = updated_model.add_material(new_material)
 # %%
 # Step 5: Save Modified Model
 # ----------------------------
-# You can save the modified model as a new CFAST input file using :meth:`~pycfast.CFASTModel.save`.
+# You can save the modified model as a new CFAST input file using
+# :meth:`~pycfast.CFASTModel.save`.
 updated_model.save(file_name="modified_PRS_D1.in")
 
 # %%

@@ -4,14 +4,21 @@
 =========================================
 
 
-Build surrogate model machine learning models to predict CFAST outputs instantly instead of running full simulations.
-**Goal**: Predict Target Surface Temperature of the devices (:class:`~pycfast.Device` TRGSURT) from fire parameters: heat of combustion, radiative fraction, soot yield and target z position
-**Models**: Linear → Polynomial → Gradient Boosting → Random Forest → Neural Network (PyTorch)
+This example demonstrates how to build surrogate model machine learning models to
+predict CFAST outputs instantly instead of running full simulations.
+
+
+We we'll try to predict Target Surface Temperature (TRGSURT) of the :class:`~pycfast.Device`
+from various fire parameter (heat of combustion, radiative fraction, soot
+yield and target z position) using different machine learning models including linear
+regression, polynomial regression, gradient boosting, random forest, and a simple
+neural network. We will evaluate the performance of each model and compare their
+predictions against actual CFAST simulation results.
 """
 
 # %%
-# Step 1: Import Libraries
-# -------------------------
+# Step 1: Import Required Libraries
+# ------------------------
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -34,10 +41,17 @@ plt.style.use("seaborn-v0_8-whitegrid")
 
 # %%
 # Step 2: Load Base Model and Run Baseline
-# ------------------------------------------
-# We use :func:`~pycfast.parsers.parse_cfast_file` to load the base model and :meth:`~pycfast.CFASTModel.run` to get baseline results.
+# ----------------------------------------
+# We use :func:`~pycfast.parsers.parse_cfast_file` to load the base model.
 
 model = parse_cfast_file("data/SP_AST_Diesel_1p1.in")
+
+# %%
+# The parsed model is displayed below.
+print(model.summary())
+
+# %%
+# We use :meth:`~pycfast.CFASTModel.run` to get baseline results
 baseline_results = model.run()
 
 print(f"Baseline TRGSURT max: {baseline_results['devices']['TRGSURT_1'].max():.2f} °C")
@@ -47,16 +61,8 @@ print(f"Radiative fraction: {model.fires[0].radiative_fraction}")
 print(f"Soot yield: {model.fires[0].data_table[0][5]}")
 
 # %%
-# The parsed model is displayed below.
-
-model
-
-# %%
-print(model.summary())
-
-# %%
 # Step 3: Load Pre-computed Training Data
-# ------------------------------------------
+# ---------------------------------------
 # Instead of running 5000 CFAST simulations (which can take hours),
 # we load a precomputed dataset that is included with pycfast using
 # :func:`~pycfast.datasets.load_sp_ast_diesel_1p1`.
@@ -66,18 +72,22 @@ print(model.summary())
 
 training_data = load_sp_ast_diesel_1p1()
 
-print(f"Loaded {len(training_data)} samples")
-print(
-    f"TRGSURT range: {training_data['max_trgsurt'].min():.1f}"
-    f" - {training_data['max_trgsurt'].max():.1f} °C"
-)
+# %%
+# The dataset contains the following columns:
 training_data.head()
 
 # %%
-# Step 4: Quick Data Exploration
-# -------------------------------
+# The target variable is `max_trgsurt` which is the maximum surface temperature of the
+# target device during the simulation. The input parameters are `heat_of_combustion`,
+# `radiative_fraction`, `soot_yield`, and `target_location_z`.
 
-# Show parameter correlations with output
+# %%
+# Step 4: Quick Data Exploration
+# ------------------------------
+# Before training surrogate models, it's helpful to understand the relationships between
+# the input parameters and the target variable. We can compute correlation coefficients
+# to see which parameters have the strongest influence on TRGSURT.
+
 input_params = [
     "heat_of_combustion",
     "radiative_fraction",
@@ -91,7 +101,9 @@ for param, corr in correlations.abs().sort_values(ascending=False).items():
     direction = "+" if correlations[param] > 0 else "-"
     print(f"  {param}: {direction}{corr:.3f}")
 
-# Quick visualization
+# %%
+# We can also visualize the correlation matrix to see how the input parameters correlate
+# with each other and with the target variable.
 fig, ax = plt.subplots(1, 1, figsize=(8, 6))
 sns.heatmap(training_data.corr(), annot=True, cmap="coolwarm", center=0, ax=ax)
 plt.title("Parameter Correlation Matrix")
@@ -99,25 +111,32 @@ plt.tight_layout()
 plt.show()
 
 # %%
-# The correlation analysis shows that **target height (z-axis position)** has the strongest negative correlation with TRGSURT, making it the most influential parameter for temperature prediction. This makes physical sense since the farther the target device is from the fire source, the lower the surface temperature it experiences.
-#
-# **Radiative fraction** shows the second strongest correlation, showing the importance of radiative heat transfer in determining target surface temperatures in fire scenarios.
+# The correlation analysis shows that **target height (z-axis position)** has the
+# strongest negative correlation with TRGSURT, making it the most influential parameter
+# for temperature prediction. This makes physical sense since the farther the target
+# device is from the fire source, the lower the surface temperature it experiences.
+# **Radiative fraction** shows the second strongest correlation, showing the importance
+# of radiative heat transfer in determining target surface temperatures in fire scenarios.
 
 # %%
 # Step 5: Train Surrogate Models
-# --------------------------------
+# ------------------------------
+# Now we can train different surrogate models to predict TRGSURT based on the input parameters.
+# We'll evaluate the performance of each model using R² and RMSE metrics on a held-out test set.
 
-# Prepare data for machine learning models
+# First, we split the data into training and testing sets.
 X = training_data[input_params].values
 y = training_data["max_trgsurt"].values
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
+# %%
+# Next, we define and train several machine learning models.
 models = {}
 metrics = {}
 
-
+# %%
 # Prepare models and evaluate their performance
 # 1. Linear Regression
 models["Linear"] = Pipeline(
@@ -130,6 +149,7 @@ metrics["Linear"] = {
     "RMSE": np.sqrt(mean_squared_error(y_test, y_pred)),
 }
 
+# %%
 # 2. Polynomial Regression
 models["Polynomial"] = Pipeline(
     [
@@ -145,6 +165,7 @@ metrics["Polynomial"] = {
     "RMSE": np.sqrt(mean_squared_error(y_test, y_pred)),
 }
 
+# %%
 # 3. Gradient Boosting
 models["Gradient Boosting"] = Pipeline(
     [
@@ -159,6 +180,7 @@ metrics["Gradient Boosting"] = {
     "RMSE": np.sqrt(mean_squared_error(y_test, y_pred)),
 }
 
+# %%
 # 4. Random Forest
 models["Random Forest"] = Pipeline(
     [
@@ -177,10 +199,9 @@ print("Model Performance:")
 for name, metric in metrics.items():
     print(f"  {name}: R² = {metric['R²']:.4f}, RMSE = {metric['RMSE']:.2f} °C")
 
+
 # %%
-# Neural net model in a separate cell below as this requires more setup.
-
-
+# 5. Neural net model
 class SimpleNN(nn.Module):
     def __init__(self, input_size):
         super().__init__()
@@ -321,7 +342,7 @@ plt.show()
 
 # %%
 # Step 6: Evaluate and Compare Models
-# ------------------------------------
+# -----------------------------------
 
 model_names = list(metrics.keys())
 n_models = len(model_names)
@@ -410,7 +431,9 @@ print(f"\nBest model: {best_model} (R² = {metrics[best_model]['R²']:.4f})")
 
 # %%
 # Step 7: Rough Speed Comparison
-# --------------------------------
+# ------------------------------
+# Finally, we can compare the prediction speed of the best surrogate model against
+# running a full CFAST simulation.
 
 import time
 
@@ -471,7 +494,10 @@ print(f"{best_model}: {surrogate_time:.6f} seconds")
 print(f"Speedup: {speedup:.0f}x faster")
 
 # %%
-# Surrogate models perform well on test data and is able to speed up predictions by several orders of magnitude. Of Course this is because the parameter space is small and the model is simple. More complex models will require more training data and more sophisticated surrogate models.
+# Surrogate models perform well on test data and is able to speed up predictions by
+# several orders of magnitude. Of Course this is because the parameter space is small
+# and the model is simple. More complex models will require more training data and
+# more sophisticated surrogate models.
 
 # %%
 # Cleanup

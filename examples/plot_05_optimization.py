@@ -3,20 +3,24 @@
 05 Operational research with optimization algorithms
 ====================================================
 
-This notebook demonstrates how to use optimization algorithms to find the best parameter values for CFAST fire simulations.
+This example demonstrates how to use optimization algorithms to find the best
+parameter values for CFAST fire simulations.
 
-We'll use SciPy's optimization algorithms to efficiently explore the parameter space and find optimal fire model configurations.
+We'll use SciPy's optimization algorithms to efficiently explore the parameter space
+and find optimal fire model configurations.
 """
 
 # %%
 # Step 1: Import Required Libraries
-# -----------------------------------
+# ---------------------------------
 # We'll import:
 #
-# - **SciPy optimize**: For optimization algorithms (minimize, bounds handling)
-# - **Scikit-learn**: For parameter scaling and preprocessing
+# - **NumPy**: For generating parameter ranges and arrays
+# - **Pandas**: For organizing and analyzing simulation results
+# - **Matplotlib**: For visualizing the generated data
+# - **SciPy**: For optimization algorithms (see :func:`~scipy.optimize.minimize`)
+# - **Scikit-learn**: For parameter scaling and preprocessing (see :class:`~sklearn.preprocessing.MinMaxScaler`)
 # - **PyCFAST**: For parsing and running CFAST models (see :func:`~pycfast.parsers.parse_cfast_file` and :meth:`~pycfast.CFASTModel.run`)
-# - **Standard libraries**: For data manipulation and visualization
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,14 +45,11 @@ model = parse_cfast_file("data/SP_AST_Diesel_1p1.in")
 # %%
 # The parsed model is displayed below.
 
-model
-
-# %%
 print(model.summary())
 
 # %%
 # Step 3: Define the Optimization Problem
-# ----------------------------------------
+# ---------------------------------------
 # We specify:
 #
 # 1. **Parameters to optimize**: Which model inputs to vary
@@ -62,12 +63,15 @@ print(model.summary())
 # - **Radiative fraction**: Portion of fire energy released as radiation (affects heat transfer)
 #
 # We keep the problem simple with 2 parameters for demonstration, but you can
-# optimize many parameters simultaneously.
+# optimize as many parameters as needed.
 
 bounds = {
-    "soot_yield": [0.01, 0.12],  # soot yield: 0.01-0.12
-    "radiative_fraction": [0.20, 0.45],  # radiative fraction: 0.20-0.45
+    "soot_yield": [0.01, 0.12],
+    "radiative_fraction": [0.20, 0.45],
 }
+
+# %%
+# Initial guess (starting point) for optimization.
 x0 = {"soot_yield": 0.05, "radiative_fraction": 0.35}
 
 param_names = list(bounds.keys())
@@ -78,42 +82,34 @@ for name, bound in bounds.items():
 
 # %%
 # Step 4: Format Bounds for SciPy
-# --------------------------------
+# -------------------------------
 # We scale and prepare bounds in the format required by SciPy optimization functions.
 
-bounds_array = np.array(list(bounds.values()))  # Shape: (n_params, 2)
-print(f"Original bounds shape: {bounds_array.shape}")
-print(f"Bounds array:\n{bounds_array}")
+bounds_array = np.array(list(bounds.values()))
 
+# %%
 # Create scaler that will map from original bounds to [0,1] for each parameter
 scaler = MinMaxScaler(feature_range=(0, 1))
 
-scaler.fit(bounds_array.T)  # Transpose so each parameter is a column
+scaler.fit(bounds_array.T)
 
 scaled_bounds = [(0.0, 1.0) for _ in range(len(bounds))]
 print(f"Scaled bounds: {scaled_bounds}")
 
-x0_array = np.array(list(x0.values())).reshape(1, -1)  # Shape: (1, n_params)
+x0_array = np.array(list(x0.values())).reshape(1, -1)
 scaled_x0 = scaler.transform(x0_array).flatten()
 print(f"Original x0: {list(x0.values())}")
 print(f"Scaled x0: {scaled_x0}")
 
-test_min = scaler.transform(bounds_array[:, 0].reshape(1, -1)).flatten()
-test_max = scaler.transform(bounds_array[:, 1].reshape(1, -1)).flatten()
-print(f"Scaled min bounds: {test_min}")
-print(f"Scaled max bounds: {test_max}")
-
 # %%
 # Step 5: Define Objective Function
-# -----------------------------------
+# ---------------------------------
 # The objective function is the heart of optimization. It:
 #
 # - **Receives scaled parameters** from the optimizer
 # - **Converts back to physical units** using the scaler
 # - **Runs the simulation** with :meth:`~pycfast.CFASTModel.run`
-# - **Returns the negative temperature** (since SciPy minimizes, but we want to maximize temperature)
-#
-# The function also uses a cache to avoid re-computing identical parameter combinations.
+# - **Returns the negative temperature** (since SciPy minimizes, but our goal is to maximize temperature)
 
 optimization_path = []  # Track the actual optimization path
 
@@ -122,17 +118,15 @@ def objective_function(x):
     x = np.array([x])
     x = scaler.inverse_transform(x.reshape(1, -1))
     x = x.transpose()
-    x = [x[0][0], x[1][0]]  # Convert from 2D array to 1D list
+    x = [x[0][0], x[1][0]]
     soot_yield = x[0]
     radiative_fraction = x[1]
 
-    # recreate data_table with soot_yield value updated
     data_table = [
         row[:5] + [soot_yield] + row[6:] if len(row) > 6 else row
         for row in model.fires[0].data_table
     ]
 
-    # Update model with new fire parameters using :meth:`~pycfast.CFASTModel.update_fire_params`
     temp_model = model.update_fire_params(
         fire="n-Decane Test 1_Fire",
         data_table=data_table,
@@ -143,26 +137,26 @@ def objective_function(x):
 
     max_trgsurt_2 = results["devices"]["TRGSURT_2"].max()
     print(
-        f"Computing point: SY={soot_yield:.4f}, RF={radiative_fraction:.4f}, Temp={max_trgsurt_2:.2f}"
+        f"Computing point: SY={soot_yield:.4f}, RF={radiative_fraction:.4f}, "
+        f"Temp={max_trgsurt_2:.2f}"
     )
 
     optimization_path.append((soot_yield, radiative_fraction, max_trgsurt_2))
 
-    return -max_trgsurt_2  # Negate to convert maximization to minimization
+    return -max_trgsurt_2
 
 
 # %%
 # Step 6: Generate Complete Function Map
-# ----------------------------------------
+# --------------------------------------
 # Before optimization, we evaluate the objective function on a grid to visualize
-# the landscape, validate optimizer results, and identify optimal regions.
-# This helps us understand if the function is smooth or has local minima.
-
-default_max_temp = model.run()["devices"]["TRGSURT_2"].max()
-print(f"Default model max TRGSURT_2: {default_max_temp:.2f} °C")
+# the landscape and validate optimizer results. This helps us understand if the
+# function is smooth or has local minima. In practice, this step can be skipped
+# for high-dimensional problems because of the curse of dimensionality,
+# but for 2D or 3D problems it provides valuable insights.
 
 # %%
-grid_resolution = 15  # 15x15 = 225 function evaluations
+grid_resolution = 15
 
 soot_yield_grid = np.linspace(
     bounds["soot_yield"][0], bounds["soot_yield"][1], grid_resolution
@@ -186,13 +180,11 @@ for i, soot_yield in enumerate(soot_yield_grid):
                 f"Progress: {evaluation_count}/{total_evaluations} ({100 * evaluation_count / total_evaluations:.1f}%)"
             )
 
-        # recreate data_table with soot_yield value updated
         data_table = [
             row[:5] + [soot_yield] + row[6:] if len(row) > 6 else row
             for row in model.fires[0].data_table
         ]
 
-        # Update model with new fire parameters using :meth:`~pycfast.CFASTModel.update_fire_params`
         temp_model = model.update_fire_params(
             fire="n-Decane Test 1_Fire",
             data_table=data_table,
@@ -201,7 +193,6 @@ for i, soot_yield in enumerate(soot_yield_grid):
 
         results = temp_model.run()
 
-        # Extract max TRGSURT_2
         max_trgsurt_2 = results["devices"]["TRGSURT_2"].max()
 
         function_map[(soot_yield, radiative_fraction)] = max_trgsurt_2
@@ -214,7 +205,10 @@ grid_df = pd.DataFrame(
     columns=["soot_yield", "radiative_fraction", "max_trgsurt_2"],
 )
 
-print("Function statistics:")
+# %%
+# Statistics about the function map and default model performance for later comparison
+default_max_temp = model.run()["devices"]["TRGSURT_2"].max()
+
 print(f"Minimum temperature: {grid_df['max_trgsurt_2'].min():.2f} °C")
 print(f"Maximum temperature: {grid_df['max_trgsurt_2'].max():.2f} °C")
 print(f"Mean temperature: {grid_df['max_trgsurt_2'].mean():.2f} °C")
@@ -222,7 +216,7 @@ print(f"Default model temperature: {default_max_temp:.2f} °C")
 
 # %%
 # Step 7: Run Optimization Algorithm
-# ------------------------------------
+# ----------------------------------
 # Now we execute the Nelder-Mead optimization algorithm. This method requires
 # no gradients, uses a simplex to converge toward the optimum, and respects
 # parameter constraints during the search.
@@ -232,8 +226,12 @@ result = optimize.minimize(
 )
 
 # %%
+# Maximum temperature found by optimization (negate since we minimized the negative)
 max_temp_found = -result.fun
-print(f"Found max temp: {max_temp_found}")
+print(f"{max_temp_found:.2f} °C")
+
+# %%
+# Optimized parameters in original units
 optimized_params = dict(zip(param_names, result.x, strict=False))
 print("Optimized parameters:")
 for pname, pval in optimized_params.items():
@@ -241,9 +239,14 @@ for pname, pval in optimized_params.items():
     arr = np.zeros((1, len(param_names)))
     arr[0, idx] = pval
     unscaled_val = scaler.inverse_transform(arr)[0][idx]
-    print(f"  {pname}: {unscaled_val}")
+    print(f"  {pname}: {unscaled_val:.2f}")
 
 # %%
+# Step 8: Visualize Results
+# -------------------------
+# We visualize the complete function map with the optimization path overlaid to see
+# how the optimizer navigated the landscape.
+
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 
 contour = ax1.contourf(
@@ -311,7 +314,13 @@ ax2.set_title("3D Objective Function Surface")
 plt.tight_layout()
 plt.show()
 
-# Calculate statistics for later use
+# %%
+# Step 9: Analyze Optimization Performance
+# ----------------------------------------
+# We compare the optimization results to the complete function map to understand
+# how well the optimizer performed, how close it got to the global optimum, and
+# how much improvement was achieved over the default model.
+
 max_idx = np.unravel_index(np.argmax(temperature_grid), temperature_grid.shape)
 global_opt_soot = soot_yield_grid[max_idx[0]]
 global_opt_rf = radiative_fraction_grid[max_idx[1]]
@@ -320,12 +329,18 @@ global_opt_temp = temperature_grid[max_idx]
 final_temp = optimization_path[-1][2]
 path_temps = [point[2] for point in optimization_path]
 
+dist_to_optimum = np.sqrt(
+    (path_soot[-1] - global_opt_soot) ** 2 + (path_rf[-1] - global_opt_rf) ** 2
+)
+
 print("Function Map Statistics:")
 print(
-    f"Grid resolution: {grid_resolution}x{grid_resolution} = {grid_resolution**2} points"
+    f"Grid resolution: {grid_resolution}x{grid_resolution}"
+    f" = {grid_resolution**2} points"
 )
 print(
-    f"Temperature range: {grid_df['max_trgsurt_2'].min():.2f} - {grid_df['max_trgsurt_2'].max():.2f} °C"
+    f"Temperature range: {grid_df['max_trgsurt_2'].min():.2f}"
+    f" - {grid_df['max_trgsurt_2'].max():.2f} °C"
 )
 print(f"Temperature std dev: {grid_df['max_trgsurt_2'].std():.2f} °C")
 print("\nGlobal Optimum (from complete map):")
@@ -334,16 +349,16 @@ print(f"Radiative Fraction: {global_opt_rf:.4f}")
 print(f"Max Temperature: {global_opt_temp:.2f} °C")
 print("\nOptimization Results:")
 print(
-    f"Start point: SY={path_soot[0]:.4f}, RF={path_rf[0]:.4f}, Temp={path_temps[0]:.2f} °C"
+    f"Start point: SY={path_soot[0]:.4f}, RF={path_rf[0]:.4f}, "
+    f"Temp={path_temps[0]:.2f} °C"
 )
 print(
-    f"Final point: SY={path_soot[-1]:.4f}, RF={path_rf[-1]:.4f}, Temp={path_temps[-1]:.2f} °C"
+    f"Final point: SY={path_soot[-1]:.4f}, RF={path_rf[-1]:.4f}, "
+    f"Temp={path_temps[-1]:.2f} °C"
 )
 print(f"Function evaluations: {len(optimization_path)}")
 print(f"Temperature improvement: {path_temps[-1] - path_temps[0]:.2f} °C")
-print(
-    f"Distance from global optimum: {np.sqrt((path_soot[-1] - global_opt_soot) ** 2 + (path_rf[-1] - global_opt_rf) ** 2):.4f}"
-)
+print(f"Distance from global optimum: {dist_to_optimum:.4f}")
 
 improvement_achieved = path_temps[-1] - default_max_temp
 max_possible_improvement = global_opt_temp - default_max_temp
@@ -355,6 +370,7 @@ efficiency = (
 print(f"Optimization efficiency: {efficiency:.1f}% of maximum possible improvement")
 
 # %%
+# Additional visualizations to analyze optimization performance in detail
 fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 10))
 
 iterations = range(1, len(optimization_path) + 1)

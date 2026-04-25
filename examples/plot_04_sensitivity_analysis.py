@@ -4,13 +4,20 @@
 =======================
 
 This example demonstrates how to perform sensitivity analysis on CFAST fire simulation
-models using the SALib library. We'll use Sobol indices to quantify parameter importance
-and visualize the results.
+models using the SALib library. We'll use Sobol indices to quantify parameter
+importance and visualize the results.
 """
 
 # %%
-# Step 1: Import Required Libraries
+# Step 1: Import Libraries
 # ----------------------------------
+# We'll import:
+#
+# - **NumPy**: For generating parameter ranges and arrays
+# - **Pandas**: For organizing and analyzing simulation results
+# - **Matplotlib**: For visualizing the generated data
+# - **SALib**: For performing sensitivity analysis (see :func:`~SALib.sample.sobol.sample` and :func:`~SALib.analyze.sobol.analyze`)
+# - **PyCFAST**: For parsing and running CFAST models (see :func:`~pycfast.parsers.parse_cfast_file` and :meth:`~pycfast.CFASTModel.run`)
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -34,7 +41,7 @@ model = parse_cfast_file("data/USN_Hawaii_Test_03.in")
 # %%
 # The parsed model is displayed below.
 
-model
+print(model.summary())
 
 # %%
 # Step 3: Define the Problem for Sensitivity Analysis
@@ -52,20 +59,21 @@ model
 problem = {
     "num_vars": 4,
     "names": [
-        "heat_of_combustion",  # Heat of combustion (MJ/kg)
-        "radiative_fraction",  # Fire radiative fraction (adimensional)
-        "target_thickness",  # Target material thickness (m)
-        "target_emissivity",  # Target material emissivity (adimensional)
+        "heat_of_combustion",
+        "radiative_fraction",
+        "target_thickness",
+        "target_emissivity",
     ],
     "bounds": [
-        [100, 50000],  # Heat of combustion: 100-50000 MJ/kg
-        [0.1, 1.0],  # Radiative fraction: 0.1-1.0
-        [0.15, 0.60],  # Target thickness: 0.15-0.60 m
-        [0.8, 0.95],  # Target emissivity: 0.8-0.95
+        [100, 50000],
+        [0.1, 0.8],
+        [0.10, 0.60],
+        [0.8, 0.95],
     ],
 }
 
-print("Sensitivity analysis problem defined:")
+# %%
+# Below you can see the defined parameters and their ranges for the sensitivity analysis.
 for i, name in enumerate(problem["names"]):
     bounds = problem["bounds"][i]
     print(f"  {name}: [{bounds[0]}, {bounds[1]}]")
@@ -74,12 +82,6 @@ for i, name in enumerate(problem["names"]):
 # Step 4: Generate Parameter Samples
 # ------------------------------------
 # We use Sobol sequences to create well-distributed parameter combinations.
-# Sobol sampling ensures:
-#
-# - Good coverage of the parameter space
-# - Efficient sampling for sensitivity analysis
-# - Proper computation of interaction effects
-#
 # The number of samples affects accuracy but also computational time.
 
 N = 64  # Number of samples (will generate N*(2*num_vars+2) total samples)
@@ -89,8 +91,10 @@ print(f"Generated {len(param_values)} parameter combinations")
 print(f"Sample shape: {param_values.shape}")
 
 df_samples = pd.DataFrame(param_values, columns=problem["names"])
-print("\nFirst 5 parameter combinations:")
-print(df_samples.head())
+
+# %%
+# First 5 parameter combinations
+df_samples.head()
 
 # %%
 # Step 5: Run Model Evaluations
@@ -101,28 +105,25 @@ print(df_samples.head())
 # - Modify the model with each parameter set using :meth:`~pycfast.CFASTModel.update_fire_params` and :meth:`~pycfast.CFASTModel.update_material_params`
 # - Run the CFAST simulation with :meth:`~pycfast.CFASTModel.run`
 # - Extract and store the output values
-#
-# Progress indicators help track completion of all evaluations.
 
-print("Running model evaluations...")
 outputs = []
 
 for i, params in enumerate(param_values):
     if i % 50 == 0:
-        print(f"Processing sample {i}/{len(param_values)}")
         print(
+            f"Sample {i}/{len(param_values)}: "
             f"hoc={params[0]}, rf={params[1]}, thickness={params[2]}, emissivity={params[3]}"
         )
 
     temp_model = model.update_fire_params(
         fire="Hawaii_03_Fire",
-        heat_of_combustion=params[0],  # heat of combustion in MJ/kg
-        radiative_fraction=params[1],  # radiative fraction (0-1)
+        heat_of_combustion=params[0],
+        radiative_fraction=params[1],
     )
     temp_model = temp_model.update_material_params(
         material="STEELSHT",
-        thickness=params[2],  # thickness in meters
-        emissivity=params[3],  # emissivity (0-1)
+        thickness=params[2],
+        emissivity=params[3],
     )
 
     results = temp_model.run()
@@ -148,13 +149,12 @@ print(f"Output shape: {Y.shape}")
 Si = sobol_analyze.analyze(problem, np.array(Y))
 
 # %%
-print("Sobol Sensitivity Analysis Results:")
-
-print("\nFirst-order indices (S1):")
+# First-order indices (S1):
 for i, param_name in enumerate(problem["names"]):
     print(f"  {param_name}: {Si['S1'][i]:.4f}")
 
-print("\nTotal-order indices (ST):")
+# %%
+# Total-order indices (ST):
 for i, param_name in enumerate(problem["names"]):
     print(f"  {param_name}: {Si['ST'][i]:.4f}")
 

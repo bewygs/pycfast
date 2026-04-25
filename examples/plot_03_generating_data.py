@@ -3,14 +3,16 @@
 03 Generating Data with PyCFAST
 ===============================
 
-This example demonstrates how to use PyCFAST with NumPy to generate simulation data by running multiple CFAST fire simulations with varying parameters.
+This example demonstrates how to use PyCFAST with NumPy to generate simulation data by
+running multiple CFAST fire simulations with varying parameters.
 
-We'll create a simple parametric study by varying fire characteristics and analyze the trends in the results.
+We'll create a simple parametric study by varying fire characteristics and analyze the
+trends in the results.
 """
 
 # %%
 # Step 1: Import Libraries
-# -------------------------
+# ------------------------
 # We'll import:
 #
 # - **NumPy**: For generating parameter ranges and arrays
@@ -37,73 +39,58 @@ model = parse_cfast_file("data/USN_Hawaii_Test_03.in")
 # %%
 # The parsed model is displayed below.
 
-model
+print(model.summary())
 
 # %%
 # Step 3: Generate Parameter Combinations
-# ----------------------------------------
+# ---------------------------------------
 # We use NumPy to create systematic parameter variations. For this study,
-# we'll vary two key fire parameters:
+# we'll vary two fire parameters:
 #
 # - **Heat of combustion**: Energy released per unit mass of fuel (affects fire intensity)
 # - **Radiative fraction**: Portion of fire energy released as radiation (affects heat transfer)
 
 n_samples = 10
 
-heat_of_combustion_values = np.linspace(15, 5000, n_samples)  # MJ/kg
-radiative_fraction_values = np.linspace(0.1, 0.9, n_samples)  # Fraction
+heat_of_combustion_values = np.linspace(15, 5000, n_samples)
+radiative_fraction_values = np.linspace(0.1, 0.9, n_samples)
 
 parameter_combinations = list(
     zip(heat_of_combustion_values, radiative_fraction_values, strict=False)
-)
-
-print(f"Generated {len(parameter_combinations)} parameter combinations")
-print(
-    f"Heat of combustion range: {heat_of_combustion_values[0]:.2f} - {heat_of_combustion_values[-1]:.2f} MJ/kg"
-)
-print(
-    f"Radiative fraction range: {radiative_fraction_values[0]:.2f} - {radiative_fraction_values[-1]:.2f}"
 )
 
 # %%
 # Step 4: Run simulations with varying parameters
 # -----------------------------------------------
 # Now we'll systematically modify the model parameters and run simulations
-# to generate our dataset.
-#
-# This creates a structured dataset linking input parameters to simulation outputs.
+# to generate our dataset. We'll update the fire parameters for each simulation using
+# :meth:`~pycfast.CFASTModel.update_fire_params` and run the model with
+# :meth:`~pycfast.CFASTModel.run`.
 
 all_runs = []
 
 for i, (hoc, rf) in enumerate(parameter_combinations):
-    print(
-        f"Running simulation {i + 1}/{len(parameter_combinations)}: hoc={hoc}, rf={rf}"
-    )
+    print(f"Simulation {i + 1}/{len(parameter_combinations)}: hoc={hoc}, rf={rf}")
 
-    # Update fire parameters using :meth:`~pycfast.CFASTModel.update_fire_params`
     temp_model = model.update_fire_params(
         fire="Hawaii_03_Fire", heat_of_combustion=hoc, radiative_fraction=rf
     )
 
-    # Run the simulation with :meth:`~pycfast.CFASTModel.run` and save the output
     outputs = temp_model.run(file_name=f"data_gen_sim_{i:03d}.in")
     all_runs.append(
         {
             "simulation_id": i,
-            "hoc": hoc,  # heat of combustion
-            "rf": rf,  # radiative fraction
+            "hoc": hoc,
+            "rf": rf,
             "outputs": outputs,
         }
     )
 
 # %%
 # Step 5: Analyze Generated Data
-# -------------------------------
+# ------------------------------
 # Now we visualize our generated dataset to understand how the parameter
 # variations affect fire behavior.
-#
-# Each line represents a different combination of heat of combustion and
-# radiative fraction values.
 
 plt.figure(figsize=(12, 7))
 colors = plt.get_cmap("viridis")(np.linspace(0, 1, len(all_runs)))
