@@ -1,3 +1,4 @@
+import inspect
 import os
 import sys
 from datetime import date
@@ -24,7 +25,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
-    "sphinx.ext.viewcode",
+    "sphinx.ext.linkcode",
     "sphinx_copybutton",
     "sphinx_autodoc_typehints",
     "myst_parser",  # markdown support (MyST)
@@ -125,3 +126,25 @@ sphinx_gallery_conf = {
     "within_subsection_order": "FileNameSortKey",
     'download_all_examples': False,
 }
+
+def linkcode_resolve(domain, info):
+    if domain != "py" or not info["module"]:
+        return None
+    try:
+        mod = sys.modules.get(info["module"])
+        if mod is None:
+            return None
+        obj = mod
+        for part in info["fullname"].split("."):
+            obj = getattr(obj, part)
+        source_file = inspect.getsourcefile(obj)
+        if source_file is None:
+            return None
+        source_lines, start_line = inspect.getsourcelines(obj)
+    except (TypeError, AttributeError, OSError):
+        return None
+    src_root = Path(__file__).parent.parent.parent / "src"
+    rel_path = os.path.relpath(source_file, start=src_root)
+    end_line = start_line + len(source_lines) - 1
+    return f"https://github.com/bewygs/pycfast/blob/main/src/{rel_path}#L{start_line}-L{end_line}"
+
