@@ -18,7 +18,7 @@ predictions against actual CFAST simulation results.
 
 # %%
 # Step 1: Import Required Libraries
-# ------------------------
+# ---------------------------------
 
 import matplotlib.pyplot as plt
 import numpy as np

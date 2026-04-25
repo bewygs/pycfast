@@ -9,8 +9,8 @@ importance and visualize the results.
 """
 
 # %%
-# Step 1: Import Libraries
-# ----------------------------------
+# Step 1: Import Required Libraries
+# ---------------------------------
 # We'll import:
 #
 # - **NumPy**: For generating parameter ranges and arrays
