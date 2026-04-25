@@ -105,19 +105,46 @@ We use [pytest](https://docs.pytest.org/en/stable/) for testing. Tests are locat
   pytest tests/units/
   ```
 
+  or from make file:
+   ```bash
+   make test-units
+   ```
+
+- **Documentation tests:**
+
+  Ensure example in docstrings are correct and work:
+  ```bash
+  pytest --doctest-modules src/pycfast/
+  ```
+
+  or from make file:
+   ```bash
+   make test-doctest
+   ```
+
 - **Verification tests:**
 
   Compare PyCFAST with CFAST Verification cases. Ensure you have run `generate_verif_data.py --local`
   to create the necessary reference data. Run (can be slow depending on your system):
   ```bash
-  pytest tests/verification_tests
+  pytest tests/verification_tests/
   ```
+   or from make file:
+   ```bash
+   make test-verif
+   ```
 
 - **Complete test suite:**
 
    Run all tests (units + verification) with:
+
    ```bash
-   make test  # or pytest tests/
+   pytest src/pycfast tests/
+   ```
+
+   or from make file:
+   ```bash
+   make test
    ```
 
 ## Code Style
