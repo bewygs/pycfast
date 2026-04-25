@@ -24,10 +24,13 @@ from pycfast.parsers import parse_cfast_file
 
 model = parse_cfast_file(r"data/PRS_D1.in", r"parsed_PRS_D1.in")
 
+# %%
 # Saving locally the parsed model
 model.save()
 
-print(f"\nView of the input file parsed: \n{model.view_cfast_input_file()}")
+# %%
+# View of the input file parsed
+print(model.view_cfast_input_file())
 
 # %%
 # .. note::
@@ -43,10 +46,8 @@ print(f"\nView of the input file parsed: \n{model.view_cfast_input_file()}")
 # %%
 # Step 3: Explore Parsed Components
 # ----------------------------------
-# Once parsed, you can easily inspect all model components using their
-# built-in string representations or the :meth:`~pycfast.CFASTModel.summary` method.
-
-print(f"Model: {model}")
+# Once parsed, you can easily inspect all model components using
+# the :meth:`~pycfast.CFASTModel.summary` method.
 
 print(model.summary())
 
@@ -61,6 +62,7 @@ updated_model = model.update_simulation_params(
     time_simulation=7200, title="Extended Simulation"
 )
 
+# %%
 # Add a new material with :meth:`~pycfast.CFASTModel.add_material`
 new_material = Material(
     id="Steel",
@@ -77,11 +79,9 @@ updated_model = updated_model.add_material(new_material)
 # Step 5: Save Modified Model
 # ----------------------------
 # You can save the modified model as a new CFAST input file using :meth:`~pycfast.CFASTModel.save`.
-
 updated_model.save(file_name="modified_PRS_D1.in")
 
-print(f"Saved modified model to: {updated_model.file_name}")
-
+# %%
 # View the contents of the modified file
 print(updated_model.view_cfast_input_file())
 
