@@ -31,6 +31,7 @@ extensions = [
     "myst_parser",  # markdown support (MyST)
     "sphinx_gallery.gen_gallery",
     "sphinx_sitemap",
+    "sphinx_design",
 ]
 autosummary_generate = True
 autodoc_default_options = {"members": False, "undoc-members": False, "inherited-members": True}

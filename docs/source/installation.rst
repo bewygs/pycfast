@@ -7,21 +7,27 @@ to version **7.7.5**.
 Pip
 ---
 
-PyCFAST can be installed from `PyPI <https://pypi.org/project/pycfast>`_::
+PyCFAST can be installed from `PyPI <https://pypi.org/project/pycfast>`_:
+
+.. code-block:: bash
 
     pip install pycfast
 
 Conda
 -----
 
-PyCFAST can also be installed from the `conda-forge <https://anaconda.org/conda-forge/pycfast>`_ channel::
+PyCFAST can also be installed from the `conda-forge <https://anaconda.org/conda-forge/pycfast>`_ channel:
+
+.. code-block:: bash
 
     conda install -c conda-forge pycfast
 
 Source
 ------
 
-To install the latest development version of PyCFAST, you can install from source, clone the repository and install the required dependencies::
+To install the latest development version of PyCFAST, clone the repository and install the required dependencies:
+
+.. code-block:: bash
 
     git clone https://github.com/bewygs/pycfast.git
     cd pycfast
@@ -40,22 +46,47 @@ command prompt and type ``cfast`` to check if it is recognized as a command. You
    :align: center
 
 If CFAST is installed in a non-standard location, you can manually specify the path
-with these methods.
+with these methods from an environment variable named ``CFAST``:
+
+.. tab-set::
+
+   .. tab-item:: Linux/macOS
+      :sync: linux
+
+      .. code-block:: bash
+
+         export CFAST="/path/to/your/cfast/executable"
+
+   .. tab-item:: Windows (cmd)
+      :sync: windows-cmd
+
+      .. code-block:: bat
+
+         set CFAST="C:\path\to\your\cfast\executable"
+
+   .. tab-item:: Windows (PowerShell)
+      :sync: windows-ps
+
+      .. code-block:: powershell
+
+         $env:CFAST = "C:\path\to\your\cfast\executable"
 
 
-- From an environment variable ``CFAST``::
+Or you can set the environment variable from Python code:
 
-    export CFAST="/path/to/your/cfast/executable"  # Linux/MacOS
-    set CFAST="C:\path\to\your\cfast\executable"  # Windows (cmd)
-    $env:CFAST="C:\path\to\your\cfast\executable"  # Windows (PowerShell)
+.. code-block:: python
 
-- From Python code when defining the CFASTModel::
-
-    import pycfast
-
-    # set custom CFAST executable path via environment variable
     import os
+
     os.environ['CFAST'] = "/path/to/your/cfast/executable"
 
-    # Or directly when defining CFASTModel
-    model = pycfast.CFASTModel(cfast_path="/path/to/your/cfast/executable")
+Or when defining the :class:`~pycfast.CFASTModel` directly:
+
+.. code-block:: python
+    
+    from pycfast import CFASTModel
+
+    model = CFASTModel(
+            ...,
+            cfast_exe="/path/to/your/cfast/executable"
+        )
