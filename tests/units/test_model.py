@@ -520,9 +520,11 @@ class TestCFASTModel:
         assert model.extra_arguments == []
 
     @patch.dict(os.environ, {"CFAST": "/env/path/to/cfast"})
-    def test_resolve_cfast_exe_from_environment(self):
+    @patch("pycfast.model.shutil.which", return_value="/env/path/to/cfast")
+    def test_resolve_cfast_exe_from_environment(self, mock_which):
         """Test _resolve_cfast_exe picks up the CFAST environment variable."""
         assert _resolve_cfast_exe(None) == "/env/path/to/cfast"
+        mock_which.assert_called_once_with("/env/path/to/cfast")
 
     @patch.dict(os.environ, {}, clear=False)
     @patch("pycfast.model.shutil.which", return_value="/some/path/to/cfast")
@@ -540,9 +542,24 @@ class TestCFASTModel:
         with pytest.raises(FileNotFoundError, match="CFAST executable not found"):
             _resolve_cfast_exe(None)
 
-    def test_resolve_cfast_exe_explicit_path(self):
+    @patch("pycfast.model.shutil.which", return_value="/custom/path/to/cfast")
+    def test_resolve_cfast_exe_explicit_path(self, mock_which):
         """Test _resolve_cfast_exe returns explicit path as-is."""
         assert _resolve_cfast_exe("/custom/path/to/cfast") == "/custom/path/to/cfast"
+        mock_which.assert_called_once_with("/custom/path/to/cfast")
+
+    @patch("pycfast.model.shutil.which", return_value=None)
+    def test_resolve_cfast_exe_explicit_path_invalid(self, mock_which):
+        """Test _resolve_cfast_exe raises FileNotFoundError for invalid explicit path."""
+        with pytest.raises(FileNotFoundError, match="not found or not executable"):
+            _resolve_cfast_exe("/bad/path/to/cfast")
+
+    @patch.dict(os.environ, {"CFAST": "/bad/env/path"})
+    @patch("pycfast.model.shutil.which", return_value=None)
+    def test_resolve_cfast_exe_env_var_invalid(self, mock_which):
+        """Test _resolve_cfast_exe raises FileNotFoundError for invalid $CFAST path."""
+        with pytest.raises(FileNotFoundError, match="not found or not executable"):
+            _resolve_cfast_exe(None)
 
     def test_save_writes_input_and_returns_path(self):
         """Test that save() writes the input file and returns its absolute path."""
