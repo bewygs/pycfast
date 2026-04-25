@@ -175,14 +175,17 @@ Download and install CFAST from the [NIST CFAST website](https://pages.nist.gov/
 - From Python code when defining the ``CFASTModel``:
 
     ```python
-    import pycfast
+    from pycfast import CFASTModel
 
     # set custom CFAST executable path via environment variable
     import os
     os.environ['CFAST'] = "/path/to/your/cfast/executable"
 
     # Or directly when defining CFASTModel
-    model = pycfast.CFASTModel(cfast_path="/path/to/your/cfast/executable")
+    model = CFASTModel(
+            ...,
+            cfast_exe="/path/to/your/cfast/executable"
+        )
     ```
 
 ## Documentation
