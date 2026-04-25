@@ -4,7 +4,8 @@
 ==============
 
 This example shows how to create a basic CFAST fire simulation model using PyCFAST.
-We'll build a complete simulation with two compartments, ventilation, fire sources, and target devices.
+We'll build a complete simulation with two compartments, ventilation, fire sources, and
+target devices.
 """
 
 # %%
@@ -27,7 +28,9 @@ from pycfast import (
 # %%
 # Step 2: Configure Simulation Environment
 # ----------------------------------------
-# The simulation environment defines the global parameters for our CFAST simulation. The :class:`~pycfast.SimulationEnvironment` class is the equivalent of the CEdit simulation settings tab but programmatically defined.
+# The simulation environment defines the global parameters for our CFAST simulation. The
+# :class:`~pycfast.SimulationEnvironment` class is the equivalent of the CEdit
+# simulation settings tab but programmatically defined.
 #
 # .. figure:: /_static/images/cedit-simulation-tab.png
 #    :width: 800px
@@ -49,7 +52,9 @@ simulation_env = SimulationEnvironment(
 # %%
 # Step 3: Define Material Properties
 # ----------------------------------
-# Material properties define the thermal characteristics of surfaces in our compartments. The :class:`~pycfast.Material` class is the equivalent of the CEdit simulation settings tab but programmatically defined.
+# Material properties define the thermal characteristics of surfaces in our compartments. The
+# :class:`~pycfast.Material` class is the equivalent of the CEdit simulation settings tab but
+# programmatically defined.
 #
 # .. figure:: /_static/images/cedit-material-properties-tab.png
 #    :alt: CEdit Material Properties Tab
@@ -70,8 +75,10 @@ gypsum_board = Material(
 
 # %%
 # Step 4: Create Compartment
-# ---------------------------
-# Compartment represent the physical spaces in our building. The :class:`~pycfast.Compartment` class is the equivalent of the CEdit compartment tab but programmatically defined.
+# --------------------------
+# Compartment represent the physical spaces in our building. The
+# :class:`~pycfast.Compartment` class is the equivalent of the CEdit compartment tab
+# but programmatically defined.
 #
 # .. figure:: /_static/images/cedit-compartments-tab.png
 #    :alt: CEdit Compartment Tab
@@ -137,7 +144,8 @@ upper_level = Compartment(
 #           :alt: CEdit Mechanical Ventilation Tab
 #           :width: 200px
 #
-# We'll use the :class:`~pycfast.MechanicalVent`, :class:`~pycfast.CeilingFloorVent`, and :class:`~pycfast.WallVent` classes to define our vents.
+# We'll use the :class:`~pycfast.MechanicalVent`, :class:`~pycfast.CeilingFloorVent`,
+# and :class:`~pycfast.WallVent` classes to define our vents.
 
 # Wall vent connecting first compartment to outside
 
@@ -174,7 +182,9 @@ mechanical_vents = MechanicalVent(
 # %%
 # Step 6: Define Fire Sources
 # ---------------------------
-# Fire sources represent the combustion processes in our simulation. The :class:`~pycfast.Fire` class is the equivalent of the CEdit fires tab but programmatically defined.
+# Fire sources represent the combustion processes in our simulation. The
+# :class:`~pycfast.Fire` class is the equivalent of the CEdit fires tab
+# but programmatically defined.
 #
 # .. figure:: /_static/images/cedit-fires-tab.png
 #    :alt: CEdit Fire Tab
@@ -224,8 +234,10 @@ propane_fire = Fire(
 
 # %%
 # Step 7: Add Device
-# -------------------
-# Device allow us to monitor conditions at specific locations. The :class:`~pycfast.Device` class is the equivalent of the CEdit devices tab but programmatically defined.
+# ------------------
+# Device allow us to monitor conditions at specific locations. The
+# :class:`~pycfast.Device` class is the equivalent of the CEdit devices tab but
+# programmatically defined.
 #
 # .. figure:: /_static/images/cedit-targets-tab.png
 #    :alt: CEdit Target Tab
@@ -255,15 +267,20 @@ target = Device.create_target(
 # %%
 # Step 8: Configure Surface Connections
 # -------------------------------------
-# Surface connections define thermal connections between compartments through shared surfaces. The :class:`~pycfast.SurfaceConnection` class is the equivalent of the CEdit surface connections tab but programmatically defined.
+# Surface connections define thermal connections between compartments through shared
+# surfaces. The :class:`~pycfast.SurfaceConnection` class is the equivalent of the
+# CEdit surface connections tab but programmatically defined.
 #
 # .. figure:: /_static/images/cedit-surface-connections-tab.png
 #    :alt: CEdit Surface Connections
 #    :width: 800px
 #
 #
-# The :class:`~pycfast.SurfaceConnection` class has 2 classmethods to help create common connection types :meth:`~pycfast.SurfaceConnection.ceiling_floor_connection`, and :meth:`~pycfast.SurfaceConnection.wall_connection`.
-# Here we create a ceiling/floor connection between the two compartments to allow heat transfer and air flow between them.
+# The :class:`~pycfast.SurfaceConnection` class has 2 classmethods to help create
+# common connection types :meth:`~pycfast.SurfaceConnection.ceiling_floor_connection`,
+# and :meth:`~pycfast.SurfaceConnection.wall_connection`. Here we create a
+# ceiling/floor connection between the two compartments to allow heat transfer and air
+# flow between them.
 
 ceiling_floor_connection = SurfaceConnection.ceiling_floor_connection(
     comp_id="Comp 1",
@@ -273,7 +290,9 @@ ceiling_floor_connection = SurfaceConnection.ceiling_floor_connection(
 # %%
 # Step 9: Create and Run the CFAST Model
 # --------------------------------------
-# Now we'll create a complete :class:`~pycfast.CFASTModel` with all our components and run the simulation. After running, we'll explore how to access and analyze the results.
+# Now we'll create a complete :class:`~pycfast.CFASTModel` with all our components and
+# run the simulation. After running, we'll explore how to access and analyze the
+# results.
 
 model = CFASTModel(
     simulation_environment=simulation_env,
@@ -291,14 +310,16 @@ model = CFASTModel(
 )
 
 # %%
-# Use the :meth:`~pycfast.CFASTModel.summary` method to print a summary of the model configuration.
+# Use the :meth:`~pycfast.CFASTModel.summary` method to print a summary of the model
+# configuration.
 
 print(model.summary())
 
 # %%
-# You can also save to the disk the CFAST model input file with the :meth:`~pycfast.CFASTModel.save` method and
-# view its contents with :meth:`~pycfast.CFASTModel.view_cfast_input_file` (not neccessary
-# to run the simulation, as the model will be saved automatically when you run it, but useful if
+# You can also save to the disk the CFAST model input file with the
+# :meth:`~pycfast.CFASTModel.save` method and view its contents with
+# :meth:`~pycfast.CFASTModel.view_cfast_input_file` (not necessary to run the
+# simulation, as the model will be saved automatically when you run it, but useful if
 # you want to inspect the generated input file or run it manually with CFAST).
 
 model.save()
@@ -307,7 +328,9 @@ input_file_contents = model.view_cfast_input_file(pretty_print=True)
 print(input_file_contents)
 
 # %%
-# The :meth:`~pycfast.CFASTModel.run` method returns a dictionary containing :class:`~pandas.DataFrame` for each CFAST output file. This makes it easy to analyze and visualize the simulation results using familiar pandas methods and matplotlib.
+# The :meth:`~pycfast.CFASTModel.run` method returns a dictionary containing
+# :class:`~pandas.DataFrame` for each CFAST output file. This makes it easy to analyze
+# and visualize the simulation results using familiar pandas methods and matplotlib.
 
 results = model.run(
     verbose=True,
@@ -343,7 +366,9 @@ results = model.run(
 # Step 10: Analyzing Simulation Results
 # -------------------------------------
 #
-# Below is a small example of comparing the Expected HRR and the Actual HRR using matplotlib and pandas, though you're free to use any Python data analysis tools in the ecosystem!
+# Below is a small example of comparing the Expected HRR and the Actual HRR using
+# matplotlib and pandas, though you're free to use any Python data analysis tools in
+# the ecosystem!
 
 # %%
 import matplotlib.pyplot as plt
@@ -372,8 +397,9 @@ plt.show()
 # %%
 # Step 11: Updating the model
 # ---------------------------
-# You can update any part of the model after its creation with the ``update_*`` methods (e.g., :meth:`~pycfast.CFASTModel.update_fire_params`).
-# For example, to change the fire's radiative fraction, you can do:
+# You can update any part of the model after its creation with the ``update_*`` methods
+# (e.g., :meth:`~pycfast.CFASTModel.update_fire_params`). For example, to change the
+# fire's radiative fraction, you can do:
 
 # %%
 # Original model
@@ -385,8 +411,9 @@ new_model = model.update_fire_params(fire="Propane", radiative_fraction=0.4)
 new_model.fires
 
 # %%
-# You can also add additional components to an existing model using the ``add_*`` methods (e.g., :meth:`~pycfast.CFASTModel.add_device`).
-# For example, you can add another target device:
+# You can also add additional components to an existing model using the ``add_*`` methods
+# (e.g., :meth:`~pycfast.CFASTModel.add_device`). For example, you can add another
+# target device:
 
 # %%
 # Original model devices
