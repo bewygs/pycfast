@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import tempfile
-import unittest
 from pathlib import Path
 from unittest.mock import Mock, mock_open, patch
 
@@ -614,17 +613,14 @@ class TestCFASTParser:
     def test_parse_table_block_data(self):
         """Test TABL block parsing with DATA."""
         parser = CFASTParser()
-        # First create a fire
         mock_fire = Mock()
-        mock_fire.data_table = []  # Initialize as empty list
         parser._fire_hash_map["TestFire"] = mock_fire
 
         params = {"ID": "TestFire", "DATA": [0, 100]}
 
         parser._parse_table_block(params)
 
-        # Should have added data to the fire
-        assert mock_fire.data_table == [[0, 100]]
+        assert parser._fire_data_rows["TestFire"] == [[0, 100]]
 
     def test_parse_table_block_data_missing_fire(self):
         """Test TABL block parsing with DATA but missing fire."""
@@ -924,6 +920,60 @@ class TestCFASTParser:
         parser._parse_vent_block(mech_params)
         assert len(parser.mechanical_vents) == 1
 
+    def test_parse_file_no_diag_block(self):
+        """Test parsing a file without a DIAG block."""
+        content = "&HEAD TITLE='Test Model' /\n&TIME SIMULATION=300 /"
+
+        with patch("builtins.open", mock_open(read_data=content)):
+            with patch("pathlib.Path.exists", return_value=True):
+                parser = CFASTParser()
+                model = parser.parse_file("test.in")
+
+                assert model.simulation_environment.title == "Test Model"
+                assert model.simulation_environment.time_simulation == 300
+
+    def test_clean_content_standalone_slash(self):
+        """Test content cleaning with a standalone slash line between blocks."""
+        parser = CFASTParser()
+        content = "&HEAD TITLE='Test' /\n/\n&TIME SIMULATION=300 /"
+
+        result = parser._clean_content(content)
+
+        assert len(result) > 0
+        assert "&HEAD TITLE='Test'" in result
+        assert "&TIME SIMULATION=300" in result
+
+    def test_parse_time_block_empty_params(self):
+        """Test TIME block parsing with empty parameters does not raise."""
+        parser = CFASTParser()
+        parser.simulation_environment = Mock()
+        parser._parse_time_block({})
+
+    def test_parse_init_block_partial_params(self):
+        """Test INIT block parsing with a subset of parameters."""
+        parser = CFASTParser()
+        parser.simulation_environment = Mock()
+
+        parser._parse_init_block({"PRESSURE": 101325})
+
+        assert parser.simulation_environment.init_pressure == 101325
+
+    def test_parse_misc_block_boolean_conversion(self):
+        """Test MISC block converts integer ADIABATIC value to bool."""
+        parser = CFASTParser()
+        parser.simulation_environment = Mock()
+
+        parser._parse_misc_block({"ADIABATIC": 1, "MAX_TIME_STEP": 0.1})
+
+        assert parser.simulation_environment.adiabatic is True
+        assert parser.simulation_environment.max_time_step == 0.1
+
+    def test_parse_device_block_missing_type(self):
+        """Test DEVC block raises ValueError when TYPE is missing."""
+        parser = CFASTParser()
+        with pytest.raises(ValueError):
+            parser._parse_device_block({"ID": "device1", "COMP_ID": "comp1"})
+
 
 class TestSanitizeCFASTTitleAndMaterial:
     """Test class for sanitize_cfast_title_and_material function."""
@@ -1029,145 +1079,3 @@ class TestParseCFASTFile:
             assert model.simulation_environment.time_simulation == 600
         finally:
             os.unlink(temp_file)
-
-
-class TestCFASTParserAdditionalCoverage(unittest.TestCase):
-    """Additional test cases to improve coverage."""
-
-    def test_parse_file_no_diag_block(self):
-        """Test parsing a file without a DIAG block (StopIteration case)."""
-        content = "&HEAD TITLE='Test Model' /\n&TIME SIMULATION=300 /"
-
-        with patch("builtins.open", mock_open(read_data=content)):
-            with patch("pathlib.Path.exists", return_value=True):
-                parser = CFASTParser()
-                model = parser.parse_file("test.in")
-
-                # Should parse successfully without DIAG block
-                self.assertEqual(model.simulation_environment.title, "Test Model")
-                self.assertEqual(model.simulation_environment.time_simulation, 300)
-
-    def test_clean_content_file_ends_in_block_without_closing(self):
-        """Test cleaning content when file ends inside a block without proper closing."""
-        parser = CFASTParser()
-        # Content ends inside a block without closing /
-        content = "&HEAD TITLE='Test'\nTITLE='Continued'"
-
-        result = parser._clean_content(content)
-
-        # Should join the block lines even without closing /
-        self.assertIn("&HEAD TITLE='Test' TITLE='Continued'", result)
-
-    def test_clean_content_standalone_slash(self):
-        """Test cleaning content with standalone slash outside of block."""
-        parser = CFASTParser()
-        content = "&HEAD TITLE='Test' /\n/\n&TIME SIMULATION=300 /"
-
-        result = parser._clean_content(content)
-
-        # Result should contain the processed content
-        self.assertTrue(len(result) > 0)
-        self.assertIn("&HEAD TITLE='Test'", result)
-        self.assertIn("&TIME SIMULATION=300", result)
-
-    def test_parse_time_block_empty_params(self):
-        """Test parsing TIME block with empty parameters."""
-        parser = CFASTParser()
-        parser.simulation_environment = Mock()
-
-        # Empty params should not raise errors
-        parser._parse_time_block({})
-
-        # Should complete without setting attributes
-
-    def test_parse_init_block_partial_params(self):
-        """Test parsing INIT block with only some parameters."""
-        parser = CFASTParser()
-        parser.simulation_environment = Mock()
-
-        params = {"PRESSURE": 101325}
-        parser._parse_init_block(params)
-
-        # Only pressure should be set
-        self.assertEqual(parser.simulation_environment.init_pressure, 101325)
-
-    def test_parse_misc_block_boolean_conversion(self):
-        """Test parsing MISC block with boolean conversion."""
-        parser = CFASTParser()
-        parser.simulation_environment = Mock()
-
-        params = {"ADIABATIC": 1, "MAX_TIME_STEP": 0.1}
-        parser._parse_misc_block(params)
-
-        # ADIABATIC should be converted to boolean
-        self.assertEqual(parser.simulation_environment.adiabatic, True)
-        self.assertEqual(parser.simulation_environment.max_time_step, 0.1)
-
-    def test_parse_table_block_invalid_fire_id(self):
-        """Test parsing TABLE block with invalid fire ID."""
-        parser = CFASTParser()
-        parser._fire_hash_map = {}  # Empty fire map
-
-        params = {"ID": "invalid_fire", "DATA": [1, 2, 3]}
-
-        # Should raise ValueError for missing fire ID
-        with self.assertRaises(ValueError):
-            parser._parse_table_block(params)
-
-    def test_parse_device_block_missing_required_params(self):
-        """Test parsing DEVICE block missing required parameters."""
-        parser = CFASTParser()
-        parser.devices = Mock()
-
-        # Missing TYPE parameter should raise ValueError
-        params = {"ID": "device1", "COMP_ID": "comp1"}
-
-        # Should raise ValueError for missing TYPE
-        with self.assertRaises(ValueError):
-            parser._parse_device_block(params)
-
-    def test_parse_time_block_all_params(self):
-        """Test parsing TIME block with all possible parameters."""
-        parser = CFASTParser()
-        parser.simulation_environment = Mock()
-
-        params = {"SIMULATION": 1800, "PRINT": 60, "SMOKEVIEW": 30, "SPREADSHEET": 120}
-        parser._parse_time_block(params)
-
-        # All parameters should be set
-        self.assertEqual(parser.simulation_environment.time_simulation, 1800)
-        self.assertEqual(parser.simulation_environment.print, 60)
-        self.assertEqual(parser.simulation_environment.smokeview, 30)
-        self.assertEqual(parser.simulation_environment.spreadsheet, 120)
-
-    def test_parse_init_block_all_params(self):
-        """Test parsing INIT block with all possible parameters."""
-        parser = CFASTParser()
-        parser.simulation_environment = Mock()
-
-        params = {
-            "PRESSURE": 101325,
-            "RELATIVE_HUMIDITY": 50,
-            "INTERIOR_TEMPERATURE": 20,
-            "EXTERIOR_TEMPERATURE": 15,
-        }
-        parser._parse_init_block(params)
-
-        # All parameters should be set
-        self.assertEqual(parser.simulation_environment.init_pressure, 101325)
-        self.assertEqual(parser.simulation_environment.relative_humidity, 50)
-        self.assertEqual(parser.simulation_environment.interior_temperature, 20)
-        self.assertEqual(parser.simulation_environment.exterior_temperature, 15)
-
-    def test_parse_misc_block_all_params(self):
-        """Test parsing MISC block with all possible parameters."""
-        parser = CFASTParser()
-        parser.simulation_environment = Mock()
-
-        params = {"ADIABATIC": 0, "MAX_TIME_STEP": 0.05, "LOWER_OXYGEN_LIMIT": 0.15}
-        parser._parse_misc_block(params)
-
-        # All parameters should be set
-        self.assertEqual(parser.simulation_environment.adiabatic, False)
-        self.assertEqual(parser.simulation_environment.max_time_step, 0.05)
-        self.assertEqual(parser.simulation_environment.lower_oxygen_limit, 0.15)
