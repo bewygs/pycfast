@@ -46,7 +46,14 @@ class TestCFASTModel:
         compartment1 = Compartment(id="ROOM1", width=3.0, depth=4.0, height=2.4)
         compartment2 = Compartment(id="ROOM2", width=4.0, depth=4.0, height=2.4)
 
-        material = Material(id="GYPSUM", material="Gypsum Board")
+        material = Material(
+            id="GYPSUM",
+            material="Gypsum Board",
+            conductivity=0.17,
+            density=790,
+            specific_heat=0.9,
+            thickness=0.016,
+        )
 
         wall_vent = WallVent(
             id="DOOR1",
@@ -844,7 +851,7 @@ class TestCFASTModel:
         # Test with invalid data_table type
         with pytest.raises(
             TypeError,
-            match="data_table must be a pandas DataFrame, numpy ndarray, or list of lists",
+            match="data_table must be a list of lists, dict, NumPy array, pandas DataFrame, or None",
         ):
             model_with_fire.update_fire_params(data_table="invalid")  # type: ignore[arg-type]
 
@@ -1106,7 +1113,14 @@ class TestCFASTModel:
         model = self.create_full_model()
         original_mat_count = len(model.material_properties)
 
-        steel = Material(id="STEEL", material="Steel", conductivity=45.0, density=7850)
+        steel = Material(
+            id="STEEL",
+            material="Steel",
+            conductivity=45.0,
+            density=7850,
+            specific_heat=0.465,
+            thickness=0.0015,
+        )
         updated_model = model.add_material(steel)
 
         # Check that original model is unchanged
@@ -1218,7 +1232,14 @@ class TestCFASTModel:
             )
             .add_compartment(Compartment(id="ROOM3", width=5.0, depth=4.0, height=3.0))
             .add_material(
-                Material(id="STEEL", material="Steel", conductivity=45.0, density=7850)
+                Material(
+                    id="STEEL",
+                    material="Steel",
+                    conductivity=45.0,
+                    density=7850,
+                    specific_heat=0.465,
+                    thickness=0.0015,
+                )
             )
         )
 
@@ -1261,7 +1282,12 @@ class TestCFASTModel:
             rti=50.0,
         )
         material = Material(
-            id="CONCRETE", material="Concrete", conductivity=1.4, density=2300
+            id="CONCRETE",
+            material="Concrete",
+            conductivity=1.4,
+            density=2300,
+            specific_heat=0.88,
+            thickness=0.15,
         )
 
         updated_model = model.add_fire(fire).add_device(device).add_material(material)
@@ -1270,7 +1296,6 @@ class TestCFASTModel:
         assert len(updated_model.devices) == 1
         assert len(updated_model.material_properties) == 1
 
-    # Additional tests for missing coverage
     def test_update_fire_params_default_first_fire(self) -> None:
         """Test update_fire_params with no fire identifier (should update first fire)."""
         model = self.create_full_model()
@@ -1537,8 +1562,22 @@ class TestCFASTModelValidateDependencies:
 
     def test_duplicate_material_ids(self, sim_env, room1):
         """Test that duplicate material IDs raises ValueError."""
-        mat = Material(id="GYPSUM", material="Gypsum Board")
-        mat_dup = Material(id="GYPSUM", material="Gypsum Board")
+        mat = Material(
+            id="GYPSUM",
+            material="Gypsum Board",
+            conductivity=0.17,
+            density=790,
+            specific_heat=0.9,
+            thickness=0.016,
+        )
+        mat_dup = Material(
+            id="GYPSUM",
+            material="Gypsum Board",
+            conductivity=0.17,
+            density=790,
+            specific_heat=0.9,
+            thickness=0.016,
+        )
         with pytest.raises(ValueError, match="Duplicate id 'GYPSUM'"):
             self._make(sim_env, [room1], material_properties=[mat, mat_dup])
 
@@ -1657,6 +1696,56 @@ class TestCFASTModelValidateDependencies:
         with pytest.raises(ValueError, match="material_id='UNKNOWN' does not match"):
             self._make(sim_env, [room1], devices=[device])
 
+    def test_device_temperature_depth_exceeds_material_thickness(self, sim_env, room1):
+        """Test that temperature_depth >= material thickness raises ValueError."""
+        mat = Material(
+            id="STEEL",
+            material="Steel",
+            conductivity=45.8,
+            density=7850,
+            specific_heat=0.46,
+            thickness=0.01,
+        )
+        device = Device(
+            id="T1",
+            comp_id="ROOM1",
+            location=[1.0, 2.0, 1.5],
+            type="PLATE",
+            material_id="STEEL",
+            surface_orientation="CEILING",
+            depth_units="M",
+            temperature_depth=0.02,
+        )
+        with pytest.raises(
+            ValueError, match="temperature_depth=0.02 m must be less than"
+        ):
+            self._make(sim_env, [room1], devices=[device], material_properties=[mat])
+
+    def test_device_temperature_depth_valid_meters(self, sim_env, room1):
+        """Test that temperature_depth < material thickness is valid."""
+        mat = Material(
+            id="STEEL",
+            material="Steel",
+            conductivity=45.8,
+            density=7850,
+            specific_heat=0.46,
+            thickness=0.01,
+        )
+        device = Device(
+            id="T1",
+            comp_id="ROOM1",
+            location=[1.0, 2.0, 1.5],
+            type="PLATE",
+            material_id="STEEL",
+            surface_orientation="CEILING",
+            depth_units="M",
+            temperature_depth=0.005,
+        )
+        model = self._make(
+            sim_env, [room1], devices=[device], material_properties=[mat]
+        )
+        assert model.devices[0].temperature_depth == 0.005
+
     @pytest.mark.parametrize(
         "mat_attr", ["ceiling_mat_id", "wall_mat_id", "floor_mat_id"]
     )
@@ -1692,6 +1781,7 @@ class TestCFASTModelValidateDependencies:
                     face="RIGHT",
                     offset=0,
                     open_close_criterion="TEMPERATURE",
+                    set_point=100.0,
                     device_id="UNKNOWN",
                 ),
                 id="wall-vent",
@@ -1703,6 +1793,7 @@ class TestCFASTModelValidateDependencies:
                     comps_ids=["ROOM1", "ROOM2"],
                     area=1.0,
                     open_close_criterion="TEMPERATURE",
+                    set_point=70.0,
                     device_id="UNKNOWN",
                 ),
                 id="ceiling-floor-vent",

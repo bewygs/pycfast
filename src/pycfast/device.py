@@ -72,25 +72,24 @@ class Device(CFASTComponent):
         is the temperature at the center of the target. This input allows the user
         to override this default position. The input represents the position as a
         fraction of the thickness from the front surface to the back surface of the
-        material. Default units: none, default value: 0.5.
+        material (default, unitless, default value: 0.5), or an absolute depth in
+        meters from the front surface when ``depth_units='M'``.
     depth_units : str
         Units for depth measurement. Default: "M" for meters.
     setpoint : float, optional
-        For heat detectors and sprinklers: the temperature at or above which the
-        detector link activates. Default units: °C, default value: dependent on type.
-        For smoke detectors: the obscuration at or above which the detector activates.
-        Default units: %/m, default value: 23.93 %/m (8 %/ft).
+        Temperature at or above which the detector link activates.
+        Required for HEAT_DETECTOR and SPRINKLER. Default units: °C.
     rti : float, optional
         The Response Time Index (RTI) for the sprinkler or detection device.
-        Default units: (m·s)^(1/2).
+        Required for HEAT_DETECTOR and SPRINKLER. Default units: (m·s)^(1/2).
     obscuration : float
         The obscuration at or above which the smoke detector activates.
-        Default units: %/m, default value: 23.93 %/m (8 %/ft).
+        Only used for SMOKE_DETECTOR. Default units: %/m, default value: 23.93 %/m (8 %/ft).
     spray_density : float, optional
         The amount of water dispersed by a sprinkler. The units for spray density
         are length/time, derived by dividing the volumetric flow rate by the spray
         area. The suppression calculation is based upon an experimental correlation
-        by Evans. Default units: m/s.
+        by Evans. Required for SPRINKLER. Default units: m/s.
     adiabatic : bool
         Usually should never be used, only when DIAG. Default: False.
     convection_coefficients : list[float], optional
@@ -98,12 +97,14 @@ class Device(CFASTComponent):
 
     Raises
     ------
+    TypeError
+        If location, normal, or convection_coefficients is not a list.
     ValueError
-        If location is not a list of 3 numbers.
+        If location does not contain exactly 3 numeric values.
         If target type is specified but required target parameters are missing.
         If detector type is specified but required detector parameters are missing.
         If both normal and surface_orientation are specified or both are None.
-        If normal vector is not a list of 3 numbers.
+        If normal vector does not contain exactly 3 numeric values.
         If unknown device type is specified.
 
     Examples
@@ -113,11 +114,11 @@ class Device(CFASTComponent):
     >>> target = Device(
     ...     id="WALL_TARGET",
     ...     comp_id="ROOM1",
-    ...     location=[2.0, 3.0, 1.5],     # 2m from left, 3m from front, 1.5m high
+    ...     location=[2.0, 3.0, 1.5],
     ...     type="PLATE",
     ...     material_id="GYPSUM",
-    ...     normal=[-1, 0, 0],            # Facing left wall
-    ...     temperature_depth=0.5         # Center of target
+    ...     normal=[-1, 0, 0],
+    ...     temperature_depth=0.5
     ... )
 
     Create a heat detector:
@@ -125,12 +126,11 @@ class Device(CFASTComponent):
     >>> detector = Device(
     ...     id="HEAT_DET_1",
     ...     comp_id="KITCHEN",
-    ...     location=[2.5, 2.5, 2.4],     # Ceiling mounted
+    ...     location=[2.5, 2.5, 2.4],
     ...     type="HEAT_DETECTOR",
-    ...     material_id="STEEL",          # Detector material
-    ...     setpoint=68,                  # Activate at 68°C
-    ...     rti=50,                       # RTI of 50 (m·s)^(1/2)
-    ...     temperature_depth=0.5
+    ...     material_id="STEEL",
+    ...     setpoint=68,
+    ...     rti=50
     ... )
 
     Create a sprinkler:
@@ -138,13 +138,12 @@ class Device(CFASTComponent):
     >>> sprinkler = Device(
     ...     id="SPRINKLER_1",
     ...     comp_id="OFFICE",
-    ...     location=[3.0, 3.0, 2.4],     # Ceiling mounted
+    ...     location=[3.0, 3.0, 2.4],
     ...     type="SPRINKLER",
     ...     material_id="STEEL",
-    ...     setpoint=74,                  # Activate at 74°C
-    ...     rti=100,                      # RTI of 100 (m·s)^(1/2)
-    ...     spray_density=0.002,          # 2 mm/s spray density
-    ...     temperature_depth=0.5
+    ...     setpoint=74,
+    ...     rti=100,
+    ...     spray_density=0.002
     ... )
 
     Create a smoke detector:
@@ -152,11 +151,10 @@ class Device(CFASTComponent):
     >>> smoke_det = Device(
     ...     id="SMOKE_DET_1",
     ...     comp_id="CORRIDOR",
-    ...     location=[5.0, 1.0, 2.4],     # Ceiling mounted
+    ...     location=[5.0, 1.0, 2.4],
     ...     type="SMOKE_DETECTOR",
     ...     material_id="PLASTIC",
-    ...     obscuration=23.93,            # Default obscuration threshold
-    ...     temperature_depth=0.5
+    ...     obscuration=23.93
     ... )
 
     Notes
@@ -178,6 +176,11 @@ class Device(CFASTComponent):
     obscuration due to limitations in the two-zone soot calculation.
     """
 
+    # FLOOR option is not available in CEdit but is used in verification file
+    VALID_SURFACE_ORIENTATIONS: frozenset[str] = frozenset(
+        {"CEILING", "FRONT WALL", "BACK WALL", "LEFT WALL", "RIGHT WALL", "FLOOR"}
+    )
+
     def __init__(
         self,
         id: str,
@@ -185,7 +188,9 @@ class Device(CFASTComponent):
         location: list[float | int],
         type: str,
         material_id: str,
-        surface_orientation: str | None = None,
+        surface_orientation: str
+        | None = None,  # can be a VALID_SURFACE_ORIENTATIONS value or a fire id
+        # we allow every string because device can't be linked to fire.id (not fire.fire_id) until CFASTModel is built
         normal: list[float | int] | None = None,
         thickness: float | None = None,
         temperature_depth: float = 0.5,
@@ -197,13 +202,6 @@ class Device(CFASTComponent):
         adiabatic: bool = False,
         convection_coefficients: list[float] | None = None,
     ):
-        if len(location) != 3 or not all(
-            isinstance(coord, int | float) for coord in location
-        ):
-            raise ValueError(
-                "location must be a list of 3 numbers representing [x, y, z] position."
-            )
-
         # Define target and detector types
         target_types = {"PLATE", "CYLINDER"}
         detector_types = {"HEAT_DETECTOR", "SMOKE_DETECTOR", "SPRINKLER"}
@@ -223,11 +221,14 @@ class Device(CFASTComponent):
             self.temperature_depth = temperature_depth
             self.depth_units = depth_units
 
-        elif type in detector_types:
+        elif type == "SMOKE_DETECTOR":
+            self.obscuration = obscuration
+
+        elif type in {"HEAT_DETECTOR", "SPRINKLER"}:
             self.setpoint = setpoint
             self.rti = rti
-            self.spray_density = spray_density
-            self.obscuration = obscuration
+            if type == "SPRINKLER":
+                self.spray_density = spray_density
 
         else:
             raise ValueError(
@@ -308,6 +309,19 @@ class Device(CFASTComponent):
         UserWarning
             For SMOKE_DETECTOR devices, if obscuration is outside [0, 100] %/m.
         """
+        for param, list_val in (("location", self.location),):
+            if not isinstance(list_val, list):
+                raise TypeError(
+                    f"Device '{self.id}': {param} must be a list, got {type(list_val).__name__}."
+                )
+        if self.convection_coefficients is not None and not isinstance(
+            self.convection_coefficients, list
+        ):
+            raise TypeError(
+                f"Device '{self.id}': convection_coefficients must be a list, "
+                f"got {type(self.convection_coefficients).__name__}."
+            )
+
         if len(self.location) != 3 or not all(
             isinstance(coord, int | float) for coord in self.location
         ):
@@ -330,22 +344,28 @@ class Device(CFASTComponent):
                     "surface_orientation (but not both)"
                 )
             if self.normal is not None and self.surface_orientation is None:
-                if (
-                    not isinstance(self.normal, list)
-                    or len(self.normal) != 3
-                    or not all(isinstance(n, int | float) for n in self.normal)
+                if not isinstance(self.normal, list):
+                    raise TypeError(
+                        f"Device '{self.id}': normal must be a list, got {type(self.normal).__name__}."
+                    )
+                if len(self.normal) != 3 or not all(
+                    isinstance(n, int | float) for n in self.normal
                 ):
                     raise ValueError(
                         "normal must be a list of 3 numbers representing [nx, ny, nz]."
                     )
 
-            if (
-                self.temperature_depth is not None
-                and not 0.0 <= self.temperature_depth <= 1.0
-            ):
-                raise ValueError(
-                    f"Target '{self.id}': temperature_depth={self.temperature_depth} must be in [0, 1]."
-                )
+            if self.temperature_depth is not None:
+                if self.depth_units == "M":
+                    if self.temperature_depth <= 0.0:
+                        raise ValueError(
+                            f"Target '{self.id}': temperature_depth={self.temperature_depth} must be > 0 when depth_units='M'."
+                        )
+                elif not 0.0 <= self.temperature_depth <= 1.0:
+                    raise ValueError(
+                        f"Target '{self.id}': temperature_depth={self.temperature_depth} must be in [0, 1] when depth_units is not 'M'."
+                    )
+                # upper bound (< material thickness) is checked in CFASTModel._validate_dependencies
 
         elif self.type in detector_types:
             if self.type == "HEAT_DETECTOR":
@@ -391,7 +411,7 @@ class Device(CFASTComponent):
                         stacklevel=2,
                     )
 
-        elif self.type not in target_types | detector_types:
+        else:
             raise ValueError(
                 f"Unknown device type '{self.type}'. "
                 f"Must be one of: {target_types | detector_types}"
@@ -448,6 +468,7 @@ class Device(CFASTComponent):
             rec.add_field("RTI", self.rti)
             rec.add_field("SPRAY_DENSITY", self.spray_density)
 
+        # Usually should never be used, only when DIAG is specified
         if self.adiabatic:
             rec.add_field("ADIABATIC_TARGET", True)
         if self.convection_coefficients:
@@ -507,16 +528,19 @@ class Device(CFASTComponent):
         ValueError
             If both surface_orientation and normal are provided,
             or if neither is provided
-        """
-        # Validate that exactly one of surface_orientation or normal is provided
-        if (normal is None and surface_orientation is None) or (
-            normal is not None and surface_orientation is not None
-        ):
-            raise ValueError(
-                f"Target type '{type}' requires either normal or "
-                "surface_orientation (but not both)"
-            )
 
+        Examples
+        --------
+        >>> target = Device.create_target(
+        ...     id="TARGET",
+        ...     comp_id="ROOM1",
+        ...     location=[2.0, 3.0, 1.5],
+        ...     type="PLATE",
+        ...     material_id="GYPSUM",
+        ...     normal=[-1, 0, 0],
+        ...     temperature_depth=0.5
+        ... )
+        """
         return cls(
             id=id,
             comp_id=comp_id,
@@ -561,6 +585,16 @@ class Device(CFASTComponent):
         -------
         Device
             Device instance configured as a heat detector
+
+        Examples
+        --------
+        >>> heat_det = Device.create_heat_detector(
+        ...     id="HEAT_DET_1",
+        ...     comp_id="ROOM1",
+        ...     location=[2.5, 2.5, 2.4],
+        ...     setpoint=68,
+        ...     rti=50
+        ... )
         """
         return cls(
             id=id,
@@ -578,7 +612,6 @@ class Device(CFASTComponent):
         id: str,
         comp_id: str,
         location: list[float | int],
-        setpoint: float,
         obscuration: float = 23.93,
     ) -> Device:
         """
@@ -592,23 +625,29 @@ class Device(CFASTComponent):
             Compartment ID
         location: list[float | int]
             [x, y, z] position
-        setpoint: float
-            Activation threshold (e.g., obscuration)
         obscuration: float
-            Obscuration value, default: 23.93 %/m
+            Obscuration threshold in %/m, default: 23.93 %/m (8 %/ft)
 
         Returns
         -------
         Device
             Device instance configured as a smoke detector
+
+        Examples
+        --------
+        >>> smoke_det = Device.create_smoke_detector(
+        ...     id="SMOKE_DET_1",
+        ...     comp_id="ROOM1",
+        ...     location=[5.0, 1.0, 2.4],
+        ...     obscuration=23.93
+        ... )
         """
         return cls(
             id=id,
             comp_id=comp_id,
             location=location,
             type="SMOKE_DETECTOR",
-            material_id="",  # Not used for detectors
-            setpoint=setpoint,
+            material_id="",
             obscuration=obscuration,
         )
 
@@ -644,6 +683,17 @@ class Device(CFASTComponent):
         -------
         Device
             Device instance configured as a sprinkler
+
+        Examples
+        --------
+        >>> sprinkler = Device.create_sprinkler(
+        ...     id="SPRINKLER_1",
+        ...     comp_id="ROOM1",
+        ...     location=[3.0, 3.0, 2.4],
+        ...     setpoint=74,
+        ...     rti=100,
+        ...     spray_density=0.002
+        ... )
         """
         return cls(
             id=id,

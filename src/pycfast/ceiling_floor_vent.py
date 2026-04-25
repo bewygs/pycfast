@@ -42,8 +42,6 @@ class CeilingFloorVent(CFASTComponent):
     shape : str, optional
         The shape factor changes the calculation of the effective diameter of the vent and
         flow coefficients for flow through the vent. Options: "ROUND" or "SQUARE".
-    width : float, optional
-        Characteristic dimension for visualization purposes.
     offsets : list[float], optional
         For visualization only, the horizontal distances between the center of the vent and
         the origin of the X and Y axes in the upper compartment. Format: [x_offset, y_offset].
@@ -98,11 +96,10 @@ class CeilingFloorVent(CFASTComponent):
 
     >>> vent = CeilingFloorVent(
     ...     id="HOLE1",
-    ...     comps_ids=["UPPER_RM", "LOWER_RM"],  # top, bottom
-    ...     area=1.0,           # 1.0 m² cross-sectional area
+    ...     comps_ids=["UPPER_RM", "LOWER_RM"],
+    ...     area=1.0,
     ...     shape="ROUND",
-    ...     width=1.13,         # characteristic dimension
-    ...     offsets=[2.0, 3.0]   # 2m in X, 3m in Y from origin
+    ...     offsets=[2.0, 3.0]
     ... )
     """
 
@@ -113,7 +110,6 @@ class CeilingFloorVent(CFASTComponent):
         area: float = 0,
         type: str = "FLOOR",  # "FLOOR" or "CEILING" this doesn't seem to change final results
         shape: str = "ROUND",  # "ROUND" or "SQUARE"
-        width: float | None = None,
         offsets: list[float] | None = None,  # [x, y] position in meters
         open_close_criterion: str | None = None,  # can be "TIME","FLUX","TEMPERATURE"
         time: list[float] | None = None,  # Time series for opening changes
@@ -132,7 +128,6 @@ class CeilingFloorVent(CFASTComponent):
         self.comps_ids = comps_ids
         self.area = area
         self.shape = shape
-        self.width = width
         self.offsets = offsets
         self.open_close_criterion = open_close_criterion
         self.time = time
@@ -149,6 +144,8 @@ class CeilingFloorVent(CFASTComponent):
 
         Raises
         ------
+        TypeError
+            If list parameters (comps_ids, offsets, time, fraction) are not lists.
         ValueError
             If any attribute violates the constraints.
 
@@ -157,40 +154,106 @@ class CeilingFloorVent(CFASTComponent):
         UserWarning
             If area is 0 (no flow will occur through this vent).
         """
+        for param, list_val in (
+            ("comps_ids", self.comps_ids),
+            ("offsets", self.offsets),
+        ):
+            if not isinstance(list_val, list):
+                raise TypeError(
+                    f"CeilingFloorVent '{self.id}': {param} must be a list, got {type(list_val).__name__}."
+                )
+        for param, opt_list_val in (
+            ("time", self.time),
+            ("fraction", self.fraction),
+        ):
+            if opt_list_val is not None and not isinstance(opt_list_val, list):
+                raise TypeError(
+                    f"CeilingFloorVent '{self.id}': {param} must be a list, got {type(opt_list_val).__name__}."
+                )
+
         if len(self.comps_ids) != 2:
             raise ValueError("Ceiling/floor vent must connect exactly 2 compartments")
-
-        if self.time is not None and self.fraction is not None:
-            if len(self.time) != len(self.fraction):
-                raise ValueError("Time and fraction lists must be of equal length")
 
         if self.area < 0:
             raise ValueError(
                 f"CeilingFloorVent '{self.id}': area must be non-negative, got {self.area}."
             )
 
-        for label, val in (
+        for label, frac_val in (
             ("pre_fraction", self.pre_fraction),
             ("post_fraction", self.post_fraction),
         ):
-            if val is not None and not 0.0 <= val <= 1.0:
+            if frac_val is not None and not 0.0 <= frac_val <= 1.0:
                 raise ValueError(
-                    f"CeilingFloorVent '{self.id}': {label}={val} must be in [0, 1]."
+                    f"CeilingFloorVent '{self.id}': {label}={frac_val} must be in [0, 1], got {frac_val}."
                 )
 
         if self.fraction is not None:
             for i, f in enumerate(self.fraction):
                 if not 0.0 <= f <= 1.0:
                     raise ValueError(
-                        f"CeilingFloorVent '{self.id}': fraction[{i}]={f} must be in [0, 1]."
+                        f"CeilingFloorVent '{self.id}': fraction[{i}]={f} must be in [0, 1], got {f}."
                     )
 
         if self.area == 0:
             warnings.warn(
-                f"CeilingFloorVent '{self.id}': area=0 means no flow will occur through this vent.",
+                f"CeilingFloorVent '{self.id}': area=0 means no flow will occur through this vent, got area={self.area}.",
                 UserWarning,
                 stacklevel=2,
             )
+
+        if self.offsets is not None and len(self.offsets) != 2:
+            raise ValueError(
+                f"CeilingFloorVent '{self.id}': offsets must be a list of two values [x_offset, y_offset], got {self.offsets}."
+            )
+
+        if self.type not in {"FLOOR", "CEILING"}:
+            raise ValueError(
+                f"CeilingFloorVent '{self.id}': type must be 'FLOOR' or 'CEILING', got '{self.type}'."
+            )
+
+        if self.shape not in {"ROUND", "SQUARE"}:
+            raise ValueError(
+                f"CeilingFloorVent '{self.id}': shape must be 'ROUND' or 'SQUARE', got '{self.shape}'."
+            )
+
+        if self.open_close_criterion is not None:
+            valid_criteria = {"TIME", "TEMPERATURE", "FLUX"}
+            if self.open_close_criterion not in valid_criteria:
+                raise ValueError(
+                    f"CeilingFloorVent '{self.id}': open_close_criterion must be one of {valid_criteria}, got '{self.open_close_criterion}'."
+                )
+            if (
+                self.open_close_criterion in {"TEMPERATURE", "FLUX"}
+                and self.set_point is None
+            ):
+                raise ValueError(
+                    f"CeilingFloorVent '{self.id}': set_point must be specified when open_close_criterion is '{self.open_close_criterion}', got set_point={self.set_point}."
+                )
+            if (
+                self.open_close_criterion in {"TEMPERATURE", "FLUX"}
+                and self.device_id is None
+            ):
+                raise ValueError(
+                    f"CeilingFloorVent '{self.id}': device_id must be specified when open_close_criterion is '{self.open_close_criterion}'."
+                )
+            if self.open_close_criterion == "TIME":
+                if self.time is None or self.fraction is None:
+                    raise ValueError(
+                        f"CeilingFloorVent '{self.id}': time and fraction must be specified when open_close_criterion is 'TIME'."
+                    )
+                if len(self.time) != len(self.fraction):
+                    raise ValueError(
+                        f"CeilingFloorVent '{self.id}': time and fraction lists must be of equal length, got {len(self.time)} and {len(self.fraction)}."
+                    )
+                if any(t < 0 for t in self.time):
+                    raise ValueError(
+                        f"CeilingFloorVent '{self.id}': all time values must be non-negative, got {self.time}."
+                    )
+                if self.time != sorted(self.time):
+                    raise ValueError(
+                        f"CeilingFloorVent '{self.id}': time values must be monotonically increasing, got {self.time}."
+                    )
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the CeilingFloorVent."""
@@ -199,7 +262,7 @@ class CeilingFloorVent(CFASTComponent):
             f"id='{self.id}', "
             f"comps_ids={self.comps_ids}, "
             f"area={self.area}, type='{self.type}', shape='{self.shape}', "
-            f"width={self.width}, offsets={self.offsets}"
+            f"offsets={self.offsets}"
             ")"
         )
 
@@ -210,8 +273,6 @@ class CeilingFloorVent(CFASTComponent):
         shape_info = f"shape: {self.shape}"
 
         optional_info = []
-        if self.width:
-            optional_info.append(f"width: {self.width}")
         if self.open_close_criterion:
             optional_info.append(f"criterion: {self.open_close_criterion}")
 
@@ -233,9 +294,15 @@ class CeilingFloorVent(CFASTComponent):
 
         Examples
         --------
-        >>> vent = CeilingFloorVent("HOLE1", ["RM_UP", "RM_LOW"], 1.0, "ROUND")
+        >>> vent = CeilingFloorVent(
+        ...     id="HOLE1",
+        ...     comps_ids=["RM_UP", "RM_LOW"],
+        ...     area=1.0,
+        ...     shape="ROUND",
+        ...     offsets=[0, 0]
+        ... )
         >>> print(vent.to_input_string())
-        &VENT TYPE = 'FLOOR' ID = 'HOLE1' COMP_IDS = 'RM_UP', 'RM_LOW' ...
+        &VENT TYPE = 'FLOOR' ID = 'HOLE1' COMP_IDS = 'RM_UP', 'RM_LOW' AREA = 1.0 SHAPE = 'ROUND' OFFSETS = 0, 0 /
         """
         rec = NamelistRecord("VENT")
         rec.add_field("TYPE", self.type)
@@ -246,13 +313,14 @@ class CeilingFloorVent(CFASTComponent):
 
         if self.open_close_criterion is not None:
             rec.add_field("CRITERION", self.open_close_criterion)
-            rec.add_numeric_field("SETPOINT", self.set_point)
-            rec.add_field("DEVC_ID", self.device_id)
-            rec.add_field("PRE_FRACTION", self.pre_fraction)
-            rec.add_field("POST_FRACTION", self.post_fraction)
-
-        rec.add_list_field("T", self.time)
-        rec.add_list_field("F", self.fraction)
+            if self.open_close_criterion in {"TEMPERATURE", "FLUX"}:
+                rec.add_numeric_field("SETPOINT", self.set_point)
+                rec.add_field("DEVC_ID", self.device_id)
+                rec.add_field("PRE_FRACTION", self.pre_fraction)
+                rec.add_field("POST_FRACTION", self.post_fraction)
+            if self.open_close_criterion == "TIME":
+                rec.add_list_field("T", self.time)
+                rec.add_list_field("F", self.fraction)
         rec.add_list_field("OFFSETS", self.offsets)
 
         return rec.build()

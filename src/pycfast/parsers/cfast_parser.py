@@ -76,12 +76,6 @@ class CFASTParser:
         List of Device objects.
     surface_connections: List[SurfaceConnection]
         List of SurfaceConnection objects.
-
-    Examples
-    --------
-    >>> parser = CFASTParser()
-    >>> model = parser.parse_file("example.in")
-    >>> print(model.simulation_environment.title)
     """
 
     def __init__(self) -> None:
@@ -106,9 +100,8 @@ class CFASTParser:
         self.devices: list[Device] = []
         self.surface_connections: list[SurfaceConnection] = []
 
-        self._fire_hash_map: dict[
-            str, Fire
-        ] = {}  # will be useful for merging chemistry, data tables, and fire
+        self._fire_hash_map: dict[str, Fire] = {}
+        self._fire_data_rows: dict[str, list[list[float]]] = {}
 
     def parse_file(
         self, file_path: str | Path, output_path: str | Path | None = None
@@ -145,12 +138,6 @@ class CFASTParser:
             If the input file doesn't exist at the specified path.
         ValueError:
             If the file format is invalid or required parameters are missing.
-
-        Examples
-        --------
-            >>> parser = CFASTParser()
-            >>> model = parser.parse_file("/path/to/simulation.in")
-            >>> print(f"Parsed {len(model.compartments)} compartments")
         """
         file_path = Path(file_path)
         if not file_path.exists():
@@ -269,7 +256,10 @@ class CFASTParser:
         chemistry and data table information has been properly associated
         with fire objects.
         """
-        for fire in self._fire_hash_map.values():
+        for fire_id, fire in self._fire_hash_map.items():
+            rows = self._fire_data_rows.get(fire_id, [])
+            if rows:
+                fire.data_table = rows
             self.fires.append(fire)
 
     def _clean_content(self, content: str) -> str:
@@ -356,14 +346,6 @@ class CFASTParser:
         ------
         ValueError:
             If required parameter is missing or type conversion fails.
-
-        Examples
-        --------
-            >>> params = {'WIDTH': '1.5', 'HEIGHT': '2.0'}
-            >>> self._get_param(params, 'WIDTH', param_type=float)
-            1.5
-            >>> self._get_param(params, 'MISSING', default=0.0)
-            0.0
         """
         value = params.get(key, default)
         if required and value is None:
@@ -391,15 +373,6 @@ class CFASTParser:
         -------
         list[str]
             List of compartment ID strings. Empty list if input is None.
-
-        Examples
-        --------
-        >>> CFASTParser._normalize_comp_ids("COMP1")
-        ['COMP1']
-        >>> CFASTParser._normalize_comp_ids(["COMP1", "COMP2"])
-        ['COMP1', 'COMP2']
-        >>> CFASTParser._normalize_comp_ids(None)
-        []
         """
         if isinstance(comp_ids, str):
             return [comp_ids]
@@ -440,16 +413,6 @@ class CFASTParser:
         ------
         ValueError:
             If required parameter is missing or type conversion fails.
-
-        Examples
-        --------
-        >>> param_map = {
-        ...     'id': {'source': 'ID', 'required': True, 'type': str},
-        ...     'width': {'source': 'WIDTH', 'required': True, 'type': float},
-        ...     'active': {'source': 'ACTIVE', 'default': False, 'type': bool}
-        ... }
-        >>> extracted = self._extract_params(params, param_map)
-        >>> device = Device(**extracted)
         """
         extracted = {}
 
@@ -638,7 +601,6 @@ class CFASTParser:
             },
             "area": {"source": "AREA", "default": 0.0, "type": float},
             "shape": {"source": "SHAPE", "default": "ROUND", "type": str},
-            "width": {"source": "WIDTH", "type": float},
             "offsets": {"source": "OFFSETS", "default": [0, 0], "type": list},
             "open_close_criterion": {"source": "CRITERION", "type": str},
             "time": {"source": "T", "type": list},
@@ -703,10 +665,8 @@ class CFASTParser:
         fire_params = self._extract_params(params, param_map)
         fire = Fire(**fire_params)
 
-        fire.data_table = []
-
-        # Store in hash map using fire_id for later merging with CHEM and TABL blocks
         self._fire_hash_map[fire.fire_id] = fire
+        self._fire_data_rows[fire.fire_id] = []
 
     def _parse_chemistry_block(self, params: dict[str, Any]) -> None:
         """Parse CHEM namelist block for fire chemistry."""
@@ -768,16 +728,15 @@ class CFASTParser:
                     f"FIRE_ID {fire_id} in TABL block not found in any FIRE block."
                 )
 
-            fire = self._fire_hash_map[fire_id]
-            if not hasattr(fire, "data_table"):
-                fire.data_table = []
-            fire.data_table.append(current_row)
+            if fire_id not in self._fire_data_rows:
+                self._fire_data_rows[fire_id] = []
+            self._fire_data_rows[fire_id].append(current_row)
 
     def _parse_device_block(self, params: dict[str, Any]) -> None:
         """Parse DEVC namelist block."""
         device_type = self._get_param(params, "TYPE", required=True, param_type=str)
 
-        if device_type in ("CYLINDER", "PLATE"):
+        if device_type in {"CYLINDER", "PLATE"}:
             param_map = {
                 "id": {"source": "ID", "required": True, "type": str},
                 "comp_id": {"source": "COMP_ID", "required": True, "type": str},
@@ -814,7 +773,6 @@ class CFASTParser:
                 "id": {"source": "ID", "required": True, "type": str},
                 "comp_id": {"source": "COMP_ID", "required": True, "type": str},
                 "location": {"source": "LOCATION", "required": True, "type": list},
-                "setpoint": {"source": "SETPOINT", "required": True, "type": float},
                 "obscuration": {
                     "source": "OBSCURATION",
                     "default": 23.9334605082804,
@@ -992,9 +950,8 @@ def parse_cfast_file(
 
     Examples
     --------
-    >>> model = parse_cfast_file("simulation.in")
-    >>> print(f"Title: {model.simulation_environment.title}")
-    >>> print(f"Compartment: {len(model.compartments)}")
+    >>> parse_cfast_file("simulation.in")  # doctest: +SKIP
+    CFASTModel(file_name='simulation.in', compartments=2, fires=1, wall_vents=3, ...
     """
     parser = CFASTParser()
     return parser.parse_file(file_path, output_path)

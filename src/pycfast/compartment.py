@@ -114,11 +114,18 @@ class Compartment(CFASTComponent):
 
     >>> room = Compartment(
     ...     id="BEDROOM",
-    ...     width=3.5, depth=4.0, height=2.4,  # Size specification
-    ...     ceiling_mat_id="GYPSUM", ceiling_thickness=0.016,
-    ...     wall_mat_id="GYPSUM", wall_thickness=0.016,
-    ...     floor_mat_id="CONCRETE", floor_thickness=0.10,
-    ...     origin_x=0.0, origin_y=0.0, origin_z=0.0  # Position
+    ...     width=3.5,
+    ...     depth=4.0,
+    ...     height=2.4,
+    ...     ceiling_mat_id="GYPSUM",
+    ...     ceiling_thickness=0.016,
+    ...     wall_mat_id="GYPSUM",
+    ...     wall_thickness=0.016,
+    ...     floor_mat_id="CONCRETE",
+    ...     floor_thickness=0.10,
+    ...     origin_x=0.0,
+    ...     origin_y=0.0,
+    ...     origin_z=0.0
     ... )
     """
 
@@ -139,7 +146,7 @@ class Compartment(CFASTComponent):
         origin_z: float | None = 0,
         shaft: bool | None = None,
         hall: bool | None = None,
-        leak_area_ratio: list[float] | None = None,
+        leak_area_ratio: list[float] | None = None,  # [wall_leak, floor_leak]
         cross_sect_areas: list[float] | None = None,
         cross_sect_heights: list[float] | None = None,
     ):
@@ -177,11 +184,14 @@ class Compartment(CFASTComponent):
                 f"Compartment '{self.id}': shaft and hall cannot both be True."
             )
 
-        if self.cross_sect_areas is not None and self.cross_sect_heights is not None:
-            if len(self.cross_sect_areas) != len(self.cross_sect_heights):
-                raise ValueError(
-                    f"Compartment '{self.id}': cross_sect_areas and cross_sect_heights "
-                    "must have the same length"
+        for param, list_val in (
+            ("leak_area_ratio", self.leak_area_ratio),
+            ("cross_sect_areas", self.cross_sect_areas),
+            ("cross_sect_heights", self.cross_sect_heights),
+        ):
+            if list_val is not None and not isinstance(list_val, list):
+                raise TypeError(
+                    f"Compartment '{self.id}': {param} must be a list, got {type(list_val).__name__}."
                 )
 
         if self.leak_area_ratio is not None and len(self.leak_area_ratio) != 2:
@@ -189,6 +199,19 @@ class Compartment(CFASTComponent):
                 f"Compartment '{self.id}': leak_area_ratio must contain exactly 2 values "
                 "[wall_leak, floor_leak]"
             )
+
+        if (self.cross_sect_areas is None) != (self.cross_sect_heights is None):
+            raise ValueError(
+                f"Compartment '{self.id}': cross_sect_areas and cross_sect_heights "
+                "must both be provided or both be None."
+            )
+
+        if self.cross_sect_areas is not None and self.cross_sect_heights is not None:
+            if len(self.cross_sect_areas) != len(self.cross_sect_heights):
+                raise ValueError(
+                    f"Compartment '{self.id}': cross_sect_areas and cross_sect_heights "
+                    "must have the same length"
+                )
 
         for dim, val in (
             ("width", self.width),
@@ -261,11 +284,21 @@ class Compartment(CFASTComponent):
 
         Examples
         --------
-        >>> comp = Compartment("ROOM1", width=3.0, depth=4.0, height=2.4,
-        ...                    ceiling_mat_id="GYPSUM", ceiling_thickness=0.016,
-        ...                    wall_mat_id="GYPSUM", wall_thickness=0.016,
-        ...                    floor_mat_id="CONCRETE", floor_thickness=0.10,
-        ...                    origin_x=0.0, origin_y=0.0, origin_z=0.0)
+        >>> comp = Compartment(
+        ...     id="ROOM1",
+        ...     width=3.0,
+        ...     depth=4.0,
+        ...     height=2.4,
+        ...     ceiling_mat_id="GYPSUM",
+        ...     ceiling_thickness=0.016,
+        ...     wall_mat_id="GYPSUM",
+        ...     wall_thickness=0.016,
+        ...     floor_mat_id="CONCRETE",
+        ...     floor_thickness=0.10,
+        ...     origin_x=0.0,
+        ...     origin_y=0.0,
+        ...     origin_z=0.0
+        ... )
         >>> print(comp.to_input_string())
         &COMP ID = 'ROOM1' DEPTH = 4.0 HEIGHT = 2.4 WIDTH = 3.0 ...
         """
@@ -300,7 +333,7 @@ class Compartment(CFASTComponent):
             sanitized = [v if v is not None else 0 for v in origin_values]
             rec.add_list_field("ORIGIN", sanitized)
 
-        rec.add_list_field("GRID", [50, 50, 50])
+        rec.add_list_field("GRID", [50, 50, 50])  # Fixed by CFAST
         rec.add_list_field("LEAK_AREA_RATIO", self.leak_area_ratio)
 
         return rec.build()

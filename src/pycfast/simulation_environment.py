@@ -96,10 +96,10 @@ class SimulationEnvironment(CFASTComponent):
 
     >>> simulation_env = SimulationEnvironment(
     ...     title="Office Fire Simulation",
-    ...     time_simulation=1800,  # Length of simulation (s)
-    ...     print=10,              # Text output interval (s)
-    ...     smokeview=1,           # Smokeview output interval (s)
-    ...     spreadsheet=1          # Spreadsheet output interval (s)
+    ...     time_simulation=1800,
+    ...     print=10,
+    ...     smokeview=1,
+    ...     spreadsheet=1
     ... )
     """
 
@@ -140,27 +140,45 @@ class SimulationEnvironment(CFASTComponent):
 
         Raises
         ------
+        TypeError
+            If any attribute has an incorrect type.
         ValueError
             If any attribute violates the constraints.
 
         Warns
         -----
         UserWarning
-            If time_simulation exceeds 86400 s (CFAST maximum), title exceeds
-            50 characters (will be truncated), relative_humidity is outside
-            [0, 100] %, or an ambient temperature is below absolute zero.
+            If title exceeds 50 characters (will be truncated by CFAST),
+            time_simulation exceeds 86400 s (CFAST documented maximum),
+            relative_humidity or lower_oxygen_limit is outside [0, 100] %,
+            or an ambient temperature is below 0 °C.
         """
-        if self.time_simulation is not None and self.time_simulation <= 0:
-            raise ValueError(
-                f"time_simulation must be positive, got {self.time_simulation}."
-            )
+        if not isinstance(self.title, str):
+            raise TypeError(f"title must be a str, got {type(self.title).__name__}.")
 
-        if self.time_simulation is not None and self.time_simulation > 86400:
-            warnings.warn(
-                f"time_simulation={self.time_simulation} s exceeds 86400 s (1 day), "
-                "which is the documented CFAST maximum. The simulation may fail.",
-                UserWarning,
-                stacklevel=2,
+        for param, val in (
+            ("time_simulation", self.time_simulation),
+            ("print", self.print),
+            ("smokeview", self.smokeview),
+            ("spreadsheet", self.spreadsheet),
+        ):
+            if val is not None and (not isinstance(val, int) or isinstance(val, bool)):
+                raise TypeError(f"{param} must be an int, got {type(val).__name__}.")
+
+        for param, fval in (
+            ("init_pressure", self.init_pressure),
+            ("relative_humidity", self.relative_humidity),
+            ("interior_temperature", self.interior_temperature),
+            ("exterior_temperature", self.exterior_temperature),
+            ("max_time_step", self.max_time_step),
+            ("lower_oxygen_limit", self.lower_oxygen_limit),
+        ):
+            if fval is not None and not isinstance(fval, (int, float)):
+                raise TypeError(f"{param} must be a number, got {type(fval).__name__}.")
+
+        if self.adiabatic is not None and not isinstance(self.adiabatic, bool):
+            raise TypeError(
+                f"adiabatic must be a bool, got {type(self.adiabatic).__name__}."
             )
 
         if len(self.title) > 50:
@@ -168,6 +186,32 @@ class SimulationEnvironment(CFASTComponent):
                 f"title has {len(self.title)} characters; CFAST truncates titles to 50 characters.",
                 UserWarning,
                 stacklevel=2,
+            )
+
+        if self.time_simulation is not None:
+            if self.time_simulation <= 0:
+                raise ValueError(
+                    f"time_simulation must be positive, got {self.time_simulation}."
+                )
+            if self.time_simulation > 86400:
+                warnings.warn(
+                    f"time_simulation={self.time_simulation} s exceeds 86400 s (1 day), "
+                    "which is the documented CFAST maximum. The simulation may fail.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+
+        for param, val in (
+            ("print", self.print),
+            ("smokeview", self.smokeview),
+            ("spreadsheet", self.spreadsheet),
+        ):
+            if val is not None and val < 0:
+                raise ValueError(f"{param} must be >= 0, got {val}.")
+
+        if self.init_pressure is not None and self.init_pressure <= 0:
+            raise ValueError(
+                f"init_pressure must be positive, got {self.init_pressure}."
             )
 
         if (
@@ -184,12 +228,27 @@ class SimulationEnvironment(CFASTComponent):
             ("interior_temperature", self.interior_temperature),
             ("exterior_temperature", self.exterior_temperature),
         ):
-            if temp is not None and temp < -273.15:
+            if temp is not None and temp < 0:
                 warnings.warn(
-                    f"{label}={temp} °C is below absolute zero (-273.15 °C).",
+                    f"{label}={temp} °C is below 0 °C.",
                     UserWarning,
                     stacklevel=2,
                 )
+
+        if self.max_time_step is not None and self.max_time_step <= 0:
+            raise ValueError(
+                f"max_time_step must be positive, got {self.max_time_step}."
+            )
+
+        if (
+            self.lower_oxygen_limit is not None
+            and not 0.0 <= self.lower_oxygen_limit <= 100.0
+        ):
+            warnings.warn(
+                f"lower_oxygen_limit={self.lower_oxygen_limit} is outside [0, 100] %.",
+                UserWarning,
+                stacklevel=2,
+            )
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the SimulationEnvironment."""
@@ -228,9 +287,9 @@ class SimulationEnvironment(CFASTComponent):
         >>> config = SimulationEnvironment("Test", 300, print=10)
         >>> print(config.to_input_string())
         &HEAD VERSION = 7700 TITLE = 'Test' /
-
         !! Scenario Configuration
-        &TIME SIMULATION = 300 PRINT = 10 ...
+        &TIME SIMULATION = 300 PRINT = 10 SMOKEVIEW = 15 SPREADSHEET = 15 /
+        &INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
         """
         head = (
             NamelistRecord("HEAD")
@@ -259,7 +318,7 @@ class SimulationEnvironment(CFASTComponent):
 
         input_str = head + "\n!! Scenario Configuration \n" + time_rec + init_rec
 
-        if self.adiabatic or self.max_time_step or self.lower_oxygen_limit:
+        if self.adiabatic is not None or self.max_time_step or self.lower_oxygen_limit:
             misc = NamelistRecord("MISC")
             if self.adiabatic is not None:
                 misc.add_field("ADIABATIC", self.adiabatic)

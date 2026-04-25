@@ -74,10 +74,13 @@ class SurfaceConnection(CFASTComponent):
 
     Raises
     ------
+    TypeError
+        If conn_type is not a str, if comp_id or comp_ids are not strings,
+        or if fraction is not numeric when provided.
     ValueError
-        If conn_type is not "WALL" or "FLOOR", if fraction is specified for
-        floor connections, or if fraction is outside valid range for wall
-        connections.
+        If conn_type is not "WALL" or "FLOOR", if comp_id or comp_ids are
+        empty strings, if comp_id equals comp_ids, if fraction is missing
+        for wall connections, or if fraction is outside [0, 1].
 
     Notes
     -----
@@ -97,19 +100,19 @@ class SurfaceConnection(CFASTComponent):
     >>> wall_conn_1to2 = SurfaceConnection.wall_connection(
     ...     comp_id="ROOM1",
     ...     comp_ids="ROOM2",
-    ...     fraction=0.25  # 1m²/4m² = 0.25
+    ...     fraction=0.25
     ... )
     >>> wall_conn_2to1 = SurfaceConnection.wall_connection(
     ...     comp_id="ROOM2",
     ...     comp_ids="ROOM1",
-    ...     fraction=0.25  # Bidirectional connection required
+    ...     fraction=0.25
     ... )
 
     Create a floor/ceiling connection between stacked compartments:
 
     >>> floor_conn = SurfaceConnection.ceiling_floor_connection(
-    ...     comp_id="UPPER_ROOM",    # Top compartment
-    ...     comp_ids="LOWER_ROOM"    # Bottom compartment
+    ...     comp_id="UPPER_ROOM",
+    ...     comp_ids="LOWER_ROOM"
     ... )
 
     Different sized compartments example:
@@ -128,9 +131,9 @@ class SurfaceConnection(CFASTComponent):
         comp_ids: str,
         fraction: float | None = None,
     ):
-        self.conn_type = conn_type
-        self.comp_id = comp_id
-        self.comp_ids = comp_ids
+        self.conn_type = conn_type  # "FLOOR" or "WALL"
+        self.comp_id = comp_id  # id of the first compartment, to be validate in _validate_dependencies in CFASTModel
+        self.comp_ids = comp_ids  # id of the second compartment
         self.fraction = fraction
 
         self._validate()
@@ -140,6 +143,9 @@ class SurfaceConnection(CFASTComponent):
 
         Raises
         ------
+        TypeError
+            If conn_type, comp_id, or comp_ids are not strings, or if fraction
+            is not numeric when provided.
         ValueError
             If any attribute violates the constraints.
 
@@ -148,6 +154,19 @@ class SurfaceConnection(CFASTComponent):
         UserWarning
             If fraction is provided for a FLOOR connection (should be None).
         """
+        if not isinstance(self.conn_type, str):
+            raise TypeError(
+                f"SurfaceConnection: conn_type must be a str, got {type(self.conn_type).__name__}."
+            )
+        if not isinstance(self.comp_id, str) or not self.comp_id:
+            raise ValueError("SurfaceConnection: comp_id must be a non-empty string.")
+        if not isinstance(self.comp_ids, str) or not self.comp_ids:
+            raise ValueError("SurfaceConnection: comp_ids must be a non-empty string.")
+        if self.comp_id == self.comp_ids:
+            raise ValueError(
+                f"SurfaceConnection: comp_id and comp_ids must differ, got '{self.comp_id}' for both."
+            )
+
         valid_types = {"WALL", "FLOOR"}
         if self.conn_type not in valid_types:
             raise ValueError(
@@ -159,17 +178,21 @@ class SurfaceConnection(CFASTComponent):
                 raise ValueError(
                     "SurfaceConnection: WALL connection requires a fraction value."
                 )
+            if not isinstance(self.fraction, (int, float)):
+                raise TypeError(
+                    f"SurfaceConnection: fraction must be a float, got {type(self.fraction).__name__}."
+                )
             if not 0.0 <= self.fraction <= 1.0:
                 raise ValueError(
                     f"SurfaceConnection: fraction={self.fraction} must be in [0, 1] for WALL connections."
                 )
-
-        if self.conn_type == "FLOOR" and self.fraction is not None:
-            warnings.warn(
-                "SurfaceConnection: fraction should be None for FLOOR connections.",
-                UserWarning,
-                stacklevel=2,
-            )
+        else:  # FLOOR
+            if self.fraction is not None:
+                warnings.warn(
+                    "SurfaceConnection: fraction should be None for FLOOR connections.",
+                    UserWarning,
+                    stacklevel=2,
+                )
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the SurfaceConnection."""
@@ -239,6 +262,10 @@ class SurfaceConnection(CFASTComponent):
         -------
         SurfaceConnection
             Configured surface connection instance for wall heat transfer.
+
+        Examples
+        --------
+        >>> wall_conn = SurfaceConnection.wall_connection("ROOM1", "ROOM2", 0.25)
         """
         return cls(
             conn_type="WALL", comp_id=comp_id, comp_ids=comp_ids, fraction=fraction
@@ -248,12 +275,6 @@ class SurfaceConnection(CFASTComponent):
     def ceiling_floor_connection(cls, comp_id: str, comp_ids: str) -> SurfaceConnection:
         """
         Create a surface connection for vertical heat transfer through floors/ceilings.
-
-        This class method creates a floor/ceiling connection between two
-        compartments for vertical heat transfer through horizontal surfaces.
-        The connection is established between the floor of the top compartment
-        and the ceiling of the bottom compartment. Unlike wall connections,
-        only one connection definition is needed (not bidirectional).
 
         Parameters
         ----------
@@ -268,5 +289,9 @@ class SurfaceConnection(CFASTComponent):
         -------
         SurfaceConnection
             Configured surface connection instance for floor/ceiling heat transfer.
+
+        Examples
+        --------
+        >>> floor_conn = SurfaceConnection.ceiling_floor_connection("UPPER_ROOM", "LOWER_ROOM")
         """
         return cls(conn_type="FLOOR", comp_id=comp_id, comp_ids=comp_ids, fraction=None)

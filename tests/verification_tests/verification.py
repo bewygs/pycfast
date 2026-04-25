@@ -70,13 +70,6 @@ def get_verification_data_dir(base_path: Path, subdir: str) -> Path:
     Returns
     -------
         Path: The verification data directory to use
-
-    Examples
-    --------
-    >>> get_verification_data_dir(
-    ...     Path("tests"), "DOE_Guidance_Report"
-    ... )
-    PosixPath('tests/verification_data_local/DOE_Guidance_Report')
     """
     subdir_path = Path(subdir)
     local_verif_dir = base_path / "verification_data_local" / subdir_path

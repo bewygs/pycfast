@@ -17,9 +17,9 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import Any, cast
 
-import numpy as np
 import pandas as pd
 
+from ._base_component import CFASTComponent
 from .ceiling_floor_vent import CeilingFloorVent
 from .compartment import Compartment
 from .device import Device
@@ -151,16 +151,15 @@ class CFASTModel:
     ...     devices=[temp_sensor],
     ...     file_name="simulation.in"
     ... )
-    >>> results = model.run()
-    >>> print(results['simulation_compartments.csv'].head())
+    >>> results = model.run()  # doctest: +SKIP
 
     Create a minimal simulation with just compartments:
 
-    >>> minimal_model = CFASTModel(
-    ...     scenario_configuration=scenario_config,
+    >>> model = CFASTModel(
+    ...     simulation_environment=simulation_env,
     ...     compartments=[room1]
     ... )
-    >>> results = minimal_model.run()
+    >>> results = model.run()  # doctest: +SKIP
     """
 
     def __init__(
@@ -253,9 +252,8 @@ class CFASTModel:
         """
         Execute the CFAST simulation and return results.
 
-        This method writes the input file, runs CFAST, and reads the output
-        CSV files into pandas DataFrames. The simulation creates several
-        output files with different types of data.
+        Writes the input file, runs CFAST, and reads the output CSV files
+        into :class:`pandas.DataFrame` objects.
 
         Parameters
         ----------
@@ -273,18 +271,31 @@ class CFASTModel:
 
         Returns
         -------
-        dict[str, pd.DataFrame]
-            Dictionary mapping CSV filenames to pandas DataFrames containing
-            simulation results. Keys include:
-            - 'compartments': Compartment conditions over time
-            - 'devices': Device/target measurements
-            - 'masses': Mass flow data
-            - 'vents': Vent flow data
-            - 'walls': Wall heat transfer data
-            - 'zone': Zone-specific data
-            - 'diagnostics': Diagnostic information (if generated with &DIAG)
+        dict[str, :class:`pandas.DataFrame`]
+            Dictionary mapping output type to simulation results.
 
-            Returns None if simulation fails.
+            .. list-table::
+               :header-rows: 1
+               :widths: 25 75
+
+               * - Key
+                 - Description
+               * - ``'compartments'``
+                 - Conditions in each compartment over time.
+               * - ``'devices'``
+                 - Measurements from devices/targets over time.
+               * - ``'masses'``
+                 - Mass flow data for each compartment.
+               * - ``'vents'``
+                 - Flow data for each vent over time.
+               * - ``'walls'``
+                 - Heat transfer data for each wall over time.
+               * - ``'zone'``
+                 - Zone-specific data.
+               * - ``'diagnostics'``
+                 - Diagnostic information (only present if the input file contains ``&DIAG``).
+
+            Returns ``None`` if the simulation fails.
 
         Raises
         ------
@@ -303,13 +314,17 @@ class CFASTModel:
 
         Examples
         --------
-        >>> results = model.run()
-        >>> if results:
-        ...     temp_data = results['simulation_compartments.csv']
-        ...     print(f"Max temperature: {temp_data['CEILT'].max()}")
+        Run a model with a custom filename :
 
-        >>> # Run with custom filename for sensitivity analysis
-        >>> results = model.run(file_name="sensitivity_case_1.in")
+        >>> results = model.run(file_name="custom_file_name.in")  # doctest: +SKIP
+
+        Run a model and access compartment results:
+
+        >>> results = model.run()  # doctest: +SKIP
+        >>> comp_data = results['compartments'] # doctest: +SKIP
+        >>> temp_data['ULT_1'].max() # doctest: +SKIP
+        np.float64(345.3)
+
         """
         original_file_name = self.file_name
         if file_name is not None:
@@ -400,7 +415,6 @@ class CFASTModel:
     def update_fire_params(
         self,
         fire: int | str | None = None,
-        data_table: list[list[float]] | np.ndarray | pd.DataFrame | None = None,
         **kwargs: Any,
     ) -> CFASTModel:
         """
@@ -413,12 +427,10 @@ class CFASTModel:
             - int: Fire index (0-based)
             - str: "fire_id" or "id" (yes it's different)
             - None: Updates first fire (index 0)
-        data_table : list[list[float]], np.ndarray, or pd.DataFrame, optional
-            New fire data table to replace existing one. Must have 9 columns:
-            TIME, HRR, HEIGHT, AREA, CO_YIELD, SOOT_YIELD, HCN_YIELD, HCL_YIELD, TRACE_YIELD.
         **kwargs : Any
             Fire object attributes to update. See Fire class documentation
-            for available parameters.
+            for available parameters. ``data_table`` accepts list, dict,
+            numpy ndarray, or pandas DataFrame — coercion is handled by Fire.
 
         Returns
         -------
@@ -427,71 +439,23 @@ class CFASTModel:
 
         Examples
         --------
-        >>> # Update scalar fire properties
+        Update model with fire id (string):
+
         >>> new_model = model.update_fire_params(
+        ...     fire="FIRE1",
         ...     heat_of_combustion=20000,
-        ...     radiative_fraction=0.35
+        ...     radiative_fraction=0.1
         ... )
 
-        >>> # Update fire data table with pandas DataFrame
-        >>> fire_data = pd.DataFrame({
-        ...     'time': [0, 60, 120],
-        ...     'heat_release_rate': [0, 1000, 2000],
-        ...     'height': [0.5, 0.5, 0.5],
-        ...     'area': [1.0, 1.0, 1.0],
-        ...     'co_yield': [0.004, 0.004, 0.004],
-        ...     'soot_yield': [0.01, 0.01, 0.01],
-        ...     'hcn_yield': [0.0, 0.0, 0.0],
-        ...     'hcl_yield': [0.0, 0.0, 0.0],
-        ...     'trace_yield': [0.0, 0.0, 0.0]
-        ... })
-        >>> new_model = model.update_fire_params(data_table=fire_data)
+        Update model with fire index (integer):
 
-        >>> # Update fire data table with numpy array
-        >>> import numpy as np
-        >>> fire_array = np.array([
-        ...     [0, 0, 0.5, 1.0, 0.004, 0.01, 0.0, 0.0, 0.0],
-        ...     [60, 1000, 0.5, 1.0, 0.004, 0.01, 0.0, 0.0, 0.0],
-        ...     [120, 2000, 0.5, 1.0, 0.004, 0.01, 0.0, 0.0, 0.0]
-        ... ])
-        >>> new_model = model.update_fire_params(data_table=fire_array)
-
-        >>> # Update fire data table with list of lists
-        >>> fire_list = [
-        ...     [0, 0, 0.5, 1.0, 0.004, 0.01, 0.0, 0.0, 0.0],
-        ...     [60, 1000, 0.5, 1.0, 0.004, 0.01, 0.0, 0.0, 0.0],
-        ...     [120, 2000, 0.5, 1.0, 0.004, 0.01, 0.0, 0.0, 0.0]
-        ... ]
-        >>> new_model = model.update_fire_params(data_table=fire_list)
-
-        >>> # Update by fire name
         >>> new_model = model.update_fire_params(
-        ...     fire="main_fire",
-        ...     heat_of_combustion=18000
+        ...     fire=0,
+        ...     heat_of_combustion=20000,
+        ...     radiative_fraction=0.1
         ... )
         """
-        identifier = fire
-        new_model = self._update_component("fire", identifier, **kwargs)
-
-        if data_table is not None:
-            if isinstance(data_table, pd.DataFrame):
-                coerced = data_table.values.tolist()
-            elif isinstance(data_table, np.ndarray):
-                coerced = data_table.tolist()
-            elif isinstance(data_table, list):
-                coerced = data_table
-            else:
-                raise TypeError(
-                    "data_table must be a pandas DataFrame, numpy ndarray, or list of lists"
-                )
-            idx = (
-                self._resolve_identifier("fire", identifier)
-                if identifier is not None
-                else 0
-            )
-            new_model.fires[idx].data_table = coerced
-
-        return new_model
+        return self._update_component("fire", fire, **kwargs)
 
     def update_simulation_params(self, **kwargs: Any) -> CFASTModel:
         """
@@ -558,7 +522,7 @@ class CFASTModel:
         ... )
 
         >>> new_model = model.update_compartment_params(
-        ...     compartment="living_room",
+        ...     compartment="ROOM1",
         ...     width=6.0
         ... )
         """
@@ -592,9 +556,9 @@ class CFASTModel:
         Examples
         --------
         >>> new_model = model.update_material_params(
-        ...     material="concrete",
-        ...     conductivity=1.5,
-        ...     density=2300
+        ...     material="GYPSUM",
+        ...     conductivity=0.20,
+        ...     density=900
         ... )
         """
         identifier = material
@@ -695,7 +659,7 @@ class CFASTModel:
         --------
         >>> new_model = model.update_mechanical_vent_params(
         ...     vent=0,
-        ...     flow_rate=0.5
+        ...     flow=0.5
         ... )
         """
         return self._update_component("mech_vent", vent, **kwargs)
@@ -781,7 +745,7 @@ class CFASTModel:
 
         Examples
         --------
-        >>> new_fire = Fire(id="FIRE2", comp_id="ROOM1", location=[2.0, 2.0])
+        >>> new_fire = Fire(id="FIRE2", comp_id="ROOM1", fire_id="POLYURETHANE", location=[2.0, 2.0])
         >>> updated_model = model.add_fire(new_fire)
         """
         return self._add_component("fire", fire)
@@ -823,7 +787,7 @@ class CFASTModel:
 
         Examples
         --------
-        >>> steel = Material(id="STEEL", conductivity=45.0, density=7850)
+        >>> steel = Material(id="STEEL", material="Steel", conductivity=45.0, density=7850, specific_heat=0.46, thickness=0.005)
         >>> updated_model = model.add_material(steel)
         """
         return self._add_component("material", material)
@@ -844,7 +808,7 @@ class CFASTModel:
 
         Examples
         --------
-        >>> door = WallVent(comp_ids=["ROOM1", "ROOM2"], width=1.0, height=2.0)
+        >>> door = WallVent(id="DOOR2", comps_ids=["ROOM1", "ROOM2"], width=1.0, height=2.0)
         >>> updated_model = model.add_wall_vent(door)
         """
         return self._add_component("wall_vent", vent)
@@ -865,7 +829,7 @@ class CFASTModel:
 
         Examples
         --------
-        >>> hatch = CeilingFloorVent(comp_ids=["ROOM1", "ROOM2"], area=0.5)
+        >>> hatch = CeilingFloorVent(id="HATCH1", comps_ids=["ROOM1", "ROOM2"], area=0.5)
         >>> updated_model = model.add_ceiling_floor_vent(hatch)
         """
         return self._add_component("cf_vent", vent)
@@ -886,7 +850,7 @@ class CFASTModel:
 
         Examples
         --------
-        >>> hvac = MechanicalVent(comp_ids=["ROOM1", "OUTSIDE"], flow_rate=0.5)
+        >>> hvac = MechanicalVent(id="FAN2", comps_ids=["ROOM1", "OUTSIDE"], flow=0.5)
         >>> updated_model = model.add_mechanical_vent(hvac)
         """
         return self._add_component("mech_vent", vent)
@@ -908,7 +872,7 @@ class CFASTModel:
         Examples
         --------
         >>> sensor = Device.create_heat_detector(
-        ...     comp_id="ROOM1", location=[2.0, 2.0, 2.4], temperature=68.0
+        ...     id="SENSOR1", comp_id="ROOM1", location=[2.0, 2.0, 2.4], setpoint=68.0, rti=50.0
         ... )
         >>> updated_model = model.add_device(sensor)
         """
@@ -931,7 +895,7 @@ class CFASTModel:
         Examples
         --------
         >>> wall_conn = SurfaceConnection.wall_connection(
-        ...     comp_ids=["ROOM1", "ROOM2"], fraction=0.5
+        ...     comp_id="ROOM1", comp_ids="ROOM2", fraction=0.5
         ... )
         >>> updated_model = model.add_surface_connection(wall_conn)
         """
@@ -991,7 +955,9 @@ class CFASTModel:
         getattr(new_model, attr).append(component)
         return new_model
 
-    def _apply_kwargs(self, target: Any, label: str, kwargs: dict[str, Any]) -> None:
+    def _apply_kwargs(
+        self, target: CFASTComponent, label: str, kwargs: dict[str, Any]
+    ) -> None:
         """Apply ``kwargs`` to ``target`` via setattr, raising on unknown params."""
         for param, value in kwargs.items():
             if not hasattr(target, param):
@@ -1001,6 +967,7 @@ class CFASTModel:
                     f"Available parameters: {', '.join(available)}"
                 )
             setattr(target, param, value)
+        target._validate()
 
     def _get_available_attributes(self, obj: Any) -> list[str]:
         """Get list of available non-private, non-callable attributes."""
@@ -1031,10 +998,10 @@ class CFASTModel:
         Examples
         --------
         >>> # Save with default filename
-        >>> path = model.save()
+        >>> path = model.save()  # doctest: +SKIP
 
         >>> # Save backup without changing model's file_name
-        >>> backup_path = model.save(file_name="backup/model_v1.in")
+        >>> backup_path = model.save(file_name="backup/model_v1.in")  # doctest: +SKIP
         """
         original_file_name = self.file_name
         if file_name is not None:
@@ -1060,7 +1027,7 @@ class CFASTModel:
 
         Examples
         --------
-        >>> print(model.summary())
+        >>> print(model.summary())  # doctest: +SKIP
         Model: my_simulation.in
         Simulation: 'Building Fire Test' (3600s)
 
@@ -1150,9 +1117,9 @@ class CFASTModel:
 
         Examples
         --------
-        >>> print(model.view_cfast_input_file())  # Pretty-printed with line numbers
-        >>> content = model.view_cfast_input_file(pretty_print=False)  # Raw content
-        >>> print(content)
+        >>> print(model.view_cfast_input_file())  # doctest: +SKIP
+        >>> content = model.view_cfast_input_file(pretty_print=False)  # doctest: +SKIP
+        >>> print(content)  # doctest: +SKIP
         """
         if not self._input_written:
             raise RuntimeError(
@@ -1371,20 +1338,34 @@ class CFASTModel:
                     f"SurfaceConnection: comp_ids='{sc.comp_ids}' does not match any defined compartment."
                 )
 
+        material_map = {m.id: m for m in self.material_properties}
+
         # material_id of Device/Compartment must exist in material_properties
         for device in self.devices:
-            mid = getattr(device, "material_id", None)
-            if mid is not None and mid not in material_ids:
+            m_id = getattr(device, "material_id", None)
+            if m_id is not None and m_id not in material_ids:
                 raise ValueError(
-                    f"Device '{device.id}': material_id='{mid}' does not match any defined material."
+                    f"Device '{device.id}': material_id='{m_id}' does not match any defined material."
+                )
+            if (
+                m_id is not None
+                and m_id in material_map
+                and device.type in {"PLATE", "CYLINDER"}
+                and getattr(device, "depth_units", None) == "M"
+                and device.temperature_depth is not None
+                and device.temperature_depth >= material_map[m_id].thickness
+            ):
+                raise ValueError(
+                    f"Device '{device.id}': temperature_depth={device.temperature_depth} m must be less than "
+                    f"material '{m_id}' thickness={material_map[m_id].thickness} m."
                 )
 
         for comp in self.compartments:
             for attr in ("ceiling_mat_id", "wall_mat_id", "floor_mat_id"):
-                mid = getattr(comp, attr, None)
-                if mid is not None and mid != "OFF" and mid not in material_ids:
+                m_id = getattr(comp, attr, None)
+                if m_id is not None and m_id != "OFF" and m_id not in material_ids:
                     raise ValueError(
-                        f"Compartment '{comp.id}': {attr}='{mid}' does not match any defined material."
+                        f"Compartment '{comp.id}': {attr}='{m_id}' does not match any defined material."
                     )
 
         # device_id referenced in Fire or Vent must exist in devices
@@ -1454,3 +1435,17 @@ class CFASTModel:
                         UserWarning,
                         stacklevel=2,
                     )
+
+        avail_fire_ids = {fire.id for fire in self.fires}
+        for device in self.devices:
+            if device.type in {"PLATE", "CYLINDER"}:
+                if device.normal is None and device.surface_orientation is not None:
+                    if (
+                        device.surface_orientation
+                        not in Device.VALID_SURFACE_ORIENTATIONS
+                    ):
+                        if device.surface_orientation not in avail_fire_ids:
+                            raise ValueError(
+                                f"Device '{device.id}': surface_orientation='{device.surface_orientation}' "
+                                "is not a valid orientation and does not match any defined fire id."
+                            )

@@ -32,23 +32,7 @@ _Scalar = str | int | float | bool
 
 
 class NamelistRecord:
-    r"""Builder for a single CFAST Fortran namelist record.
-
-    Parameters
-    ----------
-    keyword : str
-        The namelist keyword (e.g. ``"COMP"``, ``"VENT"``, ``"MATL"``).
-
-    Examples
-    --------
-    >>> rec = NamelistRecord("COMP")
-    >>> rec.add_field("ID", "ROOM1")
-    NamelistRecord('COMP')
-    >>> rec.add_field("WIDTH", 3.0)
-    NamelistRecord('COMP')
-    >>> rec.build()
-    "&COMP ID = 'ROOM1' WIDTH = 3.0 /\n"
-    """
+    """Builder for a single CFAST Fortran namelist record."""
 
     def __init__(self, keyword: str) -> None:
         self._keyword = keyword

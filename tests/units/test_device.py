@@ -115,6 +115,57 @@ class TestDevice:
                 temperature_depth=0.0005,
             )
 
+    def test_init_location_not_a_list(self):
+        """Test that initialization fails with TypeError when location is not a list."""
+        with pytest.raises(TypeError, match="location must be a list"):
+            Device(
+                id="DEV1",
+                comp_id="ROOM1",
+                location=(1.0, 2.0, 1.5),  # type: ignore  # tuple, not list
+                type="PLATE",
+                material_id="STEEL",
+                normal=[0, 0, -1],
+                temperature_depth=0.0005,
+            )
+
+    def test_init_normal_not_a_list(self):
+        """Test that initialization fails with TypeError when normal is not a list."""
+        with pytest.raises(TypeError, match="normal must be a list"):
+            Device(
+                id="DEV1",
+                comp_id="ROOM1",
+                location=[1.0, 2.0, 1.5],
+                type="PLATE",
+                material_id="STEEL",
+                normal=(0, 0, -1),  # type: ignore  # tuple, not list
+                temperature_depth=0.0005,
+            )
+
+    def test_init_convection_coefficients_not_a_list(self):
+        """Test that initialization fails with TypeError when convection_coefficients is not a list."""
+        with pytest.raises(TypeError, match="convection_coefficients must be a list"):
+            Device(
+                id="DEV1",
+                comp_id="ROOM1",
+                location=[1.0, 2.0, 1.5],
+                type="PLATE",
+                material_id="STEEL",
+                normal=[0, 0, -1],
+                convection_coefficients=(10.0, 20.0),  # type: ignore  # tuple, not list
+            )
+
+    def test_valid_surface_orientations_constant(self):
+        """Test that VALID_SURFACE_ORIENTATIONS contains the expected values."""
+        expected = {
+            "CEILING",
+            "FRONT WALL",
+            "BACK WALL",
+            "LEFT WALL",
+            "RIGHT WALL",
+            "FLOOR",
+        }
+        assert Device.VALID_SURFACE_ORIENTATIONS == expected
+
     def test_init_invalid_location_type(self):
         """Test that initialization fails with non-numeric location values."""
         with pytest.raises(ValueError, match="location must be a list of 3 numbers"):
@@ -197,9 +248,9 @@ class TestDevice:
                 temperature_depth=0.0005,
             )
 
-    def test_init_invalid_temperature_depth(self):
-        """Test that target initialization fails with invalid temperature_depth."""
-        with pytest.raises(ValueError, match=r"must be in \[0, 1\]\."):
+    def test_init_invalid_temperature_depth_fraction(self):
+        """Test that temperature_depth outside [0, 1] fails when depth_units is not 'M'."""
+        with pytest.raises(ValueError, match=r"must be in \[0, 1\]"):
             Device(
                 id="TARGET1",
                 comp_id="ROOM1",
@@ -207,8 +258,37 @@ class TestDevice:
                 type="PLATE",
                 material_id="STEEL",
                 normal=[0, 0, -1],
-                temperature_depth=1.5,  # Invalid value
+                depth_units="FRACTION",
+                temperature_depth=1.5,
             )
+
+    def test_init_invalid_temperature_depth_meters(self):
+        """Test that temperature_depth <= 0 fails when depth_units='M'."""
+        with pytest.raises(ValueError, match=r"must be > 0 when depth_units='M'"):
+            Device(
+                id="TARGET1",
+                comp_id="ROOM1",
+                location=[1.0, 2.0, 1.5],
+                type="PLATE",
+                material_id="STEEL",
+                normal=[0, 0, -1],
+                depth_units="M",
+                temperature_depth=-0.1,
+            )
+
+    def test_init_temperature_depth_meters_above_one(self):
+        """Test that temperature_depth > 1 is valid when depth_units='M'."""
+        device = Device(
+            id="TARGET1",
+            comp_id="ROOM1",
+            location=[1.0, 2.0, 1.5],
+            type="PLATE",
+            material_id="STEEL",
+            normal=[0, 0, -1],
+            depth_units="M",
+            temperature_depth=1.5,
+        )
+        assert device.temperature_depth == 1.5
 
     @pytest.mark.parametrize(
         ("device_type", "extra_kwargs"),
@@ -521,7 +601,6 @@ class TestDevice:
                     "id": "SD1",
                     "comp_id": "ROOM1",
                     "location": [2.0, 2.0, 2.3],
-                    "setpoint": 25.0,
                     "obscuration": 25.0,
                 },
                 "SMOKE_DETECTOR",
@@ -643,14 +722,12 @@ class TestDevice:
             id="SD_01",
             comp_id="HALLWAY",
             location=[3.0, 1.0, 2.4],
-            setpoint=5.0,
             obscuration=20.0,
         )
 
         str_repr = str(device)
         assert "Detector 'SD_01' (Smoke Detector)" in str_repr
         assert "in 'HALLWAY'" in str_repr
-        assert "setpoint: 5.0" in str_repr
 
     def test_str_sprinkler(self):
         """Test __str__ method for sprinkler."""
@@ -819,7 +896,6 @@ class TestDeviceSetItemValidation:
             id="SD1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 3.0],
-            setpoint=5.0,
         )
         device["location"] = [4.0, 5.0, 6.0]
         assert device.location == [4.0, 5.0, 6.0]

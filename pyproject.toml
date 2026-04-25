@@ -53,6 +53,7 @@ docs = [
     "pydata-sphinx-theme>=0.16.1",
     "sphinx-autodoc-typehints>=3.0.1",
     "sphinx-sitemap>=2.9.0",
+    "sphinx-design>=0.6.1",
 ]
 dev = [
     "ruff>=0.15.1",
@@ -168,13 +169,18 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "src/pycfast"]
 python_files = ["test_*.py"]
-addopts = "-v --tb=short"
+addopts = "-v --tb=short --doctest-modules"
 markers = [
     "slow: marks tests as slow (may take several minutes)",
     "local: marks tests that use local verification data"
 ]
+doctest_optionflags = [
+    "NORMALIZE_WHITESPACE",
+    "ELLIPSIS",
+]
+
 
 [tool.coverage.run]
 source = ["src"]

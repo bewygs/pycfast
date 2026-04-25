@@ -64,8 +64,8 @@ class Fire(CFASTComponent):
         Options: "TIME", "TEMPERATURE", "FLUX".
     set_point : float, optional
         The critical value at which ignition will occur. If it is less than or equal
-        to zero, the default value of zero is taken. Can be temperature (°C) or flux
-        (kW/m²) depending on criterion.
+        to zero, the default value of zero is taken. Can be a time (s), temperature (°C),
+        or flux (kW/m²) depending on criterion. Required when ignition_criterion is set.
     device_id : str, optional
         User-specified target used to calculate surface temperature or incident heat
         flux to ignite fire. Target is typically placed at the base of the fire to be ignited.
@@ -91,13 +91,58 @@ class Fire(CFASTComponent):
     radiative_fraction : float
         The fraction of the combustion energy that is emitted in the form of thermal
         radiation. Default units: none, default value: 0.35.
-    data_table : list[list[float]], dict, np.ndarray, or pd.DataFrame
+    data_table : list[list[float]], dict, np.ndarray, or pd.DataFrame, optional
         Time-dependent fire properties with columns for TIME, HRR, HEIGHT, AREA,
         CO_YIELD, SOOT_YIELD, HCN_YIELD, HCL_YIELD, TRACE_YIELD. Properties are linearly
-        interpolated between specified points. Each row must contain exactly 9 values
-        corresponding to the LABELS columns.
+        interpolated between specified points. Defaults to ``DEFAULT_DATA_TABLE``
+        (a single all-zero row) when not provided.
 
-        If a dict format is used keys must match column names from LABELS and values
+        .. list-table::
+           :header-rows: 1
+           :widths: 10 25 15 50
+
+           * - Index
+             - Name
+             - Unit
+             - Description
+           * - 0
+             - ``TIME``
+             - s
+             - Simulation time
+           * - 1
+             - ``HRR``
+             - kW
+             - Heat release rate
+           * - 2
+             - ``HEIGHT``
+             - m
+             - Flame height
+           * - 3
+             - ``AREA``
+             - m²
+             - Fire base area
+           * - 4
+             - ``CO_YIELD``
+             - kg/kg
+             - Carbon monoxide yield
+           * - 5
+             - ``SOOT_YIELD``
+             - kg/kg
+             - Soot yield
+           * - 6
+             - ``HCN_YIELD``
+             - kg/kg
+             - Hydrogen cyanide yield
+           * - 7
+             - ``HCL_YIELD``
+             - kg/kg
+             - Hydrogen chloride yield
+           * - 8
+             - ``TRACE_YIELD``
+             - kg/kg
+             - Trace species yield
+
+        If a dict is used, keys must match column names from ``LABELS`` and values
         can be either a list of floats (one per timestep) or a scalar float (repeated for
         all timesteps). All list-valued columns must have the same length.
 
@@ -114,10 +159,10 @@ class Fire(CFASTComponent):
     ...     id="FIRE1",
     ...     comp_id="ROOM1",
     ...     fire_id="POLYURETHANE",
-    ...     location=[2.0, 2.0],           # Center of 4x4m room
+    ...     location=[2.0, 2.0],
     ...     carbon=27, hydrogen=36, oxygen=2, nitrogen=2, chlorine=0,
-    ...     heat_of_combustion=23600,      # kJ/kg for polyurethane
-    ...     radiative_fraction=0.35,      # 35% radiant fraction
+    ...     heat_of_combustion=23600,
+    ...     radiative_fraction=0.35,
     ...     data_table=fire_data
     ... )
 
@@ -186,6 +231,8 @@ class Fire(CFASTComponent):
         "TRACE_YIELD",
     ]
 
+    DEFAULT_DATA_TABLE: list[list[float]] = [[0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
     def __init__(
         self,
         id: str,
@@ -222,7 +269,9 @@ class Fire(CFASTComponent):
         self.oxygen = oxygen
         self.heat_of_combustion = heat_of_combustion
         self.radiative_fraction = radiative_fraction
-        self.data_table = self._process_data_table(data_table)
+        if data_table is None:
+            data_table = self.DEFAULT_DATA_TABLE
+        self._data_table = self._process_data_table(data_table)
 
         self._validate()
 
@@ -231,6 +280,8 @@ class Fire(CFASTComponent):
 
         Raises
         ------
+        TypeError
+            If location is not a list.
         ValueError
             If any attribute violates the constraints.
 
@@ -240,6 +291,32 @@ class Fire(CFASTComponent):
             If carbon and hydrogen are both 0 (no hydrocarbon fuel), or if
             radiative_fraction is outside [0, 1].
         """
+        if not isinstance(self.location, list):
+            raise TypeError(
+                f"Fire '{self.id}': location must be a list, got {type(self.location).__name__}."
+            )
+
+        if self.ignition_criterion is not None:
+            valid_criteria = {"TIME", "TEMPERATURE", "FLUX"}
+            if self.ignition_criterion not in valid_criteria:
+                raise ValueError(
+                    f"Fire '{self.id}': invalid ignition_criterion "
+                    f"'{self.ignition_criterion}'. Valid options are: {valid_criteria}."
+                )
+            if self.set_point is None:
+                raise ValueError(
+                    f"Fire '{self.id}': set_point must be specified when "
+                    f"ignition_criterion is '{self.ignition_criterion}'."
+                )
+            if (
+                self.ignition_criterion in {"TEMPERATURE", "FLUX"}
+                and self.device_id is None
+            ):
+                raise ValueError(
+                    f"Fire '{self.id}': device_id must be specified when "
+                    f"ignition_criterion is '{self.ignition_criterion}'."
+                )
+
         if len(self.location) != 2:
             raise ValueError(
                 f"Fire '{self.id}': location must be a list of two floats [x, y]."
@@ -274,6 +351,21 @@ class Fire(CFASTComponent):
                 UserWarning,
                 stacklevel=2,
             )
+
+    @property
+    def data_table(self) -> list[list[float]]:
+        """Fire time-dependent data table as list of lists."""
+        return self._data_table
+
+    @data_table.setter
+    def data_table(
+        self,
+        value: list[list[float]]
+        | dict[str, list[float] | float]
+        | np.ndarray
+        | pd.DataFrame,
+    ) -> None:
+        self._data_table = self._process_data_table(value)
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the Fire."""
@@ -342,13 +434,18 @@ class Fire(CFASTComponent):
 
         Examples
         --------
-        >>> fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="WOOD",
-        ...               location=[1.0, 1.0], data_table=[[0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]])
+        >>> fire = Fire(
+        ...     id="FIRE1",
+        ...     comp_id="ROOM1",
+        ...     fire_id="WOOD",
+        ...     location=[1.0, 1.0],
+        ...     data_table=[[0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]]
+        ... )
         >>> print(fire.to_input_string())
         &FIRE ID = 'FIRE1' COMP_ID = 'ROOM1' FIRE_ID = 'WOOD' LOCATION = 1.0, 1.0 /
-        &CHEM ID = 'WOOD' CARBON = 1 ... /
-        &TABL ID = 'WOOD' LABELS = 'TIME', 'HRR', ... /
-        &TABL ID = 'WOOD' DATA = 0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0 /
+        &CHEM ID = 'WOOD' CARBON = 1 CHLORINE = 0 HYDROGEN = 4 NITROGEN = 0 OXYGEN = 0 HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.35 /
+        &TABL ID = 'WOOD' LABELS = 'TIME', 'HRR', 'HEIGHT', 'AREA', 'CO_YIELD', 'SOOT_YIELD', 'HCN_YIELD', 'HCL_YIELD', 'TRACE_YIELD' /
+        &TABL ID = 'WOOD' DATA = 0.0, 1000.0, 0.5, 1.0, 0.01, 0.01, 0.0, 0.0, 0.0 /
         """
         # &FIRE record
         fire_rec = NamelistRecord("FIRE")
@@ -357,11 +454,11 @@ class Fire(CFASTComponent):
         fire_rec.add_field("FIRE_ID", self.fire_id)
         fire_rec.add_list_field("LOCATION", self.location)
 
-        if self.ignition_criterion and self.ignition_criterion != "TIME":
-            fire_rec.add_field("IGNITION_CRITERION", self.ignition_criterion)
         if self.ignition_criterion is not None:
-            fire_rec.add_field("DEVC_ID", self.device_id)
+            fire_rec.add_field("IGNITION_CRITERION", self.ignition_criterion)
             fire_rec.add_numeric_field("SETPOINT", self.set_point)
+            if self.ignition_criterion in {"TEMPERATURE", "FLUX"}:
+                fire_rec.add_field("DEVC_ID", self.device_id)
 
         input_str = fire_rec.build()
 
@@ -413,12 +510,18 @@ class Fire(CFASTComponent):
 
         Examples
         --------
-        >>> fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="WOOD",
-        ...               location=[1.0, 1.0],
-        ...               data_table=[[0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]])
+        >>> fire = Fire(
+        ...     id="FIRE1",
+        ...     comp_id="ROOM1",
+        ...     fire_id="WOOD",
+        ...     location=[1.0, 1.0],
+        ...     data_table=[[0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]]
+        ... )
         >>> df = fire.to_dataframe()
-        >>> df['HRR'].max()  # Find peak heat release rate
-        1000.0
+        >>> df
+        TIME     HRR  HEIGHT  AREA  ...
+        0   0.0  1000.0     0.5   1.0  ...
+        [1 rows x 9 columns]
         """
         return pd.DataFrame(self.data_table, columns=self.LABELS)
 
@@ -427,15 +530,14 @@ class Fire(CFASTComponent):
         data_table: list[list[float]]
         | dict[str, list[float] | float]
         | np.ndarray
-        | pd.DataFrame
-        | None,
+        | pd.DataFrame,
     ) -> list[list[float]]:
         """
         Process and validate data_table input from various formats.
 
         Parameters
         ----------
-        data_table : list[list[float]], dict, np.ndarray, pd.DataFrame, or None
+        data_table : list[list[float]], dict, np.ndarray, or pd.DataFrame
             Fire data in various formats. Must have columns/keys corresponding to
             LABELS: ["TIME", "HRR", "HEIGHT", "AREA", "CO_YIELD", "SOOT_YIELD",
             "HCN_YIELD", "HCL_YIELD", "TRACE_YIELD"].
@@ -452,21 +554,7 @@ class Fire(CFASTComponent):
         ValueError
             If data_table has the wrong shape, missing keys, mismatched column
             lengths, or non-numeric values.
-
-        Warns
-        -----
-        UserWarning
-            If data_table is None (default zero-filled row is used).
         """
-        if data_table is None:
-            warnings.warn(
-                f"Fire '{self.id}': data_table is None, using default data with "
-                "values set to 0.",
-                UserWarning,
-                stacklevel=2,
-            )
-            return [[0, 0, 0, 0, 0, 0, 0, 0, 0]]
-
         if isinstance(data_table, dict):
             return self._process_dict_data_table(data_table)
 

@@ -31,13 +31,13 @@ class Material(CFASTComponent):
         identify the particular material referenced.
     material : str
         A descriptive name for the material.
-    conductivity : float, optional
+    conductivity : float
         Thermal conductivity for the material. Default units: kW/(m·°C) or kW/(m·K).
-    specific_heat : float, optional
+    specific_heat : float
         Specific heat for the material. Default units: kJ/(kg·°C) or kJ/(kg·K).
-    density : float, optional
+    density : float
         Density for the material. Default units: kg/m³.
-    thickness : float, optional
+    thickness : float
         Thickness of the material. Note that if two materials with identical thermal
         properties but with different thicknesses are desired, two separate materials
         must be defined. Default units: m.
@@ -64,19 +64,17 @@ class Material(CFASTComponent):
     ...     thickness=0.016,
     ...     emissivity=0.9,
     ... )
-    >>> print(gypsum.id)
-    GYPSUM
     """
 
     def __init__(
         self,
         id: str,
         material: str,
-        conductivity: float | None = None,
-        density: float | None = None,
-        specific_heat: float | None = None,
-        thickness: float | None = None,
-        emissivity: float | None = 0.9,
+        conductivity: float,
+        density: float,
+        specific_heat: float,
+        thickness: float,
+        emissivity: float = 0.9,
     ):
         self.id = id
         self.material = material
@@ -94,7 +92,7 @@ class Material(CFASTComponent):
         Raises
         ------
         TypeError
-            If id is not a string.
+            If id or material is not a string.
         ValueError
             If id is longer than 16 characters, or if conductivity, density,
             specific_heat, or thickness is not positive.
@@ -102,12 +100,24 @@ class Material(CFASTComponent):
         Warns
         -----
         UserWarning
+            If id is longer than 8 characters (exceeds the CFAST documented limit).
             If emissivity is outside [0, 1].
         """
         if not isinstance(self.id, str):
             raise TypeError("id must be a string.")
         if len(self.id) > 16:
-            raise ValueError("id must be no more than 16 characters long.")
+            raise ValueError(
+                f"Material '{self.id}': id must be no more than 16 characters long."
+            )
+        if len(self.id) > 8:
+            warnings.warn(
+                f"Material '{self.id}': id exceeds the 8-character limit documented "
+                "by CFAST. This may cause issues with some CFAST versions.",
+                UserWarning,
+                stacklevel=2,
+            )
+        if not isinstance(self.material, str):
+            raise TypeError(f"Material '{self.id}': material must be a string.")
 
         for prop, val in (
             ("conductivity", self.conductivity),
@@ -115,12 +125,12 @@ class Material(CFASTComponent):
             ("specific_heat", self.specific_heat),
             ("thickness", self.thickness),
         ):
-            if val is not None and val <= 0:
+            if val <= 0:
                 raise ValueError(
                     f"Material '{self.id}': {prop} must be positive, got {val}."
                 )
 
-        if self.emissivity is not None and not 0.0 <= self.emissivity <= 1.0:
+        if not 0.0 <= self.emissivity <= 1.0:
             warnings.warn(
                 f"Material '{self.id}': emissivity={self.emissivity} is outside "
                 "[0, 1]. This may cause inaccurate results.",
