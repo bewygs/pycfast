@@ -79,14 +79,22 @@ def _resolve_cfast_exe(cfast_exe: str | None = None) -> str:
     Raises
     ------
     FileNotFoundError
-        If no CFAST executable can be found.
+        If CFAST executable can't be found.
     """
     if cfast_exe:
-        return cfast_exe
+        if shutil.which(cfast_exe):
+            return cfast_exe
+        raise FileNotFoundError(
+            f"CFAST executable not found or not executable: {cfast_exe!r}"
+        )
 
     env_exe = os.getenv("CFAST")
     if env_exe:
-        return env_exe
+        if shutil.which(env_exe):
+            return env_exe
+        raise FileNotFoundError(
+            f"CFAST executable from $CFAST env var not found or not executable: {env_exe!r}"
+        )
 
     system_exe = shutil.which("cfast")
     if system_exe:
