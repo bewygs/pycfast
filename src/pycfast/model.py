@@ -198,7 +198,7 @@ class CFASTModel:
         self.file_name = file_name
         self.cfast_exe = cfast_exe
         self.extra_arguments = extra_arguments or []
-        self._input_written = False
+        self._written_content: str | None = None
 
         self._validate_dependencies()
 
@@ -321,8 +321,9 @@ class CFASTModel:
         np.float64(345.3)
 
         """
-        original_file_name = self.file_name
         if file_name is not None:
+            original_file_name = self.file_name
+            original_written_content = self._written_content
             self.file_name = file_name
 
         try:
@@ -404,8 +405,9 @@ class CFASTModel:
 
             return dataframes
         finally:
-            # Always restore the original file_name
-            self.file_name = original_file_name
+            if file_name is not None:
+                self.file_name = original_file_name
+                self._written_content = original_written_content
 
     def update_fire_params(
         self,
@@ -877,15 +879,18 @@ class CFASTModel:
         >>> # Save backup without changing model's file_name
         >>> backup_path = model.save(file_name="backup/model_v1.in")  # doctest: +SKIP
         """
-        original_file_name = self.file_name
         if file_name is not None:
+            original_file_name = self.file_name
+            original_written_content = self._written_content
             self.file_name = file_name
 
         try:
             abs_input_file_path = self._write_input()
             return abs_input_file_path
         finally:
-            self.file_name = original_file_name
+            if file_name is not None:
+                self.file_name = original_file_name
+                self._written_content = original_written_content
 
     def summary(self) -> str:
         """
@@ -995,7 +1000,7 @@ class CFASTModel:
         >>> content = model.view_cfast_input_file(pretty_print=False)  # doctest: +SKIP
         >>> print(content)  # doctest: +SKIP
         """
-        if not self._input_written:
+        if self._written_content is None:
             raise RuntimeError(
                 "CFAST input file has not been generated yet. "
                 "Call save() or run() before viewing the input file."
@@ -1102,7 +1107,6 @@ class CFASTModel:
                 f.write(full_content)
 
             self._written_content = full_content
-            self._input_written = True
 
         except OSError as e:
             raise OSError(
