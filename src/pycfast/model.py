@@ -36,23 +36,24 @@ logger = logging.getLogger("pycfast")
 # Table used for mapping component types to their identifiers, useful for intenal method
 # that update or add component to the model.
 #
-# Format: component_key: (model_attribute, display_label, identifier_fields)
+# Format: kind -> (cls, model_attr, display_label, id_fields)
 #
-# component_key is used internally to acces the table in private methods,
-# model_attribute is the corresponding attribute of the CFASTModel class,
+# kind is the key used in public methods to identify the component type,
+# cls is the corresponding class of the component,
+# model_attr is the corresponding attribute of the CFASTModel class,
 # display_label is used for error messages and logging
-# identifier_fields are the fields used to identify components and update it
+# id_fields are the fields used to identify components and update it
 #
 # fmt: off
-_COMPONENT_SPECS = {
-    "fire":         ("fires",               "Fire",               ("id", "fire_id")),
-    "compartment":  ("compartments",        "Compartment",        ("id",)),
-    "material":     ("material_properties", "Material",           ("id",)),
-    "wall_vent":    ("wall_vents",          "Wall vent",          ("id",)),
-    "cf_vent":      ("ceiling_floor_vents", "Ceiling/floor vent", ("id",)),
-    "mech_vent":    ("mechanical_vents",    "Mechanical vent",    ("id",)),
-    "device":       ("devices",             "Device",             ("id",)),
-    "surface_conn": ("surface_connections", "Surface connection", ()),
+_COMPONENT_SPECS: dict[str, tuple[type, str, str, tuple[str, ...]]] = {
+    "fire":         (Fire,              "fires",               "Fire",               ("id", "fire_id")),
+    "compartment":  (Compartment,       "compartments",        "Compartment",        ("id",)),
+    "material":     (Material,          "material_properties", "Material",           ("id",)),
+    "wall_vent":    (WallVent,          "wall_vents",          "Wall vent",          ("id",)),
+    "cf_vent":      (CeilingFloorVent,  "ceiling_floor_vents", "Ceiling/floor vent", ("id",)),
+    "mech_vent":    (MechanicalVent,    "mechanical_vents",    "Mechanical vent",    ("id",)),
+    "device":       (Device,            "devices",             "Device",             ("id",)),
+    "surface_conn": (SurfaceConnection, "surface_connections", "Surface connection", ()),
 }
 # fmt: on
 
@@ -723,181 +724,54 @@ class CFASTModel:
         """
         return self._update_component("surface_conn", connection, **kwargs)
 
-    def add_fire(self, fire: Fire) -> CFASTModel:
+    def add(self, component: CFASTComponent) -> CFASTModel:
         """
-        Add a fire to the model and return a new model instance.
+        Add a component to the model and return a new model instance with it included.
 
         Parameters
         ----------
-        fire : Fire
-            Fire object to add to the model
+        component : CFASTComponent
+            One of: :class:`Fire`, :class:`Compartment`, :class:`Material`,
+            :class:`WallVent`, :class:`CeilingFloorVent`, :class:`MechanicalVent`,
+            :class:`Device`, :class:`SurfaceConnection`.
 
         Returns
         -------
         CFASTModel
-            New model instance with the added fire
+            New model instance with ``component`` appended to its list.
+
+        Raises
+        ------
+        TypeError
+            If ``component`` is not a supported component type.
+        ValueError
+            If the resulting model fails dependency validation (e.g. a fire
+            references a compartment that does not exist).
 
         Examples
         --------
+        Add a fire:
+
         >>> new_fire = Fire(id="FIRE2", comp_id="ROOM1", fire_id="POLYURETHANE", location=[2.0, 2.0])
-        >>> updated_model = model.add_fire(new_fire)
-        """
-        return self._add_component("fire", fire)
+        >>> updated_model = model.add(new_fire)
 
-    def add_compartment(self, compartment: Compartment) -> CFASTModel:
-        """
-        Add a compartment to the model and return a new model instance.
+        Add a compartment:
 
-        Parameters
-        ----------
-        compartment : Compartment
-            Compartment object to add to the model
-
-        Returns
-        -------
-        CFASTModel
-            New model instance with the added compartment
-
-        Examples
-        --------
         >>> new_room = Compartment(id="ROOM3", width=5.0, depth=4.0, height=3.0)
-        >>> updated_model = model.add_compartment(new_room)
+        >>> updated_model = model.add(new_room)
         """
-        return self._add_component("compartment", compartment)
-
-    def add_material(self, material: Material) -> CFASTModel:
-        """
-        Add a material property to the model and return a new model instance.
-
-        Parameters
-        ----------
-        material : Material
-            Material properties object to add to the model
-
-        Returns
-        -------
-        CFASTModel
-            New model instance with the added material
-
-        Examples
-        --------
-        >>> steel = Material(id="STEEL", material="Steel", conductivity=45.0, density=7850, specific_heat=0.46, thickness=0.005)
-        >>> updated_model = model.add_material(steel)
-        """
-        return self._add_component("material", material)
-
-    def add_wall_vent(self, vent: WallVent) -> CFASTModel:
-        """
-        Add a wall vent to the model and return a new model instance.
-
-        Parameters
-        ----------
-        vent : WallVent
-            Wall vent object to add to the model
-
-        Returns
-        -------
-        CFASTModel
-            New model instance with the added wall vent
-
-        Examples
-        --------
-        >>> door = WallVent(id="DOOR2", comps_ids=["ROOM1", "ROOM2"], width=1.0, height=2.0)
-        >>> updated_model = model.add_wall_vent(door)
-        """
-        return self._add_component("wall_vent", vent)
-
-    def add_ceiling_floor_vent(self, vent: CeilingFloorVent) -> CFASTModel:
-        """
-        Add a ceiling/floor vent to the model and return a new model instance.
-
-        Parameters
-        ----------
-        vent : CeilingFloorVent
-            Ceiling/floor vent object to add to the model
-
-        Returns
-        -------
-        CFASTModel
-            New model instance with the added ceiling/floor vent
-
-        Examples
-        --------
-        >>> hatch = CeilingFloorVent(id="HATCH1", comps_ids=["ROOM1", "ROOM2"], area=0.5)
-        >>> updated_model = model.add_ceiling_floor_vent(hatch)
-        """
-        return self._add_component("cf_vent", vent)
-
-    def add_mechanical_vent(self, vent: MechanicalVent) -> CFASTModel:
-        """
-        Add a mechanical vent to the model and return a new model instance.
-
-        Parameters
-        ----------
-        vent : MechanicalVent
-            Mechanical vent object to add to the model
-
-        Returns
-        -------
-        CFASTModel
-            New model instance with the added mechanical vent
-
-        Examples
-        --------
-        >>> hvac = MechanicalVent(id="FAN2", comps_ids=["ROOM1", "OUTSIDE"], flow=0.5)
-        >>> updated_model = model.add_mechanical_vent(hvac)
-        """
-        return self._add_component("mech_vent", vent)
-
-    def add_device(self, device: Device) -> CFASTModel:
-        """
-        Add a device/target to the model and return a new model instance.
-
-        Parameters
-        ----------
-        device : Device
-            Device object to add to the model
-
-        Returns
-        -------
-        CFASTModel
-            New model instance with the added device
-
-        Examples
-        --------
-        >>> sensor = Device.create_heat_detector(
-        ...     id="SENSOR1", comp_id="ROOM1", location=[2.0, 2.0, 2.4], setpoint=68.0, rti=50.0
-        ... )
-        >>> updated_model = model.add_device(sensor)
-        """
-        return self._add_component("device", device)
-
-    def add_surface_connection(self, connection: SurfaceConnection) -> CFASTModel:
-        """
-        Add a surface connection to the model and return a new model instance.
-
-        Parameters
-        ----------
-        connection : SurfaceConnection
-            Surface connection object to add to the model
-
-        Returns
-        -------
-        CFASTModel
-            New model instance with the added surface connection
-
-        Examples
-        --------
-        >>> wall_conn = SurfaceConnection.wall_connection(
-        ...     comp_id="ROOM1", comp_ids="ROOM2", fraction=0.5
-        ... )
-        >>> updated_model = model.add_surface_connection(wall_conn)
-        """
-        return self._add_component("surface_conn", connection)
+        for kind, (cls, *_) in _COMPONENT_SPECS.items():
+            if type(component) is cls:
+                return self._add_component(kind, component)
+        supported = ", ".join(cls.__name__ for cls, *_ in _COMPONENT_SPECS.values())
+        raise TypeError(
+            f"Cannot add component of type {type(component).__name__!r}. "
+            f"Expected one of: {supported}."
+        )
 
     def _resolve_identifier(self, kind: str, identifier: int | str) -> int:
         """Resolve an identifier (index or id string) against a component list."""
-        attr, label, id_fields = _COMPONENT_SPECS[kind]
+        _, attr, label, id_fields = _COMPONENT_SPECS[kind]
 
         if isinstance(identifier, int):
             return identifier
@@ -925,7 +799,7 @@ class CFASTModel:
         (defaulting to index 0), applies the kwargs, and returns the new model.
         Backs every ``update_X_params`` public method.
         """
-        attr, label, _ = _COMPONENT_SPECS[kind]
+        _, attr, label, _ = _COMPONENT_SPECS[kind]
         new_model = copy.deepcopy(self)
         coll = getattr(new_model, attr)
         if not coll:
@@ -940,13 +814,15 @@ class CFASTModel:
             )
 
         self._apply_kwargs(coll[idx], label, kwargs)
+        new_model._validate_dependencies()
         return new_model
 
     def _add_component(self, kind: str, component: Any) -> CFASTModel:
         """Append a component to the relevant list and return a new model."""
-        attr, _, _ = _COMPONENT_SPECS[kind]
+        _, attr, _, _ = _COMPONENT_SPECS[kind]
         new_model = copy.deepcopy(self)
         getattr(new_model, attr).append(component)
+        new_model._validate_dependencies()
         return new_model
 
     def _apply_kwargs(
