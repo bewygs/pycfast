@@ -1048,7 +1048,7 @@ class TestCFASTModel:
         new_fire = Fire(
             id="FIRE2", comp_id="ROOM1", fire_id="FIRE2", location=[3.0, 3.0]
         )
-        updated_model = model.add_fire(new_fire)
+        updated_model = model.add(new_fire)
 
         # Check that original model is unchanged
         assert len(model.fires) == original_fire_count
@@ -1071,7 +1071,7 @@ class TestCFASTModel:
         new_fire = Fire(
             id="FIRE1", comp_id="ROOM1", fire_id="FIRE1", location=[2.0, 2.0]
         )
-        updated_model = new_model.add_fire(new_fire)
+        updated_model = new_model.add(new_fire)
 
         assert len(updated_model.fires) == 1
         assert updated_model.fires[0].id == "FIRE1"
@@ -1082,7 +1082,7 @@ class TestCFASTModel:
         original_comp_count = len(model.compartments)
 
         new_room = Compartment(id="ROOM3", width=5.0, depth=4.0, height=3.0)
-        updated_model = model.add_compartment(new_room)
+        updated_model = model.add(new_room)
 
         # Check that original model is unchanged
         assert len(model.compartments) == original_comp_count
@@ -1105,7 +1105,7 @@ class TestCFASTModel:
             specific_heat=0.465,
             thickness=0.0015,
         )
-        updated_model = model.add_material(steel)
+        updated_model = model.add(steel)
 
         # Check that original model is unchanged
         assert len(model.material_properties) == original_mat_count
@@ -1121,7 +1121,7 @@ class TestCFASTModel:
         original_vent_count = len(model.wall_vents)
 
         door = WallVent(id="DOOR2", comps_ids=["ROOM1", "ROOM2"], width=1.0, height=2.0)
-        updated_model = model.add_wall_vent(door)
+        updated_model = model.add(door)
 
         # Check that original model is unchanged
         assert len(model.wall_vents) == original_vent_count
@@ -1137,7 +1137,7 @@ class TestCFASTModel:
         original_vent_count = len(model.ceiling_floor_vents)
 
         hatch = CeilingFloorVent(id="HATCH2", comps_ids=["ROOM1", "ROOM2"], area=0.5)
-        updated_model = model.add_ceiling_floor_vent(hatch)
+        updated_model = model.add(hatch)
 
         # Check that original model is unchanged
         assert len(model.ceiling_floor_vents) == original_vent_count
@@ -1153,7 +1153,7 @@ class TestCFASTModel:
         original_vent_count = len(model.mechanical_vents)
 
         hvac = MechanicalVent(id="HVAC2", comps_ids=["ROOM1", "OUTSIDE"], flow=0.5)
-        updated_model = model.add_mechanical_vent(hvac)
+        updated_model = model.add(hvac)
 
         # Check that original model is unchanged
         assert len(model.mechanical_vents) == original_vent_count
@@ -1175,7 +1175,7 @@ class TestCFASTModel:
             setpoint=68.0,
             rti=50.0,
         )
-        updated_model = model.add_device(sensor)
+        updated_model = model.add(sensor)
 
         # Check that original model is unchanged
         assert len(model.devices) == original_device_count
@@ -1193,7 +1193,7 @@ class TestCFASTModel:
         wall_conn = SurfaceConnection.wall_connection(
             comp_id="ROOM1", comp_ids="ROOM2", fraction=0.5
         )
-        updated_model = model.add_surface_connection(wall_conn)
+        updated_model = model.add(wall_conn)
 
         # Check that original model is unchanged
         assert len(model.surface_connections) == original_conn_count
@@ -1211,11 +1211,11 @@ class TestCFASTModel:
 
         # Chain multiple add operations
         updated_model = (
-            model.add_fire(
+            model.add(
                 Fire(id="FIRE2", comp_id="ROOM1", fire_id="FIRE2", location=[3.0, 3.0])
             )
-            .add_compartment(Compartment(id="ROOM3", width=5.0, depth=4.0, height=3.0))
-            .add_material(
+            .add(Compartment(id="ROOM3", width=5.0, depth=4.0, height=3.0))
+            .add(
                 Material(
                     id="STEEL",
                     material="Steel",
@@ -1274,11 +1274,17 @@ class TestCFASTModel:
             thickness=0.15,
         )
 
-        updated_model = model.add_fire(fire).add_device(device).add_material(material)
+        updated_model = model.add(fire).add(device).add(material)
 
         assert len(updated_model.fires) == 1
         assert len(updated_model.devices) == 1
         assert len(updated_model.material_properties) == 1
+
+    def test_add_unsupported_type_raises(self) -> None:
+        """add() must reject objects that are not a known component type."""
+        model = self.create_minimal_model()
+        with pytest.raises(TypeError, match="Cannot add component of type 'str'"):
+            model.add("not a component")  # type: ignore[arg-type]
 
     def test_update_fire_params_default_first_fire(self) -> None:
         """Test update_fire_params with no fire identifier (should update first fire)."""
@@ -1495,6 +1501,23 @@ class TestCFASTModel:
             with open(custom_path) as f:
                 content = f.read()
                 assert "Test Simulation" in content  # Title should be in the file
+
+    def test_update_re_runs_cross_component_validation(self) -> None:
+        """Reject mutations that break a cross-reference and leave the original untouched."""
+        model = self.create_full_model()
+        with pytest.raises(ValueError, match="does not match any defined compartment"):
+            model.update_fire_params(comp_id="UNKNOWN")
+        assert model.fires[0].comp_id == "ROOM1"
+
+    def test_add_re_runs_cross_component_validation(self) -> None:
+        """Reject components that break a cross-reference and leave the original untouched."""
+        model = self.create_full_model()
+        bad_fire = Fire(
+            id="FIRE2", comp_id="UNKNOWN", fire_id="WOOD", location=[2.0, 2.0]
+        )
+        with pytest.raises(ValueError, match="does not match any defined compartment"):
+            model.add(bad_fire)
+        assert len(model.fires) == 1
 
 
 class TestCFASTModelValidateDependencies:
