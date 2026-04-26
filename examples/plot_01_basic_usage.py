@@ -411,8 +411,8 @@ new_model = model.update_fire_params(fire="Propane", radiative_fraction=0.4)
 new_model.fires
 
 # %%
-# You can also add additional components to an existing model using the ``add_*`` methods
-# (e.g., :meth:`~pycfast.CFASTModel.add_device`). For example, you can add another
+# You can also add additional components to an existing model with
+# :meth:`~pycfast.CFASTModel.add`. For example, to add another
 # target device:
 
 # %%
@@ -428,13 +428,13 @@ new_device = Device.create_target(
     location=[0.5, 0.5, 0.5],
     type="CYLINDER",
     material_id="Gypboard",
-    surface_orientation="HORIZONTAL",
+    surface_orientation="CEILING",
     thickness=0.01,
     temperature_depth=0.01,
     depth_units="M",
 )
 
-updated_model = model.add_device(new_device)
+updated_model = model.add(new_device)
 
 # %%
 # And now the updated model has both devices

@@ -67,17 +67,21 @@ updated_model = model.update_simulation_params(
 )
 
 # %%
-# Add a new material with :meth:`~pycfast.CFASTModel.add_material`
+# Add a new material with :meth:`~pycfast.CFASTModel.add` method
 new_material = Material(
-    id="Steel",
-    material="Steel Plate",
-    conductivity=45.0,
-    density=7850,
-    specific_heat=0.46,
-    thickness=0.005,
-    emissivity=0.7,
+    id="STEELSHT",
+    material="Steel Plain Carbon (1/16 in)",
+    conductivity=48.0,
+    density=7854,
+    specific_heat=0.559,
+    thickness=0.0015,
+    emissivity=0.9,
 )
-updated_model = updated_model.add_material(new_material)
+updated_model = updated_model.add(new_material)
+
+# %%
+# Then you can view the last material properties added to the model
+updated_model.material_properties[-1]
 
 # %%
 # Step 5: Save Modified Model
