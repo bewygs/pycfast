@@ -61,7 +61,6 @@ class TestDevice:
             comp_id="ROOM1",
             location=[1.5, 1.5, 2.3],
             type="HEAT_DETECTOR",
-            material_id="",  # Not used for detectors
             setpoint=70.0,
             rti=50.0,
         )
@@ -77,7 +76,6 @@ class TestDevice:
             comp_id="ROOM1",
             location=[2.0, 2.0, 2.3],
             type="SMOKE_DETECTOR",
-            material_id="",  # Not used for detectors
             obscuration=25.0,
         )
         assert device.id == "SD1"
@@ -91,7 +89,6 @@ class TestDevice:
             comp_id="ROOM1",
             location=[3.0, 3.0, 2.4],
             type="SPRINKLER",
-            material_id="",  # Not used for detectors
             setpoint=68.0,
             rti=165.0,
             spray_density=0.003,
@@ -307,7 +304,6 @@ class TestDevice:
                 comp_id="ROOM1",
                 location=[1.5, 1.5, 2.3],
                 type=device_type,
-                material_id="",
                 rti=0.0,
                 **extra_kwargs,
             )
@@ -329,7 +325,6 @@ class TestDevice:
                 comp_id="ROOM1",
                 location=[1.5, 1.5, 2.3],
                 type=device_type,
-                material_id="",
                 setpoint=0.0,
                 **extra_kwargs,
             )
@@ -342,7 +337,6 @@ class TestDevice:
                 comp_id="ROOM1",
                 location=[1.5, 1.5, 2.3],
                 type="SPRINKLER",
-                material_id="",
                 setpoint=70.0,
                 rti=1.0,
                 spray_density=0.0,  # Invalid spray density
@@ -356,7 +350,6 @@ class TestDevice:
                 comp_id="ROOM1",
                 location=[2.0, 2.0, 2.3],
                 type="SMOKE_DETECTOR",
-                material_id="",
                 obscuration=-5.0,  # Invalid obscuration
             )
 
@@ -368,7 +361,6 @@ class TestDevice:
                 comp_id="ROOM1",
                 location=[1.5, 1.5, 2.3],
                 type="HEAT_DETECTOR",
-                material_id="",
                 setpoint=70.0,
                 # Missing rti
             )
@@ -380,7 +372,6 @@ class TestDevice:
             comp_id="ROOM1",
             location=[2.0, 2.0, 2.3],
             type="SMOKE_DETECTOR",
-            material_id="",
             # obscuration not specified, should use default
         )
         # Should use default value of 23.93
@@ -396,7 +387,6 @@ class TestDevice:
                 comp_id="ROOM1",
                 location=[3.0, 3.0, 2.4],
                 type="SPRINKLER",
-                material_id="",
                 setpoint=68.0,
                 rti=165.0,
                 # Missing spray_density
@@ -465,7 +455,6 @@ class TestDevice:
             comp_id="ROOM1",
             location=[1.5, 1.5, 2.3],
             type="HEAT_DETECTOR",
-            material_id="",
             setpoint=70.0,
             rti=50.0,
         )
@@ -487,7 +476,6 @@ class TestDevice:
             comp_id="ROOM1",
             location=[2.0, 2.0, 2.3],
             type="SMOKE_DETECTOR",
-            material_id="",
             obscuration=25.0,
         )
         result = device.to_input_string()
@@ -501,7 +489,6 @@ class TestDevice:
             comp_id="ROOM1",
             location=[3.0, 3.0, 2.4],
             type="SPRINKLER",
-            material_id="",
             setpoint=68.0,
             rti=165.0,
             spray_density=0.003,
