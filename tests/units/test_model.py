@@ -620,7 +620,6 @@ class TestCFASTModel:
     def test_view_cfast_input_file_raises_if_not_written(self):
         """Test view_cfast_input_file raises RuntimeError if input file not generated yet."""
         model = self.create_minimal_model()
-        model._input_written = False
         with pytest.raises(
             RuntimeError, match="CFAST input file has not been generated yet"
         ):
