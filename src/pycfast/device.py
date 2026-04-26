@@ -189,7 +189,7 @@ class Device(CFASTComponent):
         type: str,
         material_id: str | None = None,
         surface_orientation: str
-        | None = None,  # can be300 a VALID_SURFACE_ORIENTATIONS value or a fire id
+        | None = None,  # can be a VALID_SURFACE_ORIENTATIONS value or a fire id
         # we allow every string because device can't be linked to fire.id (not fire.fire_id) until CFASTModel is built
         normal: list[float | int] | None = None,
         thickness: float | None = None,
