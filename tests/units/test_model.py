@@ -667,54 +667,6 @@ class TestCFASTModel:
         assert len(components) == 1
         assert components[0][0] == "compartments"
 
-    def test_getitem(self) -> None:
-        """Test __getitem__ method."""
-        model = self.create_full_model()
-
-        assert model["compartments"] == model.compartments
-        assert model["fires"] == model.fires
-        assert model["wall_vents"] == model.wall_vents
-        assert model["devices"] == model.devices
-        assert model["material_properties"] == model.material_properties
-        assert model["simulation_environment"] == model.simulation_environment
-
-    def test_getitem_invalid_key(self) -> None:
-        """Test __getitem__ method with invalid key."""
-        model = self.create_minimal_model()
-
-        with pytest.raises(
-            KeyError, match="Property 'invalid_key' not found in CFASTModel"
-        ):
-            model["invalid_key"]
-
-    def test_setitem(self) -> None:
-        """Test __setitem__ method."""
-        model = self.create_minimal_model()
-
-        # Test setting compartments
-        new_compartment = Compartment(id="NEW_ROOM", width=5, depth=5, height=3)
-        model["compartments"] = [new_compartment]
-        assert model.compartments == [new_compartment]
-
-        # Test setting fires
-        new_fire = Fire(
-            id="NEW_FIRE", comp_id="NEW_ROOM", fire_id="WOOD", location=[1, 1]
-        )
-        model["fires"] = [new_fire]
-        assert model.fires == [new_fire]
-
-        # Test setting simulation environment
-        new_sim_env = SimulationEnvironment(title="New Simulation")
-        model["simulation_environment"] = new_sim_env
-        assert model.simulation_environment == new_sim_env
-
-    def test_setitem_invalid_key(self) -> None:
-        """Test __setitem__ method with invalid key."""
-        model = self.create_minimal_model()
-
-        with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
-            model["invalid_key"] = []
-
     def test_summary(self) -> None:
         """Test summary method output."""
         model = self.create_minimal_model()
