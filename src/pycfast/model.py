@@ -1158,7 +1158,7 @@ class CFASTModel:
         IOError:
             If log file cannot be read
         """
-        log_file_path = Path(self.file_name).with_suffix(".log")
+        log_file_path = Path(self.file_name).with_suffix(".log").resolve()
         with open(log_file_path) as f:
             return f.read()
 
