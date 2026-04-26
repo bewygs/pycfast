@@ -124,7 +124,6 @@ plt.show()
 # ------------------------------
 # Now we can train different surrogate models to predict TRGSURT based on the input parameters.
 # We'll evaluate the performance of each model using R² and RMSE metrics on a held-out test set.
-
 # First, we split the data into training and testing sets.
 X = training_data[input_params].values
 y = training_data["max_trgsurt"].values
