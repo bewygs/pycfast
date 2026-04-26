@@ -486,6 +486,21 @@ class TestCFASTModel:
         with pytest.raises(FileNotFoundError):
             model._get_log()
 
+    def test_get_log_resolves_relative_filename(self):
+        """A relative file_name must be resolved to the absolute log path."""
+        model = self.create_minimal_model()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            cwd = os.getcwd()
+            try:
+                os.chdir(temp_dir)
+                with open("test.log", "w") as f:
+                    f.write("CFAST log content")
+                model.file_name = "test.in"  # relative on purpose
+                assert "CFAST log content" in model._get_log()
+            finally:
+                os.chdir(cwd)
+
     def test_validate_dependencies_success(self):
         """Test dependency validation with valid model."""
         model = self.create_full_model()
