@@ -237,20 +237,6 @@ class CFASTModel:
             if components:
                 yield component_type, components
 
-    def __getitem__(self, key: str) -> Any:
-        """Get component list by name for dictionary-like access."""
-        if not hasattr(self, key):
-            raise KeyError(f"Property '{key}' not found in CFASTModel.")
-        return getattr(self, key)
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        """Set component list by name for dictionary-like assignment."""
-        if not hasattr(self, key):
-            raise KeyError(
-                f"Cannot set '{key}'. Property does not exist in CFASTModel."
-            )
-        setattr(self, key, value)
-
     def run(
         self,
         file_name: str | None = None,
