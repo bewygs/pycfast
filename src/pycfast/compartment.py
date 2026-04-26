@@ -170,6 +170,7 @@ class Compartment(CFASTComponent):
         self.cross_sect_heights = cross_sect_heights
 
         self._validate()
+        self._initialized = True
 
     def _validate(self) -> None:
         """Validate the current state of the compartment attributes.

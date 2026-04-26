@@ -952,16 +952,20 @@ class CFASTModel:
     def _apply_kwargs(
         self, target: CFASTComponent, label: str, kwargs: dict[str, Any]
     ) -> None:
-        """Apply ``kwargs`` to ``target`` via setattr, raising on unknown params."""
-        for param, value in kwargs.items():
-            if not hasattr(target, param):
-                available = self._get_available_attributes(target)
-                raise ValueError(
-                    f"{label} has no parameter '{param}'. "
-                    f"Available parameters: {', '.join(available)}"
-                )
-            setattr(target, param, value)
-        target._validate()
+        """Apply ``kwargs`` to ``target`` attributes with validation."""
+        target._initialized = False
+        try:
+            for param, value in kwargs.items():
+                if not hasattr(target, param):
+                    available = self._get_available_attributes(target)
+                    raise ValueError(
+                        f"{label} has no parameter '{param}'. "
+                        f"Available parameters: {', '.join(available)}"
+                    )
+                setattr(target, param, value)
+            target._validate()
+        finally:
+            target._initialized = True
 
     def _get_available_attributes(self, obj: Any) -> list[str]:
         """Get list of available non-private, non-callable attributes."""

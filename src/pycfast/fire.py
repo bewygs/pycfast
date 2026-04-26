@@ -274,6 +274,7 @@ class Fire(CFASTComponent):
         self._data_table = self._process_data_table(data_table)
 
         self._validate()
+        self._initialized = True
 
     def _validate(self) -> None:
         """Validate the current state of the fire attributes.

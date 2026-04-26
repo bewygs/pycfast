@@ -134,6 +134,7 @@ class SimulationEnvironment(CFASTComponent):
         self.extra_custom = extra_custom
 
         self._validate()
+        self._initialized = True
 
     def _validate(self) -> None:
         """Validate the current state of the simulation environment attributes.
