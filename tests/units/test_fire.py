@@ -825,6 +825,55 @@ class TestFireDictDataTable:
             )
 
 
+class TestFireDataTableMonotonicity:
+    """Test TIME column strict monotonicity check in data_table."""
+
+    @pytest.mark.parametrize(
+        "data_table",
+        [
+            pytest.param(
+                [
+                    [0, 0, 0.5, 0.1, 0.01, 0.01, 0, 0, 0],
+                    [60, 100, 0.5, 0.5, 0.01, 0.01, 0, 0, 0],
+                    [30, 500, 1.0, 1.0, 0.01, 0.01, 0, 0, 0],
+                ],
+                id="decreasing-time",
+            ),
+            pytest.param(
+                [
+                    [0, 0, 0.5, 0.1, 0.01, 0.01, 0, 0, 0],
+                    [60, 100, 0.5, 0.5, 0.01, 0.01, 0, 0, 0],
+                    [60, 500, 1.0, 1.0, 0.01, 0.01, 0, 0, 0],
+                ],
+                id="equal-time",
+            ),
+        ],
+    )
+    def test_non_monotonic_raises(self, make_fire, data_table):
+        """Non-strictly-increasing TIME raises ValueError."""
+        with pytest.raises(
+            ValueError, match="TIME values in data_table must be strictly"
+        ):
+            make_fire(data_table=data_table)
+
+    def test_single_row_passes(self, make_fire):
+        """Single row has no pairs to compare — must not raise."""
+        fire = make_fire(data_table=[[0, 100, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]])
+        assert len(fire.data_table) == 1
+
+    def test_setter_non_monotonic_raises(self, make_fire):
+        """Setting data_table with non-monotonic TIME via setter raises ValueError."""
+        fire = make_fire()
+        with pytest.raises(
+            ValueError, match="TIME values in data_table must be strictly"
+        ):
+            fire.data_table = [
+                [0, 0, 0.5, 0.1, 0.01, 0.01, 0, 0, 0],
+                [60, 100, 0.5, 0.5, 0.01, 0.01, 0, 0, 0],
+                [30, 500, 1.0, 1.0, 0.01, 0.01, 0, 0, 0],
+            ]
+
+
 class TestFireSetattrValidation:
     """Test validation triggered on attribute mutation."""
 

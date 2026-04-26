@@ -353,6 +353,16 @@ class Fire(CFASTComponent):
                 stacklevel=2,
             )
 
+        if self._data_table:
+            time_values = [row[0] for row in self._data_table]
+            if any(
+                t1 >= t2 for t1, t2 in zip(time_values, time_values[1:], strict=False)
+            ):
+                raise ValueError(
+                    f"Fire '{self.id}': TIME values in data_table must be strictly "
+                    f"monotonically increasing. Got: {time_values}"
+                )
+
     @property
     def data_table(self) -> list[list[float]]:
         """Fire time-dependent data table as list of lists."""
@@ -367,6 +377,8 @@ class Fire(CFASTComponent):
         | pd.DataFrame,
     ) -> None:
         self._data_table = self._process_data_table(value)
+        if self._initialized:
+            self._validate()
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the Fire."""
