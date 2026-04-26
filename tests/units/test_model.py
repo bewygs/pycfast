@@ -88,7 +88,6 @@ class TestCFASTModel:
             comp_id="ROOM1",
             location=[1.0, 2.0, 1.5],
             type="HEAT_DETECTOR",
-            material_id="",
             setpoint=70.0,
             rti=50.0,
         )

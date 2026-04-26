@@ -187,7 +187,7 @@ class Device(CFASTComponent):
         comp_id: str,
         location: list[float | int],
         type: str,
-        material_id: str,
+        material_id: str | None = None,
         surface_orientation: str
         | None = None,  # can be a VALID_SURFACE_ORIENTATIONS value or a fire id
         # we allow every string because device can't be linked to fire.id (not fire.fire_id) until CFASTModel is built
@@ -202,39 +202,22 @@ class Device(CFASTComponent):
         adiabatic: bool = False,
         convection_coefficients: list[float] | None = None,
     ):
-        # Define target and detector types
-        target_types = {"PLATE", "CYLINDER"}
-        detector_types = {"HEAT_DETECTOR", "SMOKE_DETECTOR", "SPRINKLER"}
-
         self.id = id
         self.comp_id = comp_id
         self.location = location
         self.type = type
+        self.material_id = material_id
+        self.surface_orientation = surface_orientation
+        self.normal = normal
+        self.thickness = thickness
+        self.temperature_depth = temperature_depth
+        self.depth_units = depth_units
+        self.setpoint = setpoint
+        self.rti = rti
+        self.obscuration = obscuration
+        self.spray_density = spray_density
         self.adiabatic = adiabatic
         self.convection_coefficients = convection_coefficients
-
-        if type in target_types:
-            self.material_id = material_id
-            self.surface_orientation = surface_orientation
-            self.normal = normal
-            self.thickness = thickness
-            self.temperature_depth = temperature_depth
-            self.depth_units = depth_units
-
-        elif type == "SMOKE_DETECTOR":
-            self.obscuration = obscuration
-
-        elif type in {"HEAT_DETECTOR", "SPRINKLER"}:
-            self.setpoint = setpoint
-            self.rti = rti
-            if type == "SPRINKLER":
-                self.spray_density = spray_density
-
-        else:
-            raise ValueError(
-                f"Unknown device type '{type}'. "
-                f"Must be one of: {target_types | detector_types}"
-            )
 
         self._validate()
         self._initialized = True
@@ -253,11 +236,11 @@ class Device(CFASTComponent):
             )
         else:  # Detectors
             detector_params = []
-            if hasattr(self, "setpoint") and self.setpoint is not None:
+            if self.setpoint is not None:
                 detector_params.append(f"setpoint={self.setpoint}")
-            if hasattr(self, "rti") and self.rti is not None:
+            if self.rti is not None:
                 detector_params.append(f"rti={self.rti}")
-            if hasattr(self, "spray_density") and self.spray_density is not None:
+            if self.spray_density is not None:
                 detector_params.append(f"spray_density={self.spray_density}")
 
             detector_str = f", {', '.join(detector_params)}" if detector_params else ""
@@ -283,14 +266,14 @@ class Device(CFASTComponent):
                 f"Detector '{self.id}' ({self.type.replace('_', ' ').title()})"
             )
             details_list = []
-            if hasattr(self, "setpoint") and self.setpoint is not None:
+            if self.setpoint is not None:
                 if self.type == "HEAT_DETECTOR":
                     details_list.append(f"setpoint: {self.setpoint}°C")
                 else:
                     details_list.append(f"setpoint: {self.setpoint}")
-            if hasattr(self, "rti") and self.rti is not None:
+            if self.rti is not None:
                 details_list.append(f"RTI: {self.rti}")
-            if hasattr(self, "spray_density") and self.spray_density is not None:
+            if self.spray_density is not None:
                 details_list.append(f"spray: {self.spray_density}")
 
             details = ", ".join(details_list) if details_list else "configured"
@@ -602,7 +585,6 @@ class Device(CFASTComponent):
             comp_id=comp_id,
             location=location,
             type="HEAT_DETECTOR",
-            material_id="",  # Not used for detectors
             setpoint=setpoint,
             rti=rti,
         )
@@ -648,7 +630,6 @@ class Device(CFASTComponent):
             comp_id=comp_id,
             location=location,
             type="SMOKE_DETECTOR",
-            material_id="",
             obscuration=obscuration,
         )
 
@@ -701,7 +682,6 @@ class Device(CFASTComponent):
             comp_id=comp_id,
             location=location,
             type="SPRINKLER",
-            material_id="",  # Not used for detectors
             setpoint=setpoint,
             rti=rti,
             spray_density=spray_density,
