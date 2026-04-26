@@ -8,12 +8,13 @@ This example demonstrates how to build surrogate model machine learning models t
 predict CFAST outputs instantly instead of running full simulations.
 
 
-We we'll try to predict Target Surface Temperature (TRGSURT) of the :class:`~pycfast.Device`
-from various fire parameter (heat of combustion, radiative fraction, soot
-yield and target z position) using different machine learning models including linear
+We will try to predict the maximum Target Surface Temperature (TRGSURT) reached during
+a CFAST simulation of a target :class:`~pycfast.Device`, using various fire
+parameters (heat of combustion, radiative fraction, soot yield and target z position)
+as inputs. Several machine learning models will be evaluated including linear
 regression, polynomial regression, gradient boosting, random forest, and a simple
-neural network. We will evaluate the performance of each model and compare their
-predictions against actual CFAST simulation results.
+neural network. Model performance will be assessed by comparing their predictions
+with the results obtained from CFAST simulations.
 """
 
 # %%
@@ -137,7 +138,8 @@ models = {}
 metrics = {}
 
 # %%
-# Prepare models and evaluate their performance
+# Prepare models and evaluate their performance:
+#
 # 1. Linear Regression
 models["Linear"] = Pipeline(
     [("scaler", StandardScaler()), ("regressor", LinearRegression())]
@@ -194,10 +196,6 @@ metrics["Random Forest"] = {
     "R²": r2_score(y_test, y_pred),
     "RMSE": np.sqrt(mean_squared_error(y_test, y_pred)),
 }
-
-print("Model Performance:")
-for name, metric in metrics.items():
-    print(f"  {name}: R² = {metric['R²']:.4f}, RMSE = {metric['RMSE']:.2f} °C")
 
 
 # %%
@@ -314,12 +312,6 @@ metrics["Neural Network"] = {
     "R²": r2_score(y_test, y_pred_nn),
     "RMSE": np.sqrt(mean_squared_error(y_test, y_pred_nn)),
 }
-print(
-    f"Neural Network: R² = {metrics['Neural Network']['R²']:.4f}, RMSE = {metrics['Neural Network']['RMSE']:.2f} °C"
-)
-
-best_model = max(metrics.keys(), key=lambda k: metrics[k]["R²"])
-print(f"\nBest model: {best_model} (R² = {metrics[best_model]['R²']:.4f})")
 
 # %%
 # Plotting the training history shows that the model is learning well without overfitting.
@@ -343,7 +335,18 @@ plt.show()
 # %%
 # Step 6: Evaluate and Compare Models
 # -----------------------------------
+# Now that we have trained several surrogate models, we can evaluate their performance
+# on the test set and compare their predictions against the actual CFAST simulation
+# results. Below is a summary of the performance metrics for each model.
+for name, metric in metrics.items():
+    print(f"{name}: R² = {metric['R²']:.4f}, RMSE = {metric['RMSE']:.2f} °C")
 
+best_model = max(metrics.keys(), key=lambda k: metrics[k]["R²"])
+print(f"\nBest model: {best_model} (R² = {metrics[best_model]['R²']:.4f})")
+
+# %%
+# We can also visualize the predictions of each model against the actual values to see
+# how well they match.
 model_names = list(metrics.keys())
 n_models = len(model_names)
 
@@ -421,13 +424,6 @@ for bar, score in zip(bars, rmse_scores, strict=False):
 
 plt.subplots_adjust(wspace=0.4, hspace=0.4)
 plt.show()
-
-print("Performance Summary:")
-for name, metric in metrics.items():
-    print(f"{name}: R² = {metric['R²']:.4f}, RMSE = {metric['RMSE']:.2f} °C")
-
-best_model = max(metrics.keys(), key=lambda k: metrics[k]["R²"])
-print(f"\nBest model: {best_model} (R² = {metrics[best_model]['R²']:.4f})")
 
 # %%
 # Step 7: Rough Speed Comparison
