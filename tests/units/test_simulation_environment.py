@@ -304,13 +304,6 @@ class TestSimulationEnvironment:
         with pytest.warns(UserWarning, match="is below 0 °C"):
             SimulationEnvironment(title="Test", **{param: -1.0})  # type: ignore[arg-type]
 
-    def test_setitem_invalid_does_not_mutate_state(self):
-        """Test that a failed __setitem__ rolls back to the previous value."""
-        sim_env = SimulationEnvironment(title="Test", time_simulation=600)
-        with pytest.raises(ValueError):
-            sim_env["time_simulation"] = -100
-        assert sim_env.time_simulation == 600
-
     def test_repr(self):
         """Test __repr__ method."""
         sim_env = SimulationEnvironment(
@@ -344,75 +337,32 @@ class TestSimulationEnvironment:
         assert "temp_in=20°C" in str_repr
         assert "temp_out=15°C" in str_repr
 
-    def test_getitem(self):
-        """Test __getitem__ method."""
-        sim_env = SimulationEnvironment(
-            title="Test Environment",
-            time_simulation=1200,
-            print=45,
-            smokeview=20,
-            spreadsheet=10,
-            init_pressure=101500,
-            relative_humidity=55,
-            interior_temperature=25,
-            exterior_temperature=10,
-            adiabatic=True,
-            max_time_step=0.8,
-            lower_oxygen_limit=13.0,
-        )
-        assert sim_env["title"] == "Test Environment"
-        assert sim_env["time_simulation"] == 1200
-        assert sim_env["print"] == 45
-        assert sim_env["smokeview"] == 20
-        assert sim_env["spreadsheet"] == 10
-        assert sim_env["init_pressure"] == 101500
-        assert sim_env["relative_humidity"] == 55
-        assert sim_env["interior_temperature"] == 25
-        assert sim_env["exterior_temperature"] == 10
-        assert sim_env["adiabatic"] is True
-        assert sim_env["max_time_step"] == 0.8
-        assert sim_env["lower_oxygen_limit"] == 13.0
-
-    def test_getitem_invalid_key(self):
-        """Test __getitem__ with an unknown key raises KeyError."""
+    def test_setattr_updates_attributes(self):
+        """Test that attribute assignment updates the instance."""
         sim_env = SimulationEnvironment(title="Test")
-        with pytest.raises(
-            KeyError, match="Property 'invalid_key' not found in SimulationEnvironment"
-        ):
-            sim_env["invalid_key"]
-
-    def test_setitem(self):
-        """Test __setitem__ method."""
-        sim_env = SimulationEnvironment(title="Test")
-        sim_env["title"] = "New Title"
+        sim_env.title = "New Title"
         assert sim_env.title == "New Title"
-        sim_env["time_simulation"] = 2400
+        sim_env.time_simulation = 2400
         assert sim_env.time_simulation == 2400
-        sim_env["print"] = 30
+        sim_env.print = 30
         assert sim_env.print == 30
-        sim_env["smokeview"] = 5
+        sim_env.smokeview = 5
         assert sim_env.smokeview == 5
-        sim_env["spreadsheet"] = 10
+        sim_env.spreadsheet = 10
         assert sim_env.spreadsheet == 10
-        sim_env["init_pressure"] = 102000
+        sim_env.init_pressure = 102000
         assert sim_env.init_pressure == 102000
-        sim_env["relative_humidity"] = 70
+        sim_env.relative_humidity = 70
         assert sim_env.relative_humidity == 70
-        sim_env["interior_temperature"] = 30
+        sim_env.interior_temperature = 30
         assert sim_env.interior_temperature == 30
-        sim_env["exterior_temperature"] = 5
+        sim_env.exterior_temperature = 5
         assert sim_env.exterior_temperature == 5
-        sim_env["adiabatic"] = True
+        sim_env.adiabatic = True
         assert sim_env.adiabatic is True
-        sim_env["max_time_step"] = 0.5
+        sim_env.max_time_step = 0.5
         assert sim_env.max_time_step == 0.5
-        sim_env["lower_oxygen_limit"] = 16.0
+        sim_env.lower_oxygen_limit = 16.0
         assert sim_env.lower_oxygen_limit == 16.0
-        sim_env["extra_custom"] = "&DIAG RESIDUE = 1 /"
+        sim_env.extra_custom = "&DIAG RESIDUE = 1 /"
         assert sim_env.extra_custom == "&DIAG RESIDUE = 1 /"
-
-    def test_setitem_invalid_key(self):
-        """Test __setitem__ with an unknown key raises KeyError."""
-        sim_env = SimulationEnvironment(title="Test")
-        with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
-            sim_env["invalid_key"] = "value"

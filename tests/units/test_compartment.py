@@ -353,121 +353,76 @@ class TestCompartment:
         assert "Compartment 'CORRIDOR'" in str_repr
         assert "2.0x10.0x2.4 m" in str_repr
 
-    def test_getitem(self) -> None:
-        """Test __getitem__ method."""
-        comp = Compartment(
-            id="TEST_ROOM",
-            width=4.0,
-            depth=3.0,
-            height=2.5,
-            ceiling_mat_id="GYPSUM",
-            wall_mat_id="CONCRETE",
-            floor_mat_id="WOOD",
-            origin_x=1.0,
-            origin_y=2.0,
-            shaft=False,
-            hall=True,
-        )
-
-        assert comp["id"] == "TEST_ROOM"
-        assert comp["width"] == 4.0
-        assert comp["depth"] == 3.0
-        assert comp["height"] == 2.5
-        assert comp["ceiling_mat_id"] == "GYPSUM"
-        assert comp["wall_mat_id"] == "CONCRETE"
-        assert comp["floor_mat_id"] == "WOOD"
-        assert comp["origin_x"] == 1.0
-        assert comp["origin_y"] == 2.0
-        assert comp["shaft"] is False
-        assert comp["hall"] is True
-
-    def test_getitem_invalid_key(self) -> None:
-        """Test __getitem__ method with invalid key."""
+    def test_setattr_updates_attributes(self) -> None:
+        """Test that attribute assignment updates the instance."""
         comp = Compartment(id="ROOM1")
 
-        with pytest.raises(
-            KeyError, match="Property 'invalid_key' not found in Compartment"
-        ):
-            comp["invalid_key"]
-
-    def test_setitem(self) -> None:
-        """Test __setitem__ method."""
-        comp = Compartment(id="ROOM1")
-
-        # Test setting various properties
-        comp["id"] = "NEW_ROOM"
+        comp.id = "NEW_ROOM"
         assert comp.id == "NEW_ROOM"
 
-        comp["width"] = 5.0
+        comp.width = 5.0
         assert comp.width == 5.0
 
-        comp["depth"] = 6.0
+        comp.depth = 6.0
         assert comp.depth == 6.0
 
-        comp["height"] = 3.0
+        comp.height = 3.0
         assert comp.height == 3.0
 
-        comp["ceiling_mat_id"] = "STEEL"
+        comp.ceiling_mat_id = "STEEL"
         assert comp.ceiling_mat_id == "STEEL"
 
-        comp["wall_mat_id"] = "CONCRETE"
+        comp.wall_mat_id = "CONCRETE"
         assert comp.wall_mat_id == "CONCRETE"
 
-        comp["floor_mat_id"] = "WOOD"
+        comp.floor_mat_id = "WOOD"
         assert comp.floor_mat_id == "WOOD"
 
-        comp["origin_x"] = 2.5
+        comp.origin_x = 2.5
         assert comp.origin_x == 2.5
 
-        comp["shaft"] = True
+        comp.shaft = True
         assert comp.shaft is True
 
-        comp["hall"] = False
+        comp.hall = False
         assert comp.hall is False
 
-    def test_setitem_list_properties(self) -> None:
-        """Test __setitem__ method with list properties."""
+    def test_setattr_list_properties(self) -> None:
+        """Test attribute assignment for list properties."""
         comp = Compartment(id="ROOM1")
 
-        comp["leak_area_ratio"] = [0.001, 0.002]
+        comp.leak_area_ratio = [0.001, 0.002]
         assert comp.leak_area_ratio == [0.001, 0.002]
 
-    def test_setitem_cross_sect_requires_both_set(self) -> None:
-        """Test that cross_sect_areas/heights cannot be set individually via __setitem__.
+    def test_setattr_cross_sect_requires_both_set(self) -> None:
+        """cross_sect_areas/heights cannot be set individually via attribute access.
 
         Both fields must be provided together at construction time. Setting one while
         the other is None violates the constraint set by _validate().
         """
         comp = Compartment(id="ROOM1")
         with pytest.raises(ValueError, match="must both be provided or both be None"):
-            comp["cross_sect_areas"] = [10.0, 15.0, 20.0]
+            comp.cross_sect_areas = [10.0, 15.0, 20.0]
 
-    def test_setitem_cross_sect_update_when_both_set(self) -> None:
-        """Test updating cross_sect_areas when both lists are pre-set and lengths match."""
+    def test_setattr_cross_sect_update_when_both_set(self) -> None:
+        """Updating cross_sect_areas when both lists are pre-set and lengths match."""
         comp = Compartment(
             id="ROOM1",
             cross_sect_areas=[10.0, 15.0],
             cross_sect_heights=[1.0, 2.0],
         )
-        comp["cross_sect_areas"] = [12.0, 18.0]
+        comp.cross_sect_areas = [12.0, 18.0]
         assert comp.cross_sect_areas == [12.0, 18.0]
 
-    def test_setitem_invalid_key(self) -> None:
-        """Test __setitem__ method with invalid key."""
-        comp = Compartment(id="ROOM1")
 
-        with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
-            comp["invalid_key"] = "value"
+class TestCompartmentSetattrValidation:
+    """Test validation triggered on attribute mutation."""
 
-
-class TestCompartmentSetItemValidation:
-    """Test validation in __setitem__ to ensure data integrity."""
-
-    def test_setitem_shaft_and_hall_both_true(self):
-        """Test that __setitem__ rejects shaft and hall both True."""
+    def test_setattr_shaft_and_hall_both_true(self):
+        """Setting hall=True when shaft=True raises."""
         comp = Compartment(id="ROOM1", shaft=True)
         with pytest.raises(ValueError, match="shaft and hall cannot both be True"):
-            comp["hall"] = True
+            comp.hall = True
 
     @pytest.mark.parametrize(
         "invalid_ratio",
@@ -476,16 +431,16 @@ class TestCompartmentSetItemValidation:
             pytest.param([0.01, 0.02, 0.03], id="too-many"),
         ],
     )
-    def test_setitem_invalid_leak_area_ratio_length(self, invalid_ratio):
-        """Test that __setitem__ rejects leak_area_ratio with wrong length."""
+    def test_setattr_invalid_leak_area_ratio_length(self, invalid_ratio):
+        """Setting a leak_area_ratio with wrong length raises."""
         comp = Compartment(id="ROOM1")
         with pytest.raises(
             ValueError, match="leak_area_ratio must contain exactly 2 values"
         ):
-            comp["leak_area_ratio"] = invalid_ratio
+            comp.leak_area_ratio = invalid_ratio
 
-    def test_setitem_mismatched_cross_sect_lengths(self):
-        """Test that __setitem__ rejects mismatched cross section list lengths."""
+    def test_setattr_mismatched_cross_sect_lengths(self):
+        """Setting mismatched cross section list lengths raises."""
         comp = Compartment(
             id="ROOM1",
             cross_sect_areas=[1.0, 2.0],
@@ -495,23 +450,12 @@ class TestCompartmentSetItemValidation:
             ValueError,
             match="cross_sect_areas and cross_sect_heights must have the same length",
         ):
-            comp["cross_sect_areas"] = [1.0, 2.0, 3.0]
+            comp.cross_sect_areas = [1.0, 2.0, 3.0]
 
-    def test_setitem_valid_dimension_changes(self):
-        """Test that __setitem__ accepts valid dimension changes."""
+    def test_setattr_valid_dimension_changes(self):
+        """Valid dimension changes are accepted."""
         comp = Compartment(id="ROOM1")
-        comp["width"] = 5.0
-        comp["height"] = 3.0
+        comp.width = 5.0
+        comp.height = 3.0
         assert comp.width == 5.0
         assert comp.height == 3.0
-
-    def test_setitem_invalid_does_not_mutate_state(self):
-        """Test that a failed __setitem__ rolls back to the previous value."""
-        comp = Compartment(id="ROOM1", shaft=True)
-        assert comp.shaft is True
-        assert comp.hall is None
-
-        with pytest.raises(ValueError):
-            comp["hall"] = True
-
-        assert comp.hall is None

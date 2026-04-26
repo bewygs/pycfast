@@ -417,64 +417,8 @@ class TestMechanicalVent:
         assert "OUTSIDE -> BEDROOM" in str_repr
         assert "flow: 0.6 m³/s" in str_repr
 
-    def test_getitem(self) -> None:
-        """Test __getitem__ method."""
-        vent = MechanicalVent(
-            id="TEST_VENT",
-            comps_ids=["ROOM_A", "ROOM_B"],
-            area=[0.25, 0.25],
-            heights=[2.2, 2.2],
-            orientations=["HORIZONTAL", "HORIZONTAL"],
-            flow=0.4,
-            cutoffs=[100, 150],
-            offsets=[0.8, 1.2],
-            filter_time=10.0,
-            filter_efficiency=85.0,
-            open_close_criterion="TEMPERATURE",
-            set_point=80.0,
-            device_id="TEMP_SENSOR",
-        )
-
-        assert vent["id"] == "TEST_VENT"
-        assert vent["comps_ids"] == ["ROOM_A", "ROOM_B"]
-        assert vent["area"] == [0.25, 0.25]
-        assert vent["heights"] == [2.2, 2.2]
-        assert vent["orientations"] == ["HORIZONTAL", "HORIZONTAL"]
-        assert vent["flow"] == 0.4
-        assert vent["cutoffs"] == [100, 150]
-        assert vent["offsets"] == [0.8, 1.2]
-        assert vent["filter_time"] == 10.0
-        assert vent["filter_efficiency"] == 85.0
-        assert vent["open_close_criterion"] == "TEMPERATURE"
-        assert vent["set_point"] == 80.0
-        assert vent["device_id"] == "TEMP_SENSOR"
-
-    def test_getitem_with_none_values(self) -> None:
-        """Test __getitem__ method with None values."""
-        vent = MechanicalVent(
-            id="MINIMAL_VENT", comps_ids=["ROOM1", "ROOM2"], offsets=[0.0, 0.0]
-        )
-
-        assert vent["filter_time"] == 0
-        assert vent["filter_efficiency"] == 0
-        assert vent["open_close_criterion"] is None
-        assert vent["time"] is None
-        assert vent["fraction"] is None
-        assert vent["set_point"] is None
-
-    def test_getitem_invalid_key(self) -> None:
-        """Test __getitem__ method with invalid key."""
-        vent = MechanicalVent(
-            id="VENT1", comps_ids=["ROOM1", "ROOM2"], offsets=[0.0, 0.0]
-        )
-
-        with pytest.raises(
-            KeyError, match="Property 'invalid_property' not found in MechanicalVent"
-        ):
-            vent["invalid_property"]
-
-    def test_setitem(self) -> None:
-        """Test __setitem__ method."""
+    def test_setattr_updates_attributes(self) -> None:
+        """Test that attribute assignment updates the instance."""
         vent = MechanicalVent(
             id="MODIFIABLE_VENT",
             comps_ids=["HALL", "OFFICE"],
@@ -484,14 +428,13 @@ class TestMechanicalVent:
             offsets=[0.0, 1.0],
         )
 
-        # Modify basic properties
-        vent["id"] = "NEW_VENT_ID"
-        vent["flow"] = 0.75
-        vent["area"] = [0.2, 0.2]
-        vent["heights"] = [3.0, 3.0]
-        vent["orientations"] = ["VERTICAL", "VERTICAL"]
-        vent["cutoffs"] = [80, 120]
-        vent["offsets"] = [1.5, 2.0]
+        vent.id = "NEW_VENT_ID"
+        vent.flow = 0.75
+        vent.area = [0.2, 0.2]
+        vent.heights = [3.0, 3.0]
+        vent.orientations = ["VERTICAL", "VERTICAL"]
+        vent.cutoffs = [80, 120]
+        vent.offsets = [1.5, 2.0]
 
         assert vent.id == "NEW_VENT_ID"
         assert vent.flow == 0.75
@@ -501,32 +444,19 @@ class TestMechanicalVent:
         assert vent.cutoffs == [80, 120]
         assert vent.offsets == [1.5, 2.0]
 
-    def test_setitem_compartment_lists(self) -> None:
-        """Test __setitem__ method with compartment lists."""
+    def test_setattr_compartment_lists(self) -> None:
+        """Test attribute assignment for the compartment list."""
         vent = MechanicalVent(
             id="LIST_VENT", comps_ids=["ROOM1", "ROOM2"], offsets=[0.0, 0.0]
         )
 
-        # Modify compartment connection
-        vent["comps_ids"] = ["OUTSIDE", "MEETING_ROOM"]
+        vent.comps_ids = ["OUTSIDE", "MEETING_ROOM"]
 
         assert vent.comps_ids == ["OUTSIDE", "MEETING_ROOM"]
 
-    def test_setitem_invalid_key(self) -> None:
-        """Test __setitem__ method with invalid key."""
-        vent = MechanicalVent(
-            id="VENT1", comps_ids=["ROOM1", "ROOM2"], offsets=[0.0, 0.0]
-        )
 
-        with pytest.raises(
-            KeyError,
-            match="Cannot set 'nonexistent_attr'. Property does not exist in MechanicalVent",
-        ):
-            vent["nonexistent_attr"] = "some_value"
-
-
-class TestMechanicalVentSetItemValidation:
-    """Test validation in __setitem__ to ensure data integrity."""
+class TestMechanicalVentSetattrValidation:
+    """Test validation triggered on attribute mutation."""
 
     @pytest.mark.parametrize(
         ("key", "value", "match"),
@@ -569,11 +499,11 @@ class TestMechanicalVentSetItemValidation:
             ),
         ],
     )
-    def test_setitem_invalid_list_length(self, make_mechanical_vent, key, value, match):
-        """Test that __setitem__ rejects lists with wrong length."""
+    def test_setattr_invalid_list_length(self, make_mechanical_vent, key, value, match):
+        """Setting a list with wrong length raises."""
         vent = make_mechanical_vent()
         with pytest.raises(ValueError, match=match):
-            vent[key] = value
+            setattr(vent, key, value)
 
     @pytest.mark.parametrize(
         "invalid_cutoffs",
@@ -582,17 +512,17 @@ class TestMechanicalVentSetItemValidation:
             pytest.param([200, -1], id="negative-second"),
         ],
     )
-    def test_setitem_negative_cutoffs(self, make_mechanical_vent, invalid_cutoffs):
-        """Test that __setitem__ rejects negative cutoffs."""
+    def test_setattr_negative_cutoffs(self, make_mechanical_vent, invalid_cutoffs):
+        """Setting negative cutoffs raises."""
         vent = make_mechanical_vent()
         with pytest.raises(ValueError, match="cutoffs must be non-negative"):
-            vent["cutoffs"] = invalid_cutoffs
+            vent.cutoffs = invalid_cutoffs
 
-    def test_setitem_cutoffs_wrong_order(self, make_mechanical_vent):
-        """Test that __setitem__ rejects cutoffs where second < first."""
+    def test_setattr_cutoffs_wrong_order(self, make_mechanical_vent):
+        """Setting cutoffs where second < first raises."""
         vent = make_mechanical_vent()
         with pytest.raises(ValueError, match="Zero flow pressure must be greater"):
-            vent["cutoffs"] = [300, 100]
+            vent.cutoffs = [300, 100]
 
     @pytest.mark.parametrize(
         ("key", "value"),
@@ -601,8 +531,8 @@ class TestMechanicalVentSetItemValidation:
             pytest.param("fraction", [1.0], id="fraction-shorter-than-time"),
         ],
     )
-    def test_setitem_mismatched_time_fraction(self, make_mechanical_vent, key, value):
-        """Test that __setitem__ rejects mismatched time/fraction list lengths."""
+    def test_setattr_mismatched_time_fraction(self, make_mechanical_vent, key, value):
+        """Setting mismatched time/fraction list lengths raises."""
         vent = make_mechanical_vent(
             open_close_criterion="TIME",
             time=[0.0, 100.0],
@@ -611,20 +541,10 @@ class TestMechanicalVentSetItemValidation:
         with pytest.raises(
             ValueError, match="time and fraction lists must have the same length"
         ):
-            vent[key] = value
+            setattr(vent, key, value)
 
-    def test_setitem_valid_flow_change(self, make_mechanical_vent):
-        """Test that __setitem__ accepts valid property changes."""
+    def test_setattr_valid_flow_change(self, make_mechanical_vent):
+        """Valid property changes are accepted."""
         vent = make_mechanical_vent()
-        vent["flow"] = 2.5
+        vent.flow = 2.5
         assert vent.flow == 2.5
-
-    def test_setitem_invalid_does_not_mutate_state(self, make_mechanical_vent):
-        """Test that a failed __setitem__ rolls back to the previous value."""
-        vent = make_mechanical_vent(cutoffs=[100, 200])
-        before = vent.cutoffs.copy()
-
-        with pytest.raises(ValueError):
-            vent["cutoffs"] = [-1, 300]
-
-        assert vent.cutoffs == before

@@ -475,54 +475,22 @@ class TestCeilingFloorVent:
         str_repr = str(vent)
         assert "criterion: TEMPERATURE" in str_repr
 
-    def test_getitem(self) -> None:
-        """Test __getitem__ method."""
-        vent = CeilingFloorVent(
-            id="TEST_VENT",
-            comps_ids=["ROOM1", "ROOM2"],
-            area=2.5,
-            shape="SQUARE",
-            offsets=[1.0, 2.0],
-        )
-
-        assert vent["id"] == "TEST_VENT"
-        assert vent["comps_ids"] == ["ROOM1", "ROOM2"]
-        assert vent["area"] == 2.5
-        assert vent["shape"] == "SQUARE"
-        assert vent["offsets"] == [1.0, 2.0]
-
-    def test_getitem_invalid_key(self) -> None:
-        """Test __getitem__ method with invalid key."""
+    def test_setattr_updates_attributes(self) -> None:
+        """Test that attribute assignment updates the instance."""
         vent = CeilingFloorVent(id="VENT1", comps_ids=["UP", "DOWN"], area=1.0)
 
-        with pytest.raises(
-            KeyError, match="Property 'invalid_key' not found in CeilingFloorVent"
-        ):
-            vent["invalid_key"]
-
-    def test_setitem(self) -> None:
-        """Test __setitem__ method."""
-        vent = CeilingFloorVent(id="VENT1", comps_ids=["UP", "DOWN"], area=1.0)
-
-        vent["id"] = "NEW_VENT"
+        vent.id = "NEW_VENT"
         assert vent.id == "NEW_VENT"
 
-        vent["area"] = 2.5
+        vent.area = 2.5
         assert vent.area == 2.5
 
-        vent["shape"] = "SQUARE"
+        vent.shape = "SQUARE"
         assert vent.shape == "SQUARE"
 
-    def test_setitem_invalid_key(self) -> None:
-        """Test __setitem__ method with invalid key."""
-        vent = CeilingFloorVent(id="VENT1", comps_ids=["UP", "DOWN"], area=1.0)
 
-        with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
-            vent["invalid_key"] = "value"
-
-
-class TestCeilingFloorVentSetItemValidation:
-    """Test validation in __setitem__ to ensure data integrity."""
+class TestCeilingFloorVentSetattrValidation:
+    """Test validation triggered on attribute mutation."""
 
     @pytest.mark.parametrize(
         "invalid_comps_ids",
@@ -531,15 +499,15 @@ class TestCeilingFloorVentSetItemValidation:
             pytest.param(["C1", "C2", "C3"], id="too-many"),
         ],
     )
-    def test_setitem_invalid_comps_ids_length(
+    def test_setattr_invalid_comps_ids_length(
         self, make_ceiling_floor_vent, invalid_comps_ids
     ):
-        """Test that __setitem__ rejects comps_ids with wrong length."""
+        """Setting comps_ids with wrong length raises."""
         vent = make_ceiling_floor_vent()
         with pytest.raises(
             ValueError, match="Ceiling/floor vent must connect exactly 2 compartments"
         ):
-            vent["comps_ids"] = invalid_comps_ids
+            vent.comps_ids = invalid_comps_ids
 
     @pytest.mark.parametrize(
         ("key", "value"),
@@ -548,30 +516,20 @@ class TestCeilingFloorVentSetItemValidation:
             pytest.param("fraction", [1.0], id="fraction-shorter-than-time"),
         ],
     )
-    def test_setitem_mismatched_time_fraction(
+    def test_setattr_mismatched_time_fraction(
         self, make_ceiling_floor_vent, key, value
     ):
-        """Test that __setitem__ rejects mismatched time/fraction list lengths."""
+        """Setting mismatched time/fraction list lengths raises."""
         vent = make_ceiling_floor_vent(
             open_close_criterion="TIME",
             time=[0.0, 100.0],
             fraction=[1.0, 0.5],
         )
         with pytest.raises(ValueError, match="equal length"):
-            vent[key] = value
+            setattr(vent, key, value)
 
-    def test_setitem_valid_area_change(self, make_ceiling_floor_vent):
-        """Test that __setitem__ accepts valid property changes."""
+    def test_setattr_valid_area_change(self, make_ceiling_floor_vent):
+        """Valid property changes are accepted."""
         vent = make_ceiling_floor_vent()
-        vent["area"] = 3.5
+        vent.area = 3.5
         assert vent.area == 3.5
-
-    def test_setitem_invalid_does_not_mutate_state(self, make_ceiling_floor_vent):
-        """Test that a failed __setitem__ rolls back to the previous value."""
-        vent = make_ceiling_floor_vent(comps_ids=["UPPER", "LOWER"])
-        before = vent.comps_ids.copy()
-
-        with pytest.raises(ValueError):
-            vent["comps_ids"] = ["ONLY_ONE"]
-
-        assert vent.comps_ids == before

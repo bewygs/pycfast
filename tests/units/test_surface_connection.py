@@ -214,55 +214,25 @@ class TestSurfaceConnection:
         assert "Surface Connection (FLOOR):" in str_repr
         assert "SECOND_FLOOR -> FIRST_FLOOR" in str_repr
 
-    def test_getitem(self) -> None:
-        """Test __getitem__ method."""
-        conn = SurfaceConnection(
-            conn_type="WALL", comp_id="ROOM_A", comp_ids="ROOM_B", fraction=0.8
-        )
-
-        assert conn["conn_type"] == "WALL"
-        assert conn["comp_id"] == "ROOM_A"
-        assert conn["comp_ids"] == "ROOM_B"
-        assert conn["fraction"] == 0.8
-
-    def test_getitem_invalid_key(self) -> None:
-        """Test __getitem__ method with invalid key."""
+    def test_setattr_updates_attributes(self) -> None:
+        """Test that attribute assignment updates the instance."""
         conn = SurfaceConnection("WALL", "A", "B", 0.5)
 
-        with pytest.raises(
-            KeyError, match="Property 'invalid_key' not found in SurfaceConnection"
-        ):
-            conn["invalid_key"]
-
-    def test_setitem(self) -> None:
-        """Test __setitem__ method."""
-        conn = SurfaceConnection("WALL", "A", "B", 0.5)
-
-        # Test setting various properties
-        conn["conn_type"] = "FLOOR"
+        conn.conn_type = "FLOOR"
         assert conn.conn_type == "FLOOR"
 
-        conn["comp_id"] = "NEW_ROOM"
+        conn.comp_id = "NEW_ROOM"
         assert conn.comp_id == "NEW_ROOM"
 
-        conn["comp_ids"] = "ANOTHER_ROOM"
+        conn.comp_ids = "ANOTHER_ROOM"
         assert conn.comp_ids == "ANOTHER_ROOM"
 
-        conn["fraction"] = 0.9
+        conn.fraction = 0.9
         assert conn.fraction == 0.9
 
-    def test_setitem_invalid_does_not_mutate_state(self) -> None:
-        """Test that a failed __setitem__ rolls back to the previous value."""
+    def test_setattr_invalid_raises(self) -> None:
+        """Setting an invalid value triggers validation and raises."""
         conn = SurfaceConnection("WALL", "A", "B", 0.5)
 
         with pytest.raises(ValueError):
-            conn["conn_type"] = "INNVALID_CONN_TYPE"
-
-        assert conn.conn_type == "WALL"
-
-    def test_setitem_invalid_key(self) -> None:
-        """Test __setitem__ method with invalid key."""
-        conn = SurfaceConnection("WALL", "A", "B", 0.5)
-
-        with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
-            conn["invalid_key"] = "value"
+            conn.conn_type = "INNVALID_CONN_TYPE"
