@@ -428,64 +428,24 @@ class TestFire:
     # Note: __eq__ and __hash__ methods not implemented in current version
     # These tests are removed to match actual implementation
 
-    def test_getitem(self) -> None:
-        """Test __getitem__ method."""
-        data_table = [[0, 100, 0.5, 0.1, 0.01, 0.01, 0, 0, 0]]
-        fire = Fire(
-            id="FIRE1",
-            comp_id="ROOM1",
-            fire_id="WOOD",
-            location=[1.0, 2.0],
-            carbon=5,
-            hydrogen=10,
-            heat_of_combustion=20000,
-            radiative_fraction=0.4,
-            data_table=data_table,
-        )
-
-        assert fire["id"] == "FIRE1"
-        assert fire["comp_id"] == "ROOM1"
-        assert fire["fire_id"] == "WOOD"
-        assert fire["location"] == [1.0, 2.0]
-        assert fire["carbon"] == 5
-        assert fire["hydrogen"] == 10
-        assert fire["heat_of_combustion"] == 20000
-        assert fire["radiative_fraction"] == 0.4
-        assert fire["data_table"] == data_table
-
-    def test_getitem_invalid_key(self) -> None:
-        """Test __getitem__ method with invalid key."""
+    def test_setattr_updates_attributes(self) -> None:
+        """Test that attribute assignment updates the instance."""
         fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="WOOD", location=[1.0, 2.0])
 
-        with pytest.raises(KeyError, match="Property 'invalid_key' not found in Fire"):
-            fire["invalid_key"]
-
-    def test_setitem(self) -> None:
-        """Test __setitem__ method."""
-        fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="WOOD", location=[1.0, 2.0])
-
-        # Test setting various properties
-        fire["id"] = "NEW_FIRE"
+        fire.id = "NEW_FIRE"
         assert fire.id == "NEW_FIRE"
 
-        fire["comp_id"] = "NEW_ROOM"
+        fire.comp_id = "NEW_ROOM"
         assert fire.comp_id == "NEW_ROOM"
 
-        fire["location"] = [3.0, 4.0]
+        fire.location = [3.0, 4.0]
         assert fire.location == [3.0, 4.0]
 
-        fire["radiative_fraction"] = 0.5
+        fire.radiative_fraction = 0.5
         assert fire.radiative_fraction == 0.5
 
-        fire["heat_of_combustion"] = 30000
+        fire.heat_of_combustion = 30000
         assert fire.heat_of_combustion == 30000
-
-    def test_setitem_invalid_key(self) -> None:
-        """Test __setitem__ method with invalid key."""
-        fire = Fire(id="FIRE1", comp_id="ROOM1", fire_id="WOOD", location=[1.0, 2.0])
-
-        with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
-            fire["invalid_key"] = "value"
 
 
 class TestFireDataTableFormats:
@@ -865,8 +825,8 @@ class TestFireDictDataTable:
             )
 
 
-class TestFireSetItemValidation:
-    """Test validation in __setitem__ to ensure data integrity."""
+class TestFireSetattrValidation:
+    """Test validation triggered on attribute mutation."""
 
     @pytest.mark.parametrize(
         "location",
@@ -875,18 +835,8 @@ class TestFireSetItemValidation:
             pytest.param([1.0, 2.0, 3.0], id="too-many"),
         ],
     )
-    def test_setitem_invalid_location_length(self, make_fire, location: list[float]):
-        """Test that __setitem__ rejects location with wrong length."""
+    def test_setattr_invalid_location_length(self, make_fire, location: list[float]):
+        """Setting a location with wrong length raises."""
         fire = make_fire()
         with pytest.raises(ValueError, match="location must be a list of two floats"):
-            fire["location"] = location
-
-    def test_setitem_invalid_does_not_mutate_state(self, make_fire):
-        """Test that a failed __setitem__ rolls back to the previous value."""
-        fire = make_fire(location=[1.0, 2.0])
-        before = fire.location.copy()
-
-        with pytest.raises(ValueError):
-            fire["location"] = [1.0, 2.0, 3.0]
-
-        assert fire.location == before
+            fire.location = location

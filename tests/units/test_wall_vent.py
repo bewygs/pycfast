@@ -415,38 +415,8 @@ class TestWallVent:
         assert "1.5x1.2 m" in str_repr
         assert "bottom: 1.0 m" in str_repr
 
-    def test_getitem(self) -> None:
-        """Test __getitem__ method."""
-        vent = WallVent(
-            id="TEST_VENT",
-            comps_ids=["COMP1", "COMP2"],
-            bottom=0.5,
-            height=1.8,
-            width=0.8,
-            face="REAR",
-            offset=2.5,
-            open_close_criterion="TEMPERATURE",
-            set_point=100.0,
-            device_id="TEMP_SENSOR_01",
-            pre_fraction=0.0,
-            post_fraction=1.0,
-        )
-
-        assert vent["id"] == "TEST_VENT"
-        assert vent["comps_ids"] == ["COMP1", "COMP2"]
-        assert vent["bottom"] == 0.5
-        assert vent["height"] == 1.8
-        assert vent["width"] == 0.8
-        assert vent["face"] == "REAR"
-        assert vent["offset"] == 2.5
-        assert vent["open_close_criterion"] == "TEMPERATURE"
-        assert vent["set_point"] == 100.0
-        assert vent["device_id"] == "TEMP_SENSOR_01"
-        assert vent["pre_fraction"] == 0.0
-        assert vent["post_fraction"] == 1.0
-
-    def test_getitem_invalid_key(self) -> None:
-        """Test __getitem__ method with invalid key."""
+    def test_setattr_updates_attributes(self) -> None:
+        """Test that attribute assignment updates the instance."""
         vent = WallVent(
             id="VENT1",
             comps_ids=["A", "B"],
@@ -457,48 +427,30 @@ class TestWallVent:
             offset=0.0,
         )
 
-        with pytest.raises(
-            KeyError, match="Property 'invalid_key' not found in WallVent"
-        ):
-            vent["invalid_key"]
-
-    def test_setitem(self) -> None:
-        """Test __setitem__ method."""
-        vent = WallVent(
-            id="VENT1",
-            comps_ids=["A", "B"],
-            bottom=0.0,
-            height=1.0,
-            width=1.0,
-            face="FRONT",
-            offset=0.0,
-        )
-
-        # Test setting various properties
-        vent["id"] = "NEW_VENT"
+        vent.id = "NEW_VENT"
         assert vent.id == "NEW_VENT"
 
-        vent["comps_ids"] = ["ROOM1", "ROOM2"]
+        vent.comps_ids = ["ROOM1", "ROOM2"]
         assert vent.comps_ids == ["ROOM1", "ROOM2"]
 
-        vent["bottom"] = 0.3
+        vent.bottom = 0.3
         assert vent.bottom == 0.3
 
-        vent["height"] = 2.5
+        vent.height = 2.5
         assert vent.height == 2.5
 
-        vent["width"] = 1.2
+        vent.width = 1.2
         assert vent.width == 1.2
 
-        vent["face"] = "LEFT"
+        vent.face = "LEFT"
         assert vent.face == "LEFT"
 
-        vent["offset"] = 3.0
+        vent.offset = 3.0
         assert vent.offset == 3.0
 
 
-class TestWallVentSetItemValidation:
-    """Test validation in __setitem__ to ensure data integrity."""
+class TestWallVentSetattrValidation:
+    """Test validation triggered on attribute mutation."""
 
     @pytest.mark.parametrize(
         "invalid_comps_ids",
@@ -507,24 +459,24 @@ class TestWallVentSetItemValidation:
             pytest.param(["COMP1", "COMP2", "COMP3"], id="too-many"),
         ],
     )
-    def test_setitem_invalid_comps_ids_length(self, make_wall_vent, invalid_comps_ids):
-        """Test that __setitem__ rejects comps_ids with wrong length."""
+    def test_setattr_invalid_comps_ids_length(self, make_wall_vent, invalid_comps_ids):
+        """Setting comps_ids with wrong length raises."""
         vent = make_wall_vent()
         with pytest.raises(
             ValueError, match="Wall vent must connect exactly 2 compartments"
         ):
-            vent["comps_ids"] = invalid_comps_ids
+            vent.comps_ids = invalid_comps_ids
 
-    def test_setitem_invalid_comps_ids_outside_first(self, make_wall_vent):
-        """Test that __setitem__ rejects OUTSIDE as first compartment."""
+    def test_setattr_invalid_comps_ids_outside_first(self, make_wall_vent):
+        """Setting OUTSIDE as first compartment raises."""
         vent = make_wall_vent()
         with pytest.raises(ValueError, match="Compartment order is incorrect"):
-            vent["comps_ids"] = ["OUTSIDE", "ROOM1"]
+            vent.comps_ids = ["OUTSIDE", "ROOM1"]
 
-    def test_setitem_valid_comps_ids_outside_second(self, make_wall_vent):
-        """Test that __setitem__ accepts OUTSIDE as second compartment."""
+    def test_setattr_valid_comps_ids_outside_second(self, make_wall_vent):
+        """Setting OUTSIDE as second compartment is accepted."""
         vent = make_wall_vent()
-        vent["comps_ids"] = ["ROOM1", "OUTSIDE"]
+        vent.comps_ids = ["ROOM1", "OUTSIDE"]
         assert vent.comps_ids == ["ROOM1", "OUTSIDE"]
 
     @pytest.mark.parametrize(
@@ -534,40 +486,24 @@ class TestWallVentSetItemValidation:
             pytest.param("fraction", [1.0], id="fraction-shorter-than-time"),
         ],
     )
-    def test_setitem_mismatched_time_fraction(self, make_wall_vent, key, value):
-        """Test that __setitem__ rejects mismatched time/fraction list lengths."""
+    def test_setattr_mismatched_time_fraction(self, make_wall_vent, key, value):
+        """Setting mismatched time/fraction list lengths raises."""
         vent = make_wall_vent(
             open_close_criterion="TIME", time=[0.0, 100.0], fraction=[1.0, 0.5]
         )
         with pytest.raises(ValueError, match="equal length"):
-            vent[key] = value
+            setattr(vent, key, value)
 
-    def test_setitem_valid_matching_time_fraction(self, make_wall_vent):
-        """Test that __setitem__ accepts matching time/fraction when both are None initially.
+    def test_setattr_valid_matching_time_fraction(self, make_wall_vent):
+        """Setting matching time/fraction when both are None initially is accepted.
 
         Note: If time and fraction are already set, they cannot be changed independently
         due to the validation constraint. This is expected behavior.
         """
         vent = make_wall_vent(time=None, fraction=None)
 
-        vent["time"] = [0.0, 100.0, 200.0]
+        vent.time = [0.0, 100.0, 200.0]
         assert vent.time == [0.0, 100.0, 200.0]
 
-        vent["fraction"] = [1.0, 0.5, 0.0]
+        vent.fraction = [1.0, 0.5, 0.0]
         assert len(vent.time) == len(vent.fraction) == 3
-
-    def test_setitem_nonexistent_property(self, make_wall_vent):
-        """Test that __setitem__ rejects setting nonexistent properties."""
-        vent = make_wall_vent()
-        with pytest.raises(KeyError, match="Cannot set 'nonexistent'"):
-            vent["nonexistent"] = "value"
-
-    def test_setitem_invalid_does_not_mutate_state(self, make_wall_vent):
-        """Test that a failed __setitem__ rolls back to the previous value."""
-        vent = make_wall_vent(comps_ids=["ROOM1", "OUTSIDE"])
-        before = vent.comps_ids.copy()
-
-        with pytest.raises(ValueError):
-            vent["comps_ids"] = ["OUTSIDE", "ROOM1"]
-
-        assert vent.comps_ids == before

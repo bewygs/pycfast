@@ -237,6 +237,7 @@ class Device(CFASTComponent):
             )
 
         self._validate()
+        self._initialized = True
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the Device."""

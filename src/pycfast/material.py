@@ -85,6 +85,7 @@ class Material(CFASTComponent):
         self.emissivity = emissivity
 
         self._validate()
+        self._initialized = True
 
     def _validate(self) -> None:
         """Validate the current state of the material property attributes.

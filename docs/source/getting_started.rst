@@ -217,18 +217,19 @@ Modifying Models
 
 PyCFAST provides flexible methods to modify your models dynamically.
 
-You can add new components with the :meth:`~pycfast.CFASTModel.add_*` methods:
+You can add new components with the :meth:`~pycfast.CFASTModel.add` method:
 
 .. code-block:: python
 
     new_compartment = Compartment(...)
-    model = model.add_compartments(new_compartment)
+    model = model.add(new_compartment)
 
-Or you can update existing components (by index or ID):
+Or you can update existing components (by index or ID) with the
+``update_*_params`` methods:
 
 .. code-block:: python
 
-    model = model.update_fires("FIRE1", new_fire_parameters)
+    model = model.update_fire_params(fire="FIRE1", heat_of_combustion=20000)
 
 These methods allow you to perform parametric studies and provide smooth integration with the broader Python ecosystem.
 

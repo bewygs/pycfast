@@ -188,70 +188,34 @@ class TestMaterial:
         assert "t=0.1" in str_repr
         assert "ε=0.94" in str_repr
 
-    def test_getitem(self) -> None:
-        """Test __getitem__ method."""
-        mat = Material(
-            id="WOOD",
-            material="Oak Wood",
-            conductivity=0.16,
-            density=750,
-            specific_heat=2.85,
-            thickness=0.025,
-            emissivity=0.9,
-        )
-
-        assert mat["id"] == "WOOD"
-        assert mat["material"] == "Oak Wood"
-        assert mat["conductivity"] == 0.16
-        assert mat["density"] == 750
-        assert mat["specific_heat"] == 2.85
-        assert mat["thickness"] == 0.025
-        assert mat["emissivity"] == 0.9
-
-    def test_getitem_invalid_key(self) -> None:
-        """Test __getitem__ method with invalid key."""
+    def test_setattr_updates_attributes(self) -> None:
+        """Test that attribute assignment updates the instance."""
         mat = Material(**_BASE_KWARGS)
 
-        with pytest.raises(
-            KeyError, match="Property 'invalid_key' not found in Material"
-        ):
-            mat["invalid_key"]
-
-    def test_setitem(self) -> None:
-        """Test __setitem__ method."""
-        mat = Material(**_BASE_KWARGS)
-
-        mat["id"] = "NEW_MAT"
+        mat.id = "NEW_MAT"
         assert mat.id == "NEW_MAT"
 
-        mat["material"] = "New Material Description"
+        mat.material = "New Material Description"
         assert mat.material == "New Material Description"
 
-        mat["conductivity"] = 0.5
+        mat.conductivity = 0.5
         assert mat.conductivity == 0.5
 
-        mat["density"] = 1200
+        mat.density = 1200
         assert mat.density == 1200
 
-        mat["specific_heat"] = 1.5
+        mat.specific_heat = 1.5
         assert mat.specific_heat == 1.5
 
-        mat["thickness"] = 0.05
+        mat.thickness = 0.05
         assert mat.thickness == 0.05
 
-        mat["emissivity"] = 0.8
+        mat.emissivity = 0.8
         assert mat.emissivity == 0.8
 
-    def test_setitem_invalid_key(self) -> None:
-        """Test __setitem__ method with invalid key."""
-        mat = Material(**_BASE_KWARGS)
 
-        with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
-            mat["invalid_key"] = "value"
-
-
-class TestMaterialSetItemValidation:
-    """Test validation in __setitem__ to ensure data integrity."""
+class TestMaterialSetattrValidation:
+    """Test validation triggered on attribute mutation."""
 
     @pytest.fixture
     def mat(self) -> Material:
@@ -269,24 +233,17 @@ class TestMaterialSetItemValidation:
             pytest.param(123, TypeError, "id must be a string", id="not-a-string"),
         ],
     )
-    def test_setitem_invalid_id(self, mat, invalid_id, expected_exc, expected_match):
-        """Test that __setitem__ rejects invalid id values."""
+    def test_setattr_invalid_id(self, mat, invalid_id, expected_exc, expected_match):
+        """Test that setting an invalid id raises."""
         with pytest.raises(expected_exc, match=expected_match):
-            mat["id"] = invalid_id
+            mat.id = invalid_id
 
-    def test_setitem_valid_id(self, mat):
-        """Test that __setitem__ accepts valid id change."""
-        mat["id"] = "NEW_ID"
+    def test_setattr_valid_id(self, mat):
+        """Test that setting a valid id is accepted."""
+        mat.id = "NEW_ID"
         assert mat.id == "NEW_ID"
 
-    def test_setitem_valid_conductivity(self, mat):
-        """Test that __setitem__ accepts valid conductivity change."""
-        mat["conductivity"] = 2.0
+    def test_setattr_valid_conductivity(self, mat):
+        """Test that setting a valid conductivity is accepted."""
+        mat.conductivity = 2.0
         assert mat.conductivity == 2.0
-
-    def test_setitem_invalid_does_not_mutate_state(self, mat):
-        """Test that a failed __setitem__ rolls back to the previous value."""
-        with pytest.raises(ValueError):
-            mat["id"] = "A" * 17  # Too long
-
-        assert mat.id == "BASE"

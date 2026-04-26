@@ -137,6 +137,7 @@ class SurfaceConnection(CFASTComponent):
         self.fraction = fraction
 
         self._validate()
+        self._initialized = True
 
     def _validate(self) -> None:
         """Validate the current state of the surface connection attributes.

@@ -138,6 +138,7 @@ class CeilingFloorVent(CFASTComponent):
         self.post_fraction = post_fraction
 
         self._validate()
+        self._initialized = True
 
     def _validate(self) -> None:
         """Validate the current state of the ceiling/floor vent attributes.

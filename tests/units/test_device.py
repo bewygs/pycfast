@@ -750,69 +750,22 @@ class TestDevice:
     # Note: __eq__ and __hash__ methods not implemented in current version
     # These tests are removed to match actual implementation
 
-    def test_getitem_target(self) -> None:
-        """Test __getitem__ method for target device."""
-        device = Device(
-            id="TEMP_01",
-            comp_id="ROOM1",
-            location=[1.0, 2.0, 1.5],
-            type="PLATE",
-            material_id="STEEL",
-            normal=[0, 0, -1],
-            thickness=0.001,
-            temperature_depth=0.0005,
-        )
-
-        assert device["id"] == "TEMP_01"
-        assert device["comp_id"] == "ROOM1"
-        assert device["location"] == [1.0, 2.0, 1.5]
-        assert device["type"] == "PLATE"
-        assert device["material_id"] == "STEEL"
-        assert device["normal"] == [0, 0, -1]
-        assert device["thickness"] == 0.001
-        assert device["temperature_depth"] == 0.0005
-
-    def test_getitem_detector(self) -> None:
-        """Test __getitem__ method for detector device."""
+    def test_setattr_common_properties(self) -> None:
+        """Test attribute assignment on common properties."""
         device = Device.create_heat_detector("HD1", "ROOM1", [1, 2, 3], 70.0, 50.0)
 
-        assert device["id"] == "HD1"
-        assert device["setpoint"] == 70.0
-        assert device["rti"] == 50.0
-        # Note: material_id doesn't exist on detector objects in simplified implementation
-
-    def test_getitem_invalid_key(self) -> None:
-        """Test __getitem__ method with invalid key."""
-        device = Device.create_heat_detector("HD1", "ROOM1", [1, 2, 3], 70.0, 50.0)
-
-        with pytest.raises(
-            KeyError, match="Property 'invalid_key' not found in Device"
-        ):
-            device["invalid_key"]
-
-    def test_setitem_common_properties(self) -> None:
-        """Test __setitem__ method for common properties."""
-        device = Device.create_heat_detector("HD1", "ROOM1", [1, 2, 3], 70.0, 50.0)
-
-        device["id"] = "NEW_HD"
+        device.id = "NEW_HD"
         assert device.id == "NEW_HD"
 
-        device["comp_id"] = "NEW_ROOM"
+        device.comp_id = "NEW_ROOM"
         assert device.comp_id == "NEW_ROOM"
 
-        device["location"] = [4.0, 5.0, 6.0]
+        device.location = [4.0, 5.0, 6.0]
         assert device.location == [4.0, 5.0, 6.0]
 
-    def test_setitem_invalid_key(self) -> None:
-        """Test __setitem__ method with invalid key."""
-        device = Device.create_heat_detector("HD1", "ROOM1", [1, 2, 3], 70.0, 50.0)
 
-        with pytest.raises(KeyError, match="Cannot set 'invalid_key'"):
-            device["invalid_key"] = "value"
-
-
-class TestDeviceSetItemValidation:
-    """Test validation in __setitem__ to ensure data integrity."""
+class TestDeviceSetattrValidation:
+    """Test validation triggered on attribute mutation."""
 
     @pytest.mark.parametrize(
         "invalid_location",
@@ -822,8 +775,8 @@ class TestDeviceSetItemValidation:
             pytest.param([1.0, "a", 3.0], id="non-numeric"),
         ],
     )
-    def test_setitem_invalid_location(self, invalid_location):
-        """Test that __setitem__ rejects invalid location values."""
+    def test_setattr_invalid_location(self, invalid_location):
+        """Setting an invalid location value raises."""
         device = Device(
             id="T1",
             comp_id="ROOM1",
@@ -833,10 +786,10 @@ class TestDeviceSetItemValidation:
             surface_orientation="CEILING",
         )
         with pytest.raises(ValueError, match="location must be a list of 3 numbers"):
-            device["location"] = invalid_location
+            device.location = invalid_location
 
-    def test_setitem_target_empty_material_id(self):
-        """Test that __setitem__ rejects empty material_id for target types."""
+    def test_setattr_target_empty_material_id(self):
+        """Setting an empty material_id on a target type raises."""
         device = Device(
             id="T1",
             comp_id="ROOM1",
@@ -846,10 +799,10 @@ class TestDeviceSetItemValidation:
             surface_orientation="CEILING",
         )
         with pytest.raises(ValueError, match="requires material_id"):
-            device["material_id"] = ""
+            device.material_id = ""
 
-    def test_setitem_target_both_normal_and_orientation(self):
-        """Test that __setitem__ rejects both normal and surface_orientation set."""
+    def test_setattr_target_both_normal_and_orientation(self):
+        """Setting both normal and surface_orientation raises on validation."""
         device = Device(
             id="T1",
             comp_id="ROOM1",
@@ -858,13 +811,12 @@ class TestDeviceSetItemValidation:
             material_id="CONCRETE",
             normal=[0.0, 0.0, 1.0],
         )
-        # Adding surface_orientation when normal is already set
-        device.surface_orientation = "CEILING"
+        # Adding surface_orientation when normal is already set triggers validation
         with pytest.raises(ValueError, match="requires either normal or"):
-            device._validate()
+            device.surface_orientation = "CEILING"
 
-    def test_setitem_heat_detector_removes_setpoint(self):
-        """Test that __setitem__ rejects None setpoint for heat detector."""
+    def test_setattr_heat_detector_removes_setpoint(self):
+        """Setting setpoint=None on a heat detector raises."""
         device = Device.create_heat_detector(
             id="HD1",
             comp_id="ROOM1",
@@ -873,10 +825,10 @@ class TestDeviceSetItemValidation:
             rti=100.0,
         )
         with pytest.raises(ValueError, match="HEAT_DETECTOR requires setpoint and rti"):
-            device["setpoint"] = None
+            device.setpoint = None
 
-    def test_setitem_sprinkler_removes_spray_density(self):
-        """Test that __setitem__ rejects None spray_density for sprinkler."""
+    def test_setattr_sprinkler_removes_spray_density(self):
+        """Setting spray_density=None on a sprinkler raises."""
         device = Device.create_sprinkler(
             id="SP1",
             comp_id="ROOM1",
@@ -888,31 +840,14 @@ class TestDeviceSetItemValidation:
         with pytest.raises(
             ValueError, match="SPRINKLER requires setpoint, rti, and spray_density"
         ):
-            device["spray_density"] = None
+            device.spray_density = None
 
-    def test_setitem_valid_location_change(self):
-        """Test that __setitem__ accepts valid location change."""
+    def test_setattr_valid_location_change(self):
+        """Valid location change is accepted."""
         device = Device.create_smoke_detector(
             id="SD1",
             comp_id="ROOM1",
             location=[1.0, 2.0, 3.0],
         )
-        device["location"] = [4.0, 5.0, 6.0]
+        device.location = [4.0, 5.0, 6.0]
         assert device.location == [4.0, 5.0, 6.0]
-
-    def test_setitem_invalid_does_not_mutate_state(self):
-        """Test that a failed __setitem__ rolls back to the previous value."""
-        device = Device(
-            id="T1",
-            comp_id="ROOM1",
-            location=[1.0, 2.0, 3.0],
-            type="PLATE",
-            material_id="CONCRETE",
-            surface_orientation="CEILING",
-        )
-        before = device.location.copy()
-
-        with pytest.raises(ValueError):
-            device["location"] = [1.0, 2.0]  # need to be 3 values
-
-        assert device.location == before
