@@ -1,6 +1,30 @@
 # Changelog
 All notable changes to PyCFAST are documented in this file.
 
+## [0.2.0] - 2026-04-27
+
+First Beta release.
+
+### New features
+- `Fire`: support dict format for `data_table` with named columns (#94)
+- `CFASTModel.add()`: now accepts any component type, replacing specific `add_*()` methods (#112)
+
+### API changes
+- `Material`: `thickness`, `conductivity`, `density`, `specific_heat` are now required
+- `Device`: `setpoint` and `rti` required for `HEAT_DETECTOR`/`SPRINKLER`; `spray_density` required for `SPRINKLER`
+- `Fire`: `set_point` required when `ignition_criterion` is set
+- `CFASTModel`: removed dict-like access (`model['compartments']`); use `model.compartments` directly
+
+### Fixes
+- `CFASTModel.run()`: CFAST executable resolution raises `FileNotFoundError` with a clear message for each failed path (explicit, `$CFAST` env var, PATH) (#111)
+- Enhanced validation across all components with stricter rules and clearer error messages (#109)
+- All components now validate on attribute assignment after initialization (#109)
+
+### Internal refactoring
+- Removed `__repr_html__` and `build_card` HTML methods from `CFASTModel` (#96)
+- Doctests added for all public components; `make test` and `make test-doctest` now include them (#109)
+- Documentation and dependency updates
+
 ## [0.1.4] - 2026-04-17
 - Implement base component class for all CFAST components (#85)
 - Add input validation for all components (#59)
