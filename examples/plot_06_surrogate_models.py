@@ -489,8 +489,8 @@ print(f"{best_model}: {surrogate_time:.6f} seconds")
 print(f"Speedup: {speedup:.0f}x faster")
 
 # %%
-# Surrogate models perform well on test data and is able to speed up predictions by
-# several orders of magnitude. Of Course this is because the parameter space is small
+# Surrogate models perform well on test data and are able to speed up predictions by
+# several orders of magnitude. Of course this is because the parameter space is small
 # and the model is simple. More complex models will require more training data and
 # more sophisticated surrogate models.
 

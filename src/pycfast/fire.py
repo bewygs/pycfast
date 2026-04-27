@@ -215,7 +215,7 @@ class Fire(CFASTComponent):
     ...     data_table=fire_data_df
     ... )
 
-    The LABLES for the data table are fixed and must be in the following order below:
+    The LABELS for the data table are fixed and must be in the following order below:
 
     """
 

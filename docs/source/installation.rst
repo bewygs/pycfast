@@ -1,8 +1,8 @@
 Installation
 ============
 
-PyCFAST requires **Python 3.10 or later**. It fully supports CFAST version from **7.7.0**
-to version **7.7.5**.
+PyCFAST requires **Python 3.10 or later**. It is tested against CFAST **7.7.0** through
+**7.7.5**.
 
 Pip
 ---
@@ -87,6 +87,6 @@ Or when defining the :class:`~pycfast.CFASTModel` directly:
     from pycfast import CFASTModel
 
     model = CFASTModel(
-            ...,
-            cfast_exe="/path/to/your/cfast/executable"
-        )
+        ...,
+        cfast_exe="/path/to/your/cfast/executable"
+    )

@@ -23,7 +23,7 @@ This minimal model runs with just a title and one compartment with default value
     )
     model.save()
 
-You will obtain a ``my_simulation.in`` file saved in your working directory, which you can open to inspect the generated input file. This file can be run with CFAST or open with CEdit to produce results, you can also run it (preferably) from Python using the :meth:`~pycfast.CFASTModel.run` method and will return a dictionary of pandas DataFrames for each output CSV file:
+You will obtain a ``my_simulation.in`` file saved in your working directory, which you can open to inspect the generated input file. This file can be run with CFAST or opened with CEdit to produce results. You can also run it (preferably) using the :meth:`~pycfast.CFASTModel.run` method, which returns a dictionary of pandas :class:`~pandas.DataFrame` for each output CSV file:
 
 .. code-block:: python
 
@@ -168,7 +168,7 @@ run directly from Python:
 Running Simulations
 ~~~~~~~~~~~~~~~~~~~
 
-Once your model is ready, you can inspect it with the :meth:`~pycfast.CFASTModel.summary` method to get an overview of the components and their parameters:
+Once your model is ready, you can inspect the model with the :meth:`~pycfast.CFASTModel.summary` method to get an overview of the components and their parameters:
 
 .. code-block:: python
 

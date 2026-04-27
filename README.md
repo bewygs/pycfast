@@ -13,7 +13,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18703351.svg)](https://doi.org/10.5281/zenodo.18703351)
 
 
-**PyCFAST** is a Python interface for the [**Consolidated Fire and Smoke Transport (CFAST)**](https://pages.nist.gov/cfast/) fire simulation software. Its primary goal is to **automate CFAST calculations at scale**, run parametric studies, sensitivity analyses, data generation, or optimization loops that would be impractical through the graphical interface (CEdit). It also provides a convenient way to create CFAST input files, execute simulations, and analyze results using the versatility and extensive ecosystem of Python.
+**PyCFAST** is a Python interface for the [**Consolidated Fire and Smoke Transport (CFAST)**](https://pages.nist.gov/cfast/) fire simulation software. Its primary goal is to **automate CFAST calculations**, run parametric studies, sensitivity analyses, data generation, or optimization loops that would be impractical through the graphical interface (CEdit). It also provides a convenient way to create CFAST input files, execute simulations, and analyze results using the versatility and extensive ecosystem of Python.
 
 ## From CEdit GUI to Python
 
@@ -104,7 +104,7 @@ Then you can run the model and obtain results as pandas DataFrames:
 ```python
 results = model.run()
 # results is a dict of pandas DataFrames
-# Available keys: compartments, devices, masses, vents, walls, zones
+# Available keys: compartments, devices, masses, vents, walls, zone
 
 results["compartments"].head()
 #   Time    ULT_1   LLT_1   HGT_1  VOL_1  PRS_1  ...
