@@ -58,7 +58,7 @@ client = Client(cluster)
 # %%
 # The Dask client is now set up and ready to manage our parallel computations. You can
 # monitor the cluster's performance and task progress using the Dask dashboard at
-# ``http://localhost:8787/status`` while the simulations are running.
+# http://localhost:8787/status while the simulations are running.
 client
 
 # %%
@@ -207,8 +207,8 @@ def run_all_parallel(parameter_combinations, client: Client):
 
 
 # %%
-# As said before you can monitor the simulation is running you can monitor the Dask
-# dashboard at ``http://localhost:8787/status`` to see real-time progress and resource
+# As mentioned earlier, you can monitor progress in real time on
+# the Dask dashboard at http://localhost:8787/status to see real-time progress and resource
 # usage.
 
 start_time = time.perf_counter()

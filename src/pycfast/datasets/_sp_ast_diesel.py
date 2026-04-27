@@ -31,7 +31,7 @@ maps fire parameters to the maximum target surface temperature (TRGSURT).
 **Base model**: SP_AST_Diesel_1p1.in
 
 **Input features** (4):
-  - ``heat_of_combustion`` (MJ/kg): Heat of combustion [5.0, 50.0]
+  - ``heat_of_combustion`` (kJ/kg): Heat of combustion [5.0, 50.0]
   - ``radiative_fraction`` : Radiative fraction [0.1, 0.5]
   - ``soot_yield`` : Soot yield [0.01, 0.15]
   - ``target_location_z`` (m): Target device height above floor [1.45, 5.45]

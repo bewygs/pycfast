@@ -123,20 +123,16 @@ results["devices"].head()
 You can also inspect the model using text-based methods:
 
 ```python
-model.summary()   # text summary to stdout
+print(model.summary())   # text summary to stdout
 model.save()      # writes the CFAST input file to disk
 model.view_cfast_input_file()  # view the generated input file
 ```
-
-With this library you can easily obtain a similar data generation workflow as below:
-
-https://github.com/user-attachments/assets/359045a2-4645-4e95-a788-55bb6aff4b6c
 
 Check out the [examples](https://pycfast.org/examples.html) for more usage scenarios.
 
 ## Installation
 
-PyCFAST requires **Python 3.10 or later**. It is fully [tested on verification input file](https://github.com/bewygs/pycfast/tree/main/tests/verification_tests) from CFAST version **7.7.0** to version **7.7.5**.
+PyCFAST requires **Python 3.10 or later**. It is fully [tested on verification input files](https://github.com/bewygs/pycfast/tree/main/tests/verification_tests) from CFAST version **7.7.0** to version **7.7.5**.
 
 ### Pip or Conda
 
@@ -162,7 +158,7 @@ python -m pip install .
 
 ### CFAST Installation
 
-Download and install CFAST from the [NIST CFAST website](https://pages.nist.gov/cfast/) or the [CFAST GitHub repository](https://github.com/firemodels/cfast). Follow the installation instructions for your operating system and ensure `cfast` is available in your PATH. If CFAST is installed in a non-standard location, you can manually specify the path with these methods :
+Download and install CFAST from the [NIST CFAST website](https://pages.nist.gov/cfast/) or the [CFAST GitHub repository](https://github.com/firemodels/cfast). Follow the installation instructions for your operating system and ensure `cfast` is available in your PATH. If CFAST is installed in a non-standard location, you can manually specify the path with these methods:
 
 - From an environment variable ``CFAST``:
 

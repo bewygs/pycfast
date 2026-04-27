@@ -1,20 +1,19 @@
 """
 =========================================
-06 Surrogate Models with machine learning
+06 Surrogate Models with Machine Learning
 =========================================
 
 
-This example demonstrates how to build surrogate model machine learning models to
+This example demonstrates how to build machine-learning surrogate models to
 predict CFAST outputs instantly instead of running full simulations.
 
 
-We will try to predict the maximum Target Surface Temperature (TRGSURT) reached during
+We predict the maximum Target Surface Temperature (TRGSURT) reached during
 a CFAST simulation of a target :class:`~pycfast.Device`, using various fire
 parameters (heat of combustion, radiative fraction, soot yield and target z position)
 as inputs. Several machine learning models will be evaluated including linear
 regression, polynomial regression, gradient boosting, random forest, and a simple
-neural network. Model performance will be assessed by comparing their predictions
-with the results obtained from CFAST simulations.
+neural network.
 """
 
 # %%
@@ -57,7 +56,7 @@ baseline_results = model.run()
 
 print(f"Baseline TRGSURT max: {baseline_results['devices']['TRGSURT_1'].max():.2f} °C")
 print("Current fire parameters:")
-print(f"Heat of combustion: {model.fires[0].heat_of_combustion} MJ/kg")
+print(f"Heat of combustion: {model.fires[0].heat_of_combustion} kJ/kg")
 print(f"Radiative fraction: {model.fires[0].radiative_fraction}")
 print(f"Soot yield: {model.fires[0].data_table[0][5]}")
 
@@ -113,11 +112,12 @@ plt.show()
 
 # %%
 # The correlation analysis shows that **target height (z-axis position)** has the
-# strongest negative correlation with TRGSURT, making it the most influential parameter
-# for temperature prediction. This makes physical sense since the farther the target
-# device is from the fire source, the lower the surface temperature it experiences.
-# **Radiative fraction** shows the second strongest correlation, showing the importance
-# of radiative heat transfer in determining target surface temperatures in fire scenarios.
+# strongest negative correlation with TRGSURT, which underscores how strongly
+# radiative heat transfer drives target surface temperatures. This makes physical sense
+# since the farther the target device is from the fire source, the lower the surface
+# temperature it experiences. **Radiative fraction** shows the second strongest
+# correlation, showing the importance of radiative heat transfer in determining target
+# surface temperatures in fire scenarios.
 
 # %%
 # Step 5: Train Surrogate Models
@@ -491,8 +491,8 @@ print(f"Speedup: {speedup:.0f}x faster")
 # %%
 # Surrogate models perform well on test data and are able to speed up predictions by
 # several orders of magnitude. Of course this is because the parameter space is small
-# and the model is simple. More complex models will require more training data and
-# more sophisticated surrogate models.
+# and the model is simple. Larger CFAST scenarios with broader parameter spaces will
+# require more training data and more sophisticated surrogates.
 
 # %%
 # Cleanup
