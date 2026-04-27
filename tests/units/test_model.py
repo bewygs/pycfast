@@ -624,6 +624,18 @@ class TestCFASTModel:
         ):
             model.view_cfast_input_file()
 
+    def test_view_cfast_input_file_after_save_with_alternate_filename(self):
+        """Test view_cfast_input_file reflects content after save(file_name=...) call."""
+        model = self.create_minimal_model()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            model.file_name = os.path.join(temp_dir, "original.in")
+            alternate = os.path.join(temp_dir, "alternate.in")
+            model.save(file_name=alternate)
+            assert model._written_content is not None
+            with open(alternate, encoding="utf-8") as f:
+                assert model._written_content == f.read()
+            assert model.file_name == os.path.join(temp_dir, "original.in")
+
     def test_repr(self):
         """Test __repr__ method."""
         model = self.create_full_model()
