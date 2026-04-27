@@ -7,17 +7,24 @@ message: 'If you use PyCFAST, please consider citing as below.'
 type: software
 authors:
   - given-names: Benoît
-    family-names: WYGAS
+    family-names: Wygas
     email: 97663334+bewygs@users.noreply.github.com
     affiliation: Orano
+    orcid: 'https://orcid.org/0009-0009-0570-4641'
 identifiers:
   - type: doi
     value: 10.5281/zenodo.18703351
 repository-code: 'https://github.com/bewygs/pycfast'
 url: 'https://pycfast.org'
 abstract: >-
-  Python interface for building, running, and analyzing
-  CFAST fire simulation models.
+  PyCFAST is a Python interface for the Consolidated Fire and Smoke
+  Transport (CFAST) fire simulation software. Its primary goal is to
+  automate CFAST calculations, run parametric studies, sensitivity
+  analyses, data generation, or optimization loops that would be
+  impractical through the graphical interface (CEdit). It also
+  provides a convenient way to create CFAST input files, execute
+  simulations, and analyze results using the versatility and
+  extensive ecosystem of Python.
 keywords:
   - fire
   - simulation
@@ -25,4 +32,9 @@ keywords:
   - modeling
   - fire-safety
   - engineering
+  - python
+  - parametric-study
+  - sensitivity-analysis
+  - zone-model
+  - fire-dynamics
 license: MIT
