@@ -26,7 +26,7 @@ from pycfast.parsers import parse_cfast_file
 # `PRS_D1.in <https://github.com/firemodels/cfast/blob/master/Validation/PRISME/PRS_D1.in>`_
 # input file for demonstration purposes.
 
-model = parse_cfast_file(r"data/PRS_D1.in", r"parsed_PRS_D1.in")
+model = parse_cfast_file(r"data/PRS_D1.in", "parsed_PRS_D1.in")
 
 # %%
 # Saving locally the parsed model

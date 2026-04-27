@@ -16,7 +16,6 @@ trends in the results.
 # We'll import:
 #
 # - **NumPy**: For generating parameter ranges and arrays
-# - **Pandas**: For organizing and analyzing simulation results
 # - **Matplotlib**: For visualizing the generated data
 # - **PyCFAST**: For parsing and running CFAST models (see :func:`~pycfast.parsers.parse_cfast_file` and :meth:`~pycfast.CFASTModel.run`)
 
@@ -101,7 +100,7 @@ for idx, run in enumerate(all_runs):
     plt.plot(
         time,
         upper_layer,
-        label=(f"$H_c$={run['hoc']:.0f} MJ/kg, $f_{{rad}}$={run['rf']:.2f}"),
+        label=(f"$H_c$={run['hoc']:.0f} kJ/kg, $f_{{rad}}$={run['rf']:.2f}"),
         linewidth=2,
         alpha=0.85,
         color=colors[idx],

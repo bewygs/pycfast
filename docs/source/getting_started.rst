@@ -110,7 +110,7 @@ of time steps and the 9 columns are:
      - kg/kg
      - Trace species yield
 
-The data table can be a list of lists, a :class:`~numpy.ndarray`, a :class:`~pandas.DataFrame` or a dictionary with the column names as keys:
+The data table can be a list of lists, a :class:`~numpy.ndarray`, a :class:`~pandas.DataFrame`, or a dictionary with the column names as keys:
 
 .. code-block:: python
 
@@ -175,8 +175,9 @@ Once your model is ready, you can inspect the model with the :meth:`~pycfast.CFA
     print(model.summary())
 
 
-Then you can run the simulation with the :meth:`~pycfast.CFASTModel.run` method, which will launch the CFAST input file and return a dictionary of :class:`~pandas.DataFrame`
-for each output CSV file:
+Then you can run the simulation with the :meth:`~pycfast.CFASTModel.run` method, which
+runs CFAST on the generated inputfile and returns a dictionary of
+:class:`~pandas.DataFrame` for each output CSV file:
 
 .. code-block:: python
 
