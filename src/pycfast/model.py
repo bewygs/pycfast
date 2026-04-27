@@ -881,7 +881,6 @@ class CFASTModel:
         """
         if file_name is not None:
             original_file_name = self.file_name
-            original_written_content = self._written_content
             self.file_name = file_name
 
         try:
@@ -890,7 +889,6 @@ class CFASTModel:
         finally:
             if file_name is not None:
                 self.file_name = original_file_name
-                self._written_content = original_written_content
 
     def summary(self) -> str:
         """
