@@ -40,17 +40,7 @@ def generate_verification_outputs(local=False, cfast_version=None):
         )
         print("Generating standard verification data")
 
-    skip_files = {
-        "DOE202.in",
-        "DOE203.in",
-        "DOE204.in",
-        "DOE205.in",
-        "DOE206.in",
-    }  # under ventilated cases that takes too much time to run
     for in_file in verification_dir.rglob("*.in"):
-        if in_file.name in skip_files:
-            print(f"Skipping {in_file}")
-            continue
         print(f"Processing {in_file}")
         rel_path = in_file.relative_to(verification_dir)
         ref_subdir = verification_data_dir_output / rel_path.parent

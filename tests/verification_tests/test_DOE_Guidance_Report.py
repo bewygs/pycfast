@@ -25,6 +25,7 @@ verification_data_dir = get_verification_data_dir(
 )
 
 
+@pytest.mark.skip(reason="DOE201 has been removed in firemodels/cfast#2260")
 def test_doe201_no_fire_simulation(tmp_path):
     """Test construction of CFASTModel for the DOE201.in file (no fire)."""
     prefix = "DOE201"

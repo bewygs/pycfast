@@ -56,23 +56,12 @@ def test_parser_verification(input_file, parent_dir, file_prefix, tmp_path):
 
     Args:
         input_file: Path to the .in file to test
-        parent_dir: Parent directory name (e.g., 'Radiation', 'DOE_Guidance_Report')
-        file_prefix: File name without extension (e.g., 'radiation_1', 'DOE201')
+        parent_dir: Parent directory name (e.g., 'Radiation')
+        file_prefix: File name without extension (e.g., 'radiation_1')
         tmp_path: Pytest temporary directory fixture
     """
     # Get verification data directory
     verification_data_dir = get_verification_data_dir(Path(__file__).parent, parent_dir)
-
-    skip_files = {
-        "DOE202",
-        "DOE203",
-        "DOE204",
-        "DOE205",
-        "DOE206",
-    }  # under ventilated cases that takes too much time to run
-
-    if file_prefix in skip_files:
-        pytest.skip(f"Skipping slow test for {input_file}")
 
     # Parse the input file
     try:
@@ -108,7 +97,6 @@ def test_parser_verification_file_discovery():
 
     # Verify we found files from expected directories
     expected_dirs = {
-        "DOE_Guidance_Report",
         "Energy_Balance",
         "Fires",
         "Mass_Balance",
