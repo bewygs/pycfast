@@ -72,7 +72,7 @@ jobs:
           chmod +x make_cfast.sh
           ./make_cfast.sh
           mkdir -p ~/cfast-cache
-          cp cfast7_linux_64 ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-ubuntu-latest
+          cp cfast7_linux ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-ubuntu-latest
           chmod +x ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-ubuntu-latest
 
       - name: Install CFAST to system path
