@@ -329,9 +329,22 @@ class TestDevice:
                 **extra_kwargs,
             )
 
-    def test_init_sprinkler_spray_density_zero_or_negative(self):
-        """Test that sprinkler initialization fails with zero or negative spray density."""
-        with pytest.raises(ValueError, match="spray_density must be positive"):
+    def test_init_sprinkler_spray_density_zero_is_valid(self):
+        """Test that spray_density=0.0 is valid (sprinkler activates but applies no suppression)."""
+        device = Device(
+            id="HD1",
+            comp_id="ROOM1",
+            location=[1.5, 1.5, 2.3],
+            type="SPRINKLER",
+            setpoint=70.0,
+            rti=1.0,
+            spray_density=0.0,
+        )
+        assert device.spray_density == 0.0
+
+    def test_init_sprinkler_spray_density_negative(self):
+        """Test that sprinkler initialization fails with negative spray density."""
+        with pytest.raises(ValueError, match="spray_density must be >= 0"):
             Device(
                 id="HD1",
                 comp_id="ROOM1",
@@ -339,7 +352,7 @@ class TestDevice:
                 type="SPRINKLER",
                 setpoint=70.0,
                 rti=1.0,
-                spray_density=0.0,  # Invalid spray density
+                spray_density=-0.001,
             )
 
     def test_init_smoke_detector_invalid_obscuration_value(self):
