@@ -99,7 +99,7 @@ correlations = training_data[input_params].corrwith(training_data["max_trgsurt"]
 print("Parameter correlations with TRGSURT:")
 for param, corr in correlations.abs().sort_values(ascending=False).items():
     direction = "+" if correlations[param] > 0 else "-"
-    print(f"  {param}: {direction}{corr:.3f}")
+    print(f"{param}: {direction}{corr:.3f}")
 
 # %%
 # We can also visualize the correlation matrix to see how the input parameters correlate

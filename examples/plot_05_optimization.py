@@ -239,7 +239,7 @@ for pname, pval in optimized_params.items():
     arr = np.zeros((1, len(param_names)))
     arr[0, idx] = pval
     unscaled_val = scaler.inverse_transform(arr)[0][idx]
-    print(f"  {pname}: {unscaled_val:.2f}")
+    print(f"{pname}: {unscaled_val:.2f}")
 
 # %%
 # Step 8: Visualize Results
