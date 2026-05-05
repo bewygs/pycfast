@@ -25,10 +25,8 @@ SP_AST_Diesel_1p1 Dataset
 =========================
 
 This dataset contains 5000 pre-computed CFAST simulation results
-based on the ``SP_AST_Diesel_1p1.in`` validation model. Each sample
+based on the `SP_AST_Diesel_1p1.in <https://github.com/firemodels/cfast/blob/master/Validation/SP_AST/SP_AST_Diesel_1p1.in>`_ validation model. Each sample
 maps fire parameters to the maximum target surface temperature (TRGSURT).
-
-**Base model**: SP_AST_Diesel_1p1.in
 
 **Input features** (4):
   - ``heat_of_combustion`` (kJ/kg): Heat of combustion [5.0, 50.0]
@@ -59,7 +57,7 @@ def load_sp_ast_diesel_1p1(
     """Load the SP_AST_Diesel_1p1 pre-computed dataset.
 
     Returns 5000 CFAST simulation results based on the
-    ``SP_AST_Diesel_1p1.in`` validation model, mapping fire parameters
+    `SP_AST_Diesel_1p1.in <https://github.com/firemodels/cfast/blob/master/Validation/SP_AST/SP_AST_Diesel_1p1.in>`_ validation model, mapping fire parameters
     (heat of combustion, radiative fraction, soot yield, target height)
     to maximum target surface temperature (TRGSURT).
 
