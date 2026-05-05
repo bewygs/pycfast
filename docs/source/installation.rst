@@ -2,7 +2,7 @@ Installation
 ============
 
 PyCFAST requires **Python 3.10 or later**. It is tested against CFAST **7.7.0** through
-**7.7.5**.
+**7.7.6**.
 
 Pip
 ---

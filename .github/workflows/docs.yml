@@ -33,8 +33,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      CFAST_VERSION: "7.7.5"
-      CFAST_TAG: "CFAST-7.7.5"
+      CFAST_VERSION: "7.7.6"
+      CFAST_TAG: "CFAST-7.7.6"
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -68,11 +68,11 @@ jobs:
         if: steps.cache-cfast.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 --branch ${{ env.CFAST_TAG }} https://github.com/firemodels/cfast.git cfast-${{ env.CFAST_VERSION }}
-          cd cfast-${{ env.CFAST_VERSION }}/Build/CFAST/gnu_linux_64
+          cd cfast-${{ env.CFAST_VERSION }}/Build/CFAST/gnu_linux
           chmod +x make_cfast.sh
           ./make_cfast.sh
           mkdir -p ~/cfast-cache
-          cp cfast7_linux_64 ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-ubuntu-latest
+          cp cfast7_linux ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-ubuntu-latest
           chmod +x ~/cfast-cache/cfast-${{ env.CFAST_VERSION }}-ubuntu-latest
 
       - name: Install CFAST to system path

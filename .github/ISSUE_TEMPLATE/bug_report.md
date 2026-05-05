@@ -38,7 +38,7 @@ Error traceback here
  - OS: [e.g., Ubuntu 22.04, Windows 11]
  - Python version: [e.g., 3.10, 3.11, 3.12, 3.13]
  - PyCFAST version: [e.g., 0.1.0]
- - CFAST version: [e.g., 7.7.5]
+ - CFAST version: [e.g., 7.7.6]
  - Installation method: [e.g., pip, uv, from source]
 
 **CFAST Input File**

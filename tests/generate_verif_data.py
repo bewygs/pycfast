@@ -16,7 +16,7 @@ def generate_verification_outputs(local=False, cfast_version=None):
         If True, generate verification data in local directory (verification_data_local).
         If False, generate in standard verification_data directory. Default is False.
     cfast_version : str, optional
-        Generate verification data for specific CFAST version (e.g., '7.7.5').
+        Generate verification data for specific CFAST version (e.g., '7.7.6').
         If provided, creates version-specific output directory. Default is None.
 
     Raises
@@ -90,7 +90,7 @@ def main():
     )
     parser.add_argument(
         "--version",
-        help="Generate verification data for specific CFAST version (e.g., 7.7.5)",
+        help="Generate verification data for specific CFAST version (e.g., 7.7.6)",
     )
 
     args = parser.parse_args()

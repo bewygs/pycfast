@@ -1,8 +1,8 @@
 # This workflow runs tests across multiple Python versions with CFAST integration on linux and windows platforms.
 #
 # Strategy:
-#   - Linux: compile CFAST from source with gcc (versions 7.7.5 and latest commit)
-#   - Windows: extract pre-built binary from official CFAST installer (versions 7.7.0 to 7.7.5) compile from source with gcc for latest commit
+#   - Linux: compile CFAST from source with gcc (versions 7.7.5, 7.7.6 and latest commit)
+#   - Windows: extract pre-built binary from official CFAST installer (versions 7.7.0 to 7.7.6) compile from source with gcc for latest commit
 #
 # Latest commit is included for both Windows and Linux in the test matrix but allowed to fail since it may include breaking changes
 #
@@ -39,9 +39,9 @@ jobs:
         # For pull requests we only test Python 3.10 and 3.14 to speed up the worfklow, for pushes to main we test all supported versions
         python-version: ${{ github.event_name == 'pull_request' && fromJSON('["3.10", "3.14"]') || fromJSON('["3.10", "3.11", "3.12", "3.13", "3.14"]') }}
         os: [ubuntu-latest, windows-latest]
-        cfast-version: ["7.7.0", "7.7.1", "7.7.2", "7.7.3", "7.7.4", "7.7.5", "latest"]
+        cfast-version: ["7.7.0", "7.7.1", "7.7.2", "7.7.3", "7.7.4", "7.7.5", "7.7.6", "latest"]
         exclude:
-          # Linux: only tested on version 7.7.5 and latest commit due to issue with gcc issue with CFAST older version
+          # Linux: only tested on version 7.7.5, 7.7.6 and latest commit due to issue with gcc issue with CFAST older version
           # binary with older versions of CFAST are not available for Linux
           - os: ubuntu-latest
             cfast-version: "7.7.0"
@@ -55,6 +55,12 @@ jobs:
             cfast-version: "7.7.4"
         include:
           # Linux: compile from source with gcc
+          - os: ubuntu-latest
+            cfast-version: "7.7.6"
+            cfast-tag: "CFAST-7.7.6"
+            build-dir: gnu_linux
+            build-script: make_cfast.sh
+            binary-name: cfast7_linux
           - os: ubuntu-latest
             cfast-version: "7.7.5"
             cfast-tag: "CFAST-7.7.5"
@@ -73,8 +79,11 @@ jobs:
             build-dir: gnu_win
             build-script: make_cfast.bat
             binary-name: cfast7_win.exe
-          # Windows: versions 7.7.0 to 7.7.5 use official pre-built installer,
+          # Windows: versions 7.7.0 to 7.7.6 use official pre-built installer,
           # latest commit is compiled from source with gcc (issue #16 fixed upstream)
+          - os: windows-latest
+            cfast-version: "7.7.6"
+            installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST-7.7.6/CFAST-7.7.6-0_SMV-6.10.7-0_win.exe"
           - os: windows-latest
             cfast-version: "7.7.5"
             installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST-7.7.5/CFAST-7.7.5_SMV-6.10.1.exe"

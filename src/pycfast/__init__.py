@@ -45,6 +45,7 @@ __version__ = version("pycfast")
 __author__ = "WYGAS Benoît"
 
 CFAST_VERSION = [
+    "7.7.6",
     "7.7.5",
     "7.7.4",
     "7.7.3",

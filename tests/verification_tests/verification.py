@@ -28,7 +28,7 @@ def get_cfast_version() -> str | None:
     Returns
     -------
     str | None
-        CFAST version string (e.g., "7.7.5") or None if not available
+        CFAST version string (e.g., "7.7.6") or None if not available
     """
     try:
         result = subprocess.run(["cfast"], capture_output=True, text=True, timeout=10)
