@@ -68,7 +68,7 @@ jobs:
         if: steps.cache-cfast.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 --branch ${{ env.CFAST_TAG }} https://github.com/firemodels/cfast.git cfast-${{ env.CFAST_VERSION }}
-          cd cfast-${{ env.CFAST_VERSION }}/Build/CFAST/gnu_linux_64
+          cd cfast-${{ env.CFAST_VERSION }}/Build/CFAST/gnu_linux
           chmod +x make_cfast.sh
           ./make_cfast.sh
           mkdir -p ~/cfast-cache
