@@ -56,8 +56,8 @@ def test_parser_verification(input_file, parent_dir, file_prefix, tmp_path):
 
     Args:
         input_file: Path to the .in file to test
-        parent_dir: Parent directory name (e.g., 'Radiation', 'DOE_Guidance_Report')
-        file_prefix: File name without extension (e.g., 'radiation_1', 'DOE201')
+        parent_dir: Parent directory name (e.g., 'Radiation')
+        file_prefix: File name without extension (e.g., 'radiation_1')
         tmp_path: Pytest temporary directory fixture
     """
     # Get verification data directory
@@ -97,7 +97,6 @@ def test_parser_verification_file_discovery():
 
     # Verify we found files from expected directories
     expected_dirs = {
-        "DOE_Guidance_Report",
         "Energy_Balance",
         "Fires",
         "Mass_Balance",
