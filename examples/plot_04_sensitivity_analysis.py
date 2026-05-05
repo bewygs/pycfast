@@ -76,7 +76,7 @@ problem = {
 # Below you can see the defined parameters and their ranges for the sensitivity analysis.
 for i, name in enumerate(problem["names"]):
     bounds = problem["bounds"][i]
-    print(f"  {name}: [{bounds[0]}, {bounds[1]}]")
+    print(f"{name}: [{bounds[0]}, {bounds[1]}]")
 
 # %%
 # Step 4: Generate Parameter Samples
@@ -151,12 +151,12 @@ Si = sobol_analyze.analyze(problem, np.array(Y))
 # %%
 # First-order indices (S1):
 for i, param_name in enumerate(problem["names"]):
-    print(f"  {param_name}: {Si['S1'][i]:.4f}")
+    print(f"{param_name}: {Si['S1'][i]:.4f}")
 
 # %%
 # Total-order indices (ST):
 for i, param_name in enumerate(problem["names"]):
-    print(f"  {param_name}: {Si['ST'][i]:.4f}")
+    print(f"{param_name}: {Si['ST'][i]:.4f}")
 
 # %%
 # Step 7: Visualize Sensitivity Results
@@ -258,7 +258,7 @@ print("Interaction Effects (ST - S1):")
 for i, param_name in enumerate(names):
     val = interaction_effects[i]
     if np.isnan(val):
-        print(f"  {param_name}: nan")
+        print(f"{param_name}: nan")
     else:
         tag = "(interactions dominant)" if val > 0.05 else ""
         print(f"{param_name}: {val:.3f}{tag}")
