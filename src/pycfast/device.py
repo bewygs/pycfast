@@ -103,6 +103,7 @@ class Device(CFASTComponent):
         If location does not contain exactly 3 numeric values.
         If target type is specified but required target parameters are missing.
         If detector type is specified but required detector parameters are missing.
+        If spray_density is negative.
         If both normal and surface_orientation are specified or both are None.
         If normal vector does not contain exactly 3 numeric values.
         If unknown device type is specified.
@@ -382,9 +383,9 @@ class Device(CFASTComponent):
                     raise ValueError(
                         f"SPRINKLER '{self.id}': setpoint must be positive, got {self.setpoint}."
                     )
-                if self.spray_density <= 0:
+                if self.spray_density < 0:
                     raise ValueError(
-                        f"SPRINKLER '{self.id}': spray_density must be positive, got {self.spray_density}."
+                        f"SPRINKLER '{self.id}': spray_density must be >= 0, got {self.spray_density}."
                     )
             elif self.type == "SMOKE_DETECTOR":
                 if not 0.0 <= self.obscuration <= 100.0:
