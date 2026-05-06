@@ -1772,6 +1772,47 @@ class TestCFASTModelValidateDependencies:
         with pytest.raises(ValueError, match=f"{mat_attr}='UNKNOWN' does not match"):
             self._make(sim_env, [comp])
 
+    @pytest.mark.parametrize(
+        "mat_attr", ["ceiling_mat_id", "wall_mat_id", "floor_mat_id"]
+    )
+    def test_compartment_multi_material_valid(self, sim_env, mat_attr):
+        """Multi-layer materials all defined in the model pass validation."""
+        mat1 = Material(
+            id="MAT1",
+            material="Mat 1",
+            conductivity=0.5,
+            density=800,
+            specific_heat=1.0,
+            thickness=0.02,
+        )
+        mat2 = Material(
+            id="MAT2",
+            material="Mat 2",
+            conductivity=1.0,
+            density=1200,
+            specific_heat=0.9,
+            thickness=0.05,
+        )
+        comp = Compartment(id="ROOM1", **{mat_attr: ["MAT1", "MAT2"]})  # type: ignore
+        self._make(sim_env, [comp], material_properties=[mat1, mat2])
+
+    @pytest.mark.parametrize(
+        "mat_attr", ["ceiling_mat_id", "wall_mat_id", "floor_mat_id"]
+    )
+    def test_compartment_multi_material_one_undefined_raises(self, sim_env, mat_attr):
+        """One unknown ID in a multi-layer list raises ValueError."""
+        mat1 = Material(
+            id="MAT1",
+            material="Mat 1",
+            conductivity=0.5,
+            density=800,
+            specific_heat=1.0,
+            thickness=0.02,
+        )
+        comp = Compartment(id="ROOM1", **{mat_attr: ["MAT1", "UNKNOWN"]})  # type: ignore
+        with pytest.raises(ValueError, match="UNKNOWN.*does not match"):
+            self._make(sim_env, [comp], material_properties=[mat1])
+
     def test_fire_undefined_device_id(self, sim_env, room1):
         """Test that a fire referencing an undefined device raises ValueError."""
         fire = Fire(

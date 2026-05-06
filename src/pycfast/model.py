@@ -1239,10 +1239,16 @@ class CFASTModel:
         for comp in self.compartments:
             for attr in ("ceiling_mat_id", "wall_mat_id", "floor_mat_id"):
                 m_id = getattr(comp, attr, None)
-                if m_id is not None and m_id != "OFF" and m_id not in material_ids:
-                    raise ValueError(
-                        f"Compartment '{comp.id}': {attr}='{m_id}' does not match any defined material."
-                    )
+                ids_to_check = (
+                    m_id
+                    if isinstance(m_id, list)
+                    else ([m_id] if m_id is not None else [])
+                )
+                for mid in ids_to_check:
+                    if mid != "OFF" and mid not in material_ids:
+                        raise ValueError(
+                            f"Compartment '{comp.id}': {attr}='{mid}' does not match any defined material."
+                        )
 
         # device_id referenced in Fire or Vent must exist in devices
         for fire in self.fires:

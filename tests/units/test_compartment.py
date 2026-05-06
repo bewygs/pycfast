@@ -258,6 +258,78 @@ class TestCompartment:
         assert "FLOOR_MATL_ID = 'CONCRETE'" in result
         assert "FLOOR_THICKNESS" not in result
 
+    def test_init_multi_material_all_surfaces(self):
+        """Three-layer materials are accepted for all surfaces."""
+        comp = Compartment(
+            id="ROOM1",
+            ceiling_mat_id=["FiberCem", "Gypsum", "Concrete"],
+            ceiling_thickness=[0.013, 0.03, 0.61],
+            wall_mat_id=["FiberCem", "Gypsum", "Concrete"],
+            wall_thickness=[0.013, 0.03, 0.61],
+            floor_mat_id=["FiberCem", "Gypsum", "Concrete"],
+            floor_thickness=[0.013, 0.03, 0.61],
+        )
+        assert comp.ceiling_mat_id == ["FiberCem", "Gypsum", "Concrete"]
+        assert comp.ceiling_thickness == [0.013, 0.03, 0.61]
+        assert comp.wall_mat_id == ["FiberCem", "Gypsum", "Concrete"]
+        assert comp.floor_mat_id == ["FiberCem", "Gypsum", "Concrete"]
+
+    def test_init_multi_material_without_thickness(self):
+        """Multi-layer mat_id without thickness uses CFAST material defaults."""
+        comp = Compartment(id="ROOM1", wall_mat_id=["FiberCem", "Gypsum", "Concrete"])
+        assert comp.wall_mat_id == ["FiberCem", "Gypsum", "Concrete"]
+        assert comp.wall_thickness is None
+
+    def test_to_input_string_multi_material(self):
+        """Multi-layer materials are serialised as comma-separated lists."""
+        comp = Compartment(
+            id="ROOM1",
+            ceiling_mat_id=["FiberCem", "Gypsum", "Concrete"],
+            ceiling_thickness=[0.013, 0.03, 0.61],
+            wall_mat_id=["FiberCem", "Gypsum"],
+            wall_thickness=[0.013, 0.03],
+            floor_mat_id="Concrete",
+            floor_thickness=0.61,
+        )
+        result = comp.to_input_string()
+        assert "CEILING_MATL_ID = 'FiberCem', 'Gypsum', 'Concrete'" in result
+        assert "CEILING_THICKNESS = 0.013, 0.03, 0.61" in result
+        assert "WALL_MATL_ID = 'FiberCem', 'Gypsum'" in result
+        assert "WALL_THICKNESS = 0.013, 0.03" in result
+        assert "FLOOR_MATL_ID = 'Concrete'" in result
+        assert "FLOOR_THICKNESS = 0.61" in result
+
+    def test_to_input_string_multi_material_without_thickness(self):
+        """Multi-layer mat_id without thickness omits the THICKNESS key."""
+        comp = Compartment(id="ROOM1", wall_mat_id=["FiberCem", "Gypsum", "Concrete"])
+        result = comp.to_input_string()
+        assert "WALL_MATL_ID = 'FiberCem', 'Gypsum', 'Concrete'" in result
+        assert "WALL_THICKNESS" not in result
+
+    @pytest.mark.parametrize("surface", ["ceiling", "wall", "floor"])
+    def test_init_too_many_materials_raises(self, surface: str):
+        """Four materials exceeds the CFAST limit of 3 and must raise ValueError."""
+        with pytest.raises(ValueError, match="at most 3 materials"):
+            Compartment(
+                id="ROOM1",
+                **{
+                    f"{surface}_mat_id": ["A", "B", "C", "D"],
+                    f"{surface}_thickness": [0.1, 0.1, 0.1, 0.1],
+                },
+            )
+
+    @pytest.mark.parametrize("surface", ["ceiling", "wall", "floor"])
+    def test_init_mismatched_material_thickness_lengths_raises(self, surface: str):
+        """Different number of mat_ids and thicknesses must raise ValueError."""
+        with pytest.raises(ValueError, match="must have the same length"):
+            Compartment(
+                id="ROOM1",
+                **{
+                    f"{surface}_mat_id": ["A", "B"],
+                    f"{surface}_thickness": [0.1, 0.2, 0.3],
+                },
+            )
+
     def test_to_input_string_none_dimensions(self):
         """Test input string generation with None dimensions."""
         comp = Compartment(id="ROOM1", width=None, depth=None, height=None)
@@ -337,6 +409,23 @@ class TestCompartment:
         assert "volume: 56.00 m³" in str_repr
         assert "ceiling: GYPSUM" in str_repr
         assert "wall: BRICK" in str_repr
+
+    def test_str_multi_material(self) -> None:
+        """Test __str__ method with multi-layer materials."""
+        comp = Compartment(
+            id="ROOM1",
+            width=3.0,
+            depth=4.0,
+            height=2.4,
+            ceiling_mat_id=["FiberCem", "Gypsum", "Concrete"],
+            wall_mat_id=["FiberCem", "Gypsum"],
+            floor_mat_id="Concrete",
+        )
+
+        str_repr = str(comp)
+        assert "ceiling: FiberCem, Gypsum, Concrete" in str_repr
+        assert "wall: FiberCem, Gypsum" in str_repr
+        assert "floor: Concrete" in str_repr
 
     def test_str_with_shaft_and_hall(self) -> None:
         """Test __str__ method with shaft property only."""
@@ -459,3 +548,18 @@ class TestCompartmentSetattrValidation:
         comp.height = 3.0
         assert comp.width == 5.0
         assert comp.height == 3.0
+
+    def test_setattr_multi_material(self):
+        """Multi-layer materials can be assigned after construction."""
+        comp = Compartment(id="ROOM1")
+        comp.wall_mat_id = ["FiberCem", "Gypsum"]
+        comp.wall_thickness = [0.013, 0.03]
+        assert comp.wall_mat_id == ["FiberCem", "Gypsum"]
+        assert comp.wall_thickness == [0.013, 0.03]
+
+    @pytest.mark.parametrize("surface", ["ceiling", "wall", "floor"])
+    def test_setattr_too_many_materials_raises(self, surface: str):
+        """Assigning 4 materials after construction raises ValueError."""
+        comp = Compartment(id="ROOM1")
+        with pytest.raises(ValueError, match="at most 3 materials"):
+            setattr(comp, f"{surface}_mat_id", ["A", "B", "C", "D"])
