@@ -12,6 +12,12 @@ from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
 
 
+def _as_list(val: str | float | list | None) -> list:
+    if val is None:
+        return []
+    return val if isinstance(val, list) else [val]
+
+
 class Compartment(CFASTComponent):
     """
     Defines the size, position, materials of construction, and flow characteristics for compartments.
@@ -55,27 +61,30 @@ class Compartment(CFASTComponent):
         point must be the same for all elevations in the input data. All absolute positions
         for all compartments must be greater than or equal to zero, i.e., negative numbers are
         not allowed for these inputs. Default units: m, default value: 0.0 m.
-    ceiling_mat_id : str, optional
-        Material ID from the thermal properties from the Materials tab to define the ceiling
+    ceiling_mat_id : str or list[str], optional
+        Material ID(s) from the thermal properties from the Materials tab to define the ceiling
         surface of the compartment. Up to three materials can be used to define the layer(s)
         of the ceiling surface. The innermost layer is specified first. Default value: Off.
-    ceiling_thickness : float, optional
-        Thickness of each of the layers of the ceiling surface. Default units: m, default
-        value: thickness of material specified on the Materials tab.
-    wall_mat_id : str, optional
-        Material ID from the thermal properties from the Materials tab to define the wall
+    ceiling_thickness : float or list[float], optional
+        Thickness of each of the layers of the ceiling surface. Must match the number of
+        materials in ``ceiling_mat_id``. Default units: m, default value: thickness of
+        material specified on the Materials tab.
+    wall_mat_id : str or list[str], optional
+        Material ID(s) from the thermal properties from the Materials tab to define the wall
         surface of the compartment. Up to three materials can be used to define the layer(s)
         of the wall surface. The innermost layer is specified first. Default value: Off.
-    wall_thickness : float, optional
-        Thickness of each of the layers of the wall surface. Default units: m, default
-        value: thickness of material specified on the Materials tab.
-    floor_mat_id : str, optional
-        Material ID from the thermal properties from the Materials tab to define the floor
+    wall_thickness : float or list[float], optional
+        Thickness of each of the layers of the wall surface. Must match the number of
+        materials in ``wall_mat_id``. Default units: m, default value: thickness of
+        material specified on the Materials tab.
+    floor_mat_id : str or list[str], optional
+        Material ID(s) from the thermal properties from the Materials tab to define the floor
         surface of the compartment. Up to three materials can be used to define the layer(s)
         of the floor surface. The innermost layer is specified first. Default value: Off.
-    floor_thickness : float, optional
-        Thickness of each of the layers of the floor surface. Default units: m, default
-        value: thickness of material specified on the Materials tab.
+    floor_thickness : float or list[float], optional
+        Thickness of each of the layers of the floor surface. Must match the number of
+        materials in ``floor_mat_id``. Default units: m, default value: thickness of
+        material specified on the Materials tab.
     shaft : bool, optional
         For tall compartments or those removed from the room of fire origin, the compartment
         may be modeled as a single, well-mixed zone rather than the default two-zone assumption.
@@ -135,12 +144,12 @@ class Compartment(CFASTComponent):
         width: float | None = 3.6,
         depth: float | None = 2.4,
         height: float | None = 2.4,
-        ceiling_mat_id: str | None = None,
-        ceiling_thickness: float | None = None,
-        wall_mat_id: str | None = None,
-        wall_thickness: float | None = None,
-        floor_mat_id: str | None = None,
-        floor_thickness: float | None = None,
+        ceiling_mat_id: str | list[str] | None = None,
+        ceiling_thickness: float | list[float] | None = None,
+        wall_mat_id: str | list[str] | None = None,
+        wall_thickness: float | list[float] | None = None,
+        floor_mat_id: str | list[str] | None = None,
+        floor_thickness: float | list[float] | None = None,
         origin_x: float | None = 0,
         origin_y: float | None = 0,
         origin_z: float | None = 0,
@@ -195,6 +204,28 @@ class Compartment(CFASTComponent):
                     f"Compartment '{self.id}': {param} must be a list, got {type(list_val).__name__}."
                 )
 
+        for surface in ("ceiling", "wall", "floor"):
+            mat_id = getattr(self, f"{surface}_mat_id")
+            thickness = getattr(self, f"{surface}_thickness")
+            n_mats = (
+                len(mat_id)
+                if isinstance(mat_id, list)
+                else (1 if mat_id is not None else 0)
+            )
+            if n_mats > 3:
+                raise ValueError(
+                    f"Compartment '{self.id}': {surface}_mat_id accepts at most "
+                    f"3 materials, got {n_mats}."
+                )
+            if mat_id is not None and thickness is not None:
+                n_thick = len(thickness) if isinstance(thickness, list) else 1
+                if n_mats != n_thick:
+                    raise ValueError(
+                        f"Compartment '{self.id}': {surface}_mat_id has {n_mats} "
+                        f"material(s) but {surface}_thickness has {n_thick} value(s). "
+                        "They must have the same length."
+                    )
+
         if self.leak_area_ratio is not None and len(self.leak_area_ratio) != 2:
             raise ValueError(
                 f"Compartment '{self.id}': leak_area_ratio must contain exactly 2 values "
@@ -241,8 +272,8 @@ class Compartment(CFASTComponent):
             f"Compartment("
             f"id='{self.id}', "
             f"width={self.width}, depth={self.depth}, height={self.height}, "
-            f"ceiling_mat_id='{self.ceiling_mat_id}', wall_mat_id='{self.wall_mat_id}', "
-            f"floor_mat_id='{self.floor_mat_id}', "
+            f"ceiling_mat_id={self.ceiling_mat_id!r}, wall_mat_id={self.wall_mat_id!r}, "
+            f"floor_mat_id={self.floor_mat_id!r}, "
             f"origin=({self.origin_x}, {self.origin_y}, {self.origin_z})"
             ")"
         )
@@ -259,11 +290,20 @@ class Compartment(CFASTComponent):
 
         materials = []
         if self.ceiling_mat_id:
-            materials.append(f"ceiling: {self.ceiling_mat_id}")
+            val = self.ceiling_mat_id
+            materials.append(
+                f"ceiling: {', '.join(val) if isinstance(val, list) else val}"
+            )
         if self.wall_mat_id:
-            materials.append(f"wall: {self.wall_mat_id}")
+            val = self.wall_mat_id
+            materials.append(
+                f"wall: {', '.join(val) if isinstance(val, list) else val}"
+            )
         if self.floor_mat_id:
-            materials.append(f"floor: {self.floor_mat_id}")
+            val = self.floor_mat_id
+            materials.append(
+                f"floor: {', '.join(val) if isinstance(val, list) else val}"
+            )
 
         material_str = f" ({', '.join(materials)})" if materials else ""
 
@@ -315,16 +355,21 @@ class Compartment(CFASTComponent):
             rec.add_field("HALL", True)
 
         if self.ceiling_mat_id is not None:
-            rec.add_field("CEILING_MATL_ID", self.ceiling_mat_id)
-            rec.add_field("CEILING_THICKNESS", self.ceiling_thickness)
+            rec.add_list_field("CEILING_MATL_ID", _as_list(self.ceiling_mat_id))
+            if self.ceiling_thickness is not None:
+                rec.add_list_field(
+                    "CEILING_THICKNESS", _as_list(self.ceiling_thickness)
+                )
 
         if self.wall_mat_id is not None:
-            rec.add_field("WALL_MATL_ID", self.wall_mat_id)
-            rec.add_field("WALL_THICKNESS", self.wall_thickness)
+            rec.add_list_field("WALL_MATL_ID", _as_list(self.wall_mat_id))
+            if self.wall_thickness is not None:
+                rec.add_list_field("WALL_THICKNESS", _as_list(self.wall_thickness))
 
         if self.floor_mat_id is not None:
-            rec.add_field("FLOOR_MATL_ID", self.floor_mat_id)
-            rec.add_field("FLOOR_THICKNESS", self.floor_thickness)
+            rec.add_list_field("FLOOR_MATL_ID", _as_list(self.floor_mat_id))
+            if self.floor_thickness is not None:
+                rec.add_list_field("FLOOR_THICKNESS", _as_list(self.floor_thickness))
 
         rec.add_list_field("CROSS_SECT_AREAS", self.cross_sect_areas)
         rec.add_list_field("CROSS_SECT_HEIGHTS", self.cross_sect_heights)
