@@ -3,6 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from csv_comparison import (
+    compare_model_to_reference_data,
+    get_reference_data_dir,
+)
 
 from pycfast import (
     CFASTModel,
@@ -12,15 +16,10 @@ from pycfast import (
     WallVent,
 )
 
-from .verification import (
-    compare_model_to_verification_data,
-    get_verification_data_dir,
-)
-
 pytestmark = [pytest.mark.slow, pytest.mark.local]
 
-verification_data_dir = get_verification_data_dir(
-    Path(__file__).parent, "Thermal_Equilibrium"
+verification_data_dir = get_reference_data_dir(
+    Path(__file__).parent, "verification_data_local", "Thermal_Equilibrium"
 )
 
 
@@ -89,7 +88,7 @@ def test_basic_tempequilib_simulation(tmp_path):
     results = model.run()
     assert isinstance(results, dict)
 
-    compare_model_to_verification_data(
+    compare_model_to_reference_data(
         results, verification_data_dir, prefix=prefix, tmp_path=tmp_path
     )
 
@@ -171,7 +170,7 @@ def test_basic_tempequilib_window_simulation(tmp_path):
     results = model.run()
     assert isinstance(results, dict)
 
-    compare_model_to_verification_data(
+    compare_model_to_reference_data(
         results, verification_data_dir, prefix=prefix, tmp_path=tmp_path
     )
 
@@ -253,6 +252,6 @@ def test_basic_tempequilib_window_elevation_simulation(tmp_path):
     results = model.run()
     assert isinstance(results, dict)
 
-    compare_model_to_verification_data(
+    compare_model_to_reference_data(
         results, verification_data_dir, prefix=prefix, tmp_path=tmp_path
     )

@@ -5,13 +5,12 @@ import os
 from pathlib import Path
 
 import pytest
+from csv_comparison import (
+    compare_model_to_reference_data,
+    get_reference_data_dir,
+)
 
 from pycfast.parsers import parse_cfast_file
-
-from .verification import (
-    compare_model_to_verification_data,
-    get_verification_data_dir,
-)
 
 
 def get_all_verification_input_files():
@@ -61,7 +60,9 @@ def test_parser_verification(input_file, parent_dir, file_prefix, tmp_path):
         tmp_path: Pytest temporary directory fixture
     """
     # Get verification data directory
-    verification_data_dir = get_verification_data_dir(Path(__file__).parent, parent_dir)
+    verification_data_dir = get_reference_data_dir(
+        Path(__file__).parent, "verification_data_local", parent_dir
+    )
 
     # Parse the input file
     try:
@@ -83,7 +84,7 @@ def test_parser_verification(input_file, parent_dir, file_prefix, tmp_path):
 
     # Compare to verification data
     try:
-        compare_model_to_verification_data(
+        compare_model_to_reference_data(
             results, verification_data_dir, prefix=file_prefix, tmp_path=tmp_path
         )
     except Exception as e:
