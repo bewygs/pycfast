@@ -244,12 +244,12 @@ jobs:
       # the verification data on each platform with the same binary used for tests
       run: |
         cd tests
-        python generate_verif_data.py --local
+        python generate_reference_data.py --suite verification
 
     - name: Run tests
       env:
         CFAST_VERSION: ${{ matrix.cfast-version }}
-      run: uv run pytest --cov=src/pycfast --cov-report=xml --cov-report=term-missing
+      run: uv run pytest --ignore=tests/validation_tests --cov=src/pycfast --cov-report=xml --cov-report=term-missing
 
     - name: Upload results to Codecov
       uses: codecov/codecov-action@v6
