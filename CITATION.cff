@@ -2,7 +2,7 @@
 # Visit https://bit.ly/cffinit to generate yours today!
 
 cff-version: 1.2.0
-title: PyCFAST
+title: "PyCFAST: a Python interface for the CFAST fire simulation software"
 message: 'If you use PyCFAST, please consider citing as below.'
 type: software
 authors:
