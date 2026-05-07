@@ -32,23 +32,26 @@ Follow these steps to set up your development environment:
      pip install -e ".[dev]"
      ```
 
-3. **Generate Local Verification Data**
+3. **Generate Local Reference Data**
 
-   Before running tests, generate local reference data (required for verification tests):
+   Before running tests, generate local reference data (required for verification and validation tests):
 
    ```bash
    cd tests/
-   python generate_verif_data.py --local
+   python generate_reference_data.py --suite verification  # for verification tests only
+   python generate_reference_data.py --suite validation    # for validation tests only (slow, 1h+)
+   python generate_reference_data.py                       # for both (default)
    ```
 
-   > **Note:** Because CFAST uses a Fortran compiler, which can produce small numerical differences between systems and compilers, always generate verification data locally for your tests.
+   > **Note:** Because CFAST uses a Fortran compiler, which can produce small numerical differences between systems and compilers, always generate reference data locally for your tests.
    You also need to have CFAST installed and accessible in your PATH. You can download it from the [NIST CFAST page](https://pages.nist.gov/cfast/index.html).
+   Validation data generation can take over an hour depending on your system.
 
 4. **Run Tests & Checks**
 
    Ensure everything is set up correctly by running:
    ```bash
-   make allci  # Or: ruff check . && ruff format . && mypy src/ && pytest tests/
+   make allci
    ```
 
 ## Development Workflow
@@ -105,7 +108,7 @@ We use [pytest](https://docs.pytest.org/en/stable/) for testing. Tests are locat
   pytest tests/units/
   ```
 
-  or from make file:
+  Or from make file:
    ```bash
    make test-units
    ```
@@ -117,35 +120,45 @@ We use [pytest](https://docs.pytest.org/en/stable/) for testing. Tests are locat
   pytest --doctest-modules src/pycfast/
   ```
 
-  or from make file:
+  Or from make file:
    ```bash
    make test-doctest
    ```
 
 - **Verification tests:**
 
-  Compare PyCFAST with CFAST Verification cases. Ensure you have run `generate_verif_data.py --local`
-  to create the necessary reference data. Run (can be slow depending on your system):
+  Compare PyCFAST with CFAST [Verification](https://github.com/firemodels/cfast/tree/master/Verification) cases. Ensure you have run `generate_reference_data.py --suite verification` before running these tests.
   ```bash
   pytest tests/verification_tests/
   ```
-   or from make file:
+  Or from make file:
+  ```bash
+  make test-verif
+  ```
+
+- **Validation tests:**
+
+  Parse CFAST [Validation](https://github.com/firemodels/cfast/tree/master/Validation) input files with `parse_cfast_file` function and compare the results to the reference data. Ensure you have run `generate_reference_data.py --suite validation` before running these tests. These tests are slow (1h+) and are not run in the standard test suite.
+  ```bash
+  pytest tests/validation_tests/
+  ```
+   Or from make file:
    ```bash
-   make test-verif
+   make test-valid
    ```
 
 - **Complete test suite:**
 
-   Run all tests (units + verification) with:
+  Run all tests (units + doctest + verification, excluding validation) with:
 
-   ```bash
-   pytest src/pycfast tests/
-   ```
+  ```bash
+  pytest src/pycfast tests/ --ignore=tests/validation_tests
+  ```
 
-   or from make file:
-   ```bash
-   make test
-   ```
+  Or from make file:
+  ```bash
+  make test
+  ```
 
 ## Code Style
 
