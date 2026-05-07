@@ -1,0 +1,81 @@
+name: Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'src/**'
+      - 'tests/validation_tests/**'
+      - 'tests/csv_comparison.py'
+      - 'tests/generate_reference_data.py'
+      - '.github/workflows/validation.yml'
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+
+    - name: Set up Python
+      run: uv python install 3.14
+
+    - name: Install python dependencies
+      run: uv sync --extra dev
+
+    - name: Cache CFAST binary
+      id: cache-cfast
+      uses: actions/cache@v5
+      with:
+        path: ~/cfast-cache/cfast-7.7.6-linux-gcc
+        key: cfast-7.7.6-linux-gcc-${{ hashFiles('.github/workflows/validation.yml') }}
+
+    - name: Install gfortran
+      if: steps.cache-cfast.outputs.cache-hit != 'true'
+      uses: fortran-lang/setup-fortran@v1
+      with:
+        compiler: gcc
+
+    - name: Build CFAST 7.7.6 from source
+      if: steps.cache-cfast.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        git clone --depth 1 --branch CFAST-7.7.6 https://github.com/firemodels/cfast.git cfast-src
+        cd cfast-src/Build/CFAST/gnu_linux
+        chmod +x make_cfast.sh
+        ./make_cfast.sh
+        mkdir -p ~/cfast-cache
+        cp cfast7_linux ~/cfast-cache/cfast-7.7.6-linux-gcc
+        chmod +x ~/cfast-cache/cfast-7.7.6-linux-gcc
+
+    - name: Install CFAST to system path
+      run: |
+        sudo cp ~/cfast-cache/cfast-7.7.6-linux-gcc /usr/bin/cfast
+        sudo chmod +x /usr/bin/cfast
+
+    - name: Verify CFAST installation
+      run: cfast
+
+    - name: Cache validation reference data
+      id: cache-validation-data
+      uses: actions/cache@v5
+      with:
+        path: tests/validation_tests/validation_data_local
+        key: validation-data-7.7.6-${{ hashFiles('tests/validation_tests/Validation/**/*.in') }}
+
+    - name: Generate validation reference data
+      if: steps.cache-validation-data.outputs.cache-hit != 'true'
+      run: |
+        cd tests
+        python generate_reference_data.py --suite validation
+
+    - name: Run validation tests
+      run: uv run pytest tests/validation_tests/ -v --tb=short
