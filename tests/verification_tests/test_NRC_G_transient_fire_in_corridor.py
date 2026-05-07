@@ -4,6 +4,10 @@ import os
 from pathlib import Path
 
 import pytest
+from csv_comparison import (
+    compare_model_to_reference_data,
+    get_reference_data_dir,
+)
 
 from pycfast import (
     CFASTModel,
@@ -16,15 +20,11 @@ from pycfast import (
     WallVent,
 )
 
-from .verification import (
-    compare_model_to_verification_data,
-    get_verification_data_dir,
-)
-
 pytestmark = [pytest.mark.slow, pytest.mark.local]
 
-verification_data_dir = get_verification_data_dir(
+verification_data_dir = get_reference_data_dir(
     Path(__file__).parent,
+    "verification_data_local",
     "NRC_Users_Guide" + os.sep + "G_Transient_Fire_in_Corridor",
 )
 
@@ -440,6 +440,6 @@ def test_transient_fire_in_corridor_simulation(tmp_path):
     results = model.run()
     assert isinstance(results, dict)
 
-    compare_model_to_verification_data(
+    compare_model_to_reference_data(
         results, verification_data_dir, prefix=prefix, tmp_path=tmp_path
     )
