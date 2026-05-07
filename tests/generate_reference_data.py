@@ -37,7 +37,7 @@ def generate_outputs(suite_name: str) -> None:
     input_dir: Path = suite["input_dir"]
     output_dir: Path = suite["output_dir"]
 
-    print(f"Generating {suite_name} data: {input_dir} → {output_dir}")
+    print(f"Generating {suite_name} data: {input_dir} -> {output_dir}")
 
     for in_file in input_dir.rglob("*.in"):
         print(f"  Processing {in_file.relative_to(input_dir)}")
