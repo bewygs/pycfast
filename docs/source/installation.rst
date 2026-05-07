@@ -1,8 +1,36 @@
 Installation
 ============
 
-PyCFAST requires **Python 3.10 or later**. It is tested against CFAST **7.7.0** through
-**7.7.6**.
+PyCFAST requires **Python 3.10 or later**. It is tested against CFAST **7.7.0** through **7.7.6**.
+Versions below **7.7.0** might work but are not guaranteed to be fully compatible.
+
+It is recommended to install PyCFAST inside a virtual environment. Create one with ``venv`` or ``conda`` before installing:
+
+.. tab-set::
+
+   .. tab-item:: venv (Linux/macOS)
+      :sync: venv-unix
+
+      .. code-block:: bash
+
+         python -m venv .venv
+         source .venv/bin/activate
+
+   .. tab-item:: venv (Windows)
+      :sync: venv-win
+
+      .. code-block:: bat
+
+         python -m venv .venv
+         .venv\Scripts\activate
+
+   .. tab-item:: conda
+      :sync: conda
+
+      .. code-block:: bash
+
+         conda create -n pycfast python=3.14
+         conda activate pycfast
 
 Pip
 ---
