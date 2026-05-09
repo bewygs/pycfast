@@ -1,4 +1,4 @@
-name: Joss Paper
+name: JOSS Paper
 
 on:
   workflow_dispatch:
