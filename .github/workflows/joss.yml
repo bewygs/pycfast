@@ -1,4 +1,4 @@
-name: PyCFAST JOSS Paper workflow
+name: Joss Paper
 
 on:
   workflow_dispatch:
