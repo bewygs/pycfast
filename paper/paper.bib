@@ -1,3 +1,14 @@
+@techreport{FDS_technical,
+  author      = {McGrattan, Kevin and McDermott, Randall and Weinschenk, Craig and Forney, Glenn},
+  title       = {Fire Dynamics Simulator, Technical Reference Guide, {Sixth Edition}},
+  institution = {National Institute of Standards and Technology},
+  address     = {Gaithersburg, MD},
+  number      = {NIST SP 1018},
+  year        = {2013},
+  doi         = {10.6028/NIST.SP.1018},
+  url         = {https://doi.org/10.6028/NIST.SP.1018},
+}
+
 @techreport{CFAST_technical,
   author      = {Peacock, Richard D. and McGrattan, Kevin B. and Forney, Glenn P. and Reneke, Paul A.},
   title       = {{CFAST} -- Consolidated Model of Fire Growth and Smoke Transport ({Version 7}), {Volume 1}: Technical Reference Guide},
@@ -20,15 +31,31 @@
   url         = {https://doi.org/10.6028/NIST.TN.1889v2},
 }
 
-@techreport{CData,
-  author      = {Reneke, Paul A. and Peacock, Richard D. and Gilbert, Stanley W. and Cleary, Thomas},
-  title       = {{CFAST} -- Consolidated Fire and Smoke Transport ({Version 7}), {Volume 5}: {CFAST} Fire Data Generator ({CData})},
-  institution = {National Institute of Standards and Technology},
-  address     = {Gaithersburg, MD},
-  number      = {NIST TN 1889v5},
-  year        = {2021},
-  doi         = {10.6028/NIST.TN.1889v5},
-  url         = {https://doi.org/10.6028/NIST.TN.1889v5},
+@article{Ward2019,
+  doi       = {10.21105/joss.01474},
+  url       = {https://doi.org/10.21105/joss.01474},
+  year      = {2019},
+  publisher = {The Open Journal},
+  volume    = {4},
+  number    = {38},
+  pages     = {1474},
+  author    = {Ward, Marshall L.},
+  title     = {f90nml - A Python module for Fortran namelists},
+  journal   = {Journal of Open Source Software}
+}
+
+@article{WORRELL2019128,
+title = {Machine learning of fire hazard model simulations for use in probabilistic safety assessments at nuclear power plants},
+journal = {Reliability Engineering & System Safety},
+volume = {183},
+pages = {128-142},
+year = {2019},
+issn = {0951-8320},
+doi = {https://doi.org/10.1016/j.ress.2018.11.014},
+url = {https://www.sciencedirect.com/science/article/pii/S0951832018302102},
+author = {Clarence Worrell and Louis Luangkesorn and Joel Haight and Thomas Congedo},
+keywords = {Machine learning, Metamodeling, Probabilistic safety assessment, Fire, Nuclear},
+abstract = {This study explored the application of machine learning to generate metamodel approximations of a physics-based fire hazard model. The motivation to generate accurate and efficient metamodels is to improve modeling realism in probabilistic safety assessments where computational burden has prevented broader application of high fidelity models. The process involved scenario definition, generating training data by iteratively running the fire hazard model called CFAST over a range of input space using the RAVEN software, exploratory data analysis and feature selection, an initial testing of a broad set of metamodel methods, and finally metamodel selection and tuning using the R software. Twenty-five metamodel methods ranging in class and complexity were investigated. Linear models struggled because the physics of fire are non-linear. A k-nearest neighbor (kNN) model fit the vast majority of calculations within ±10% for maximum upper layer temperature and its timing. The resulting kNN model was compared to an algebraic model typically used in fire probabilistic safety assessments. This comparison illustrated the potential of metamodels to improve modeling realism over simpler models selected for computational feasibility. While the kNN metamodel is a simplification of the higher fidelity model, the error introduced is quantifiable and can be explicitly considered.}
 }
 
 @software{reback2020pandas,
@@ -57,12 +84,170 @@
   pages = {357–362}
 }
 
-@software{f90nml,
-  author    = {Ward, Marshall and others},
-  title     = {{f90nml}},
-  publisher = {Zenodo},
-  doi       = {10.5281/zenodo.1112518},
-  url       = {https://doi.org/10.5281/zenodo.1112518},
+@article{osti_1632319,
+  author       = {Biersdorf, John M. and Bui, Ha and Sakurahara, Tatsuya and Reihani, Seyed and LaFleur, Chris and Luxat, David L. and Prescott, Steven R. and Mohaghegh, Zahra},
+  title        = {Risk Importance Ranking of Fire Data Parameters to Enhance Fire PRA Model Realism},
+  annote       = {Fire is historically and analytically a significant contributor to nuclear power plant risk. The level of fire risk and the methods, tools and data for modeling this risk is highly debated by experts. One area of debate is the input data used in fire modeling and how to deal with this data’s high uncertainty. This report outlines initial work performed for determining the key parameters causing this uncertainty and how it propagates into nuclear power plant models. This research paves the way for the development of methods to reduce fire data uncertainty used in modeling. The Nuclear Regulatory Commission has mandated that nuclear power plants perform fire risk modeling. However, there are several issues with the current risk modeling implementation that affect the results. Approved modeling methods can be overly conservative and often do not match plant experience. Also, the data used in the modeling can have high uncertainties and is influenced by expert judgement. To evaluate input data uncertainty, researchers performed an initial review of several fire experiments done at Sandia National Laboratories. Uncertainties for fire data can come from many sources, such as experiment design constraints, environmental conditions, or other plant-specific aspects. There are many different significant and insignificant parameters driving the uncertainty. Additionally, the uncertainty of the different input data used in the fire modeling could have a significant or insignificant effect on the entire plant risk. A four-step methodology was developed to perform Integrated Probabilistic Risk Assessment Importance Ranking. A demonstration case using these steps was set up and three of the four steps were completed in fiscal year (FY) 2019 and the fourth step done FY 2020. These steps are: 1. The qualitative analysis of potential sources was conducted with the following items identified for the demonstration. • Maximum heat release rate • Time to maximum heat release rate • Duration of max heat release rate • Time to decay • Thermal conductivity of concrete • Specific heat of concrete • Density of concrete • Cable jacket thickness 2. A quantitative characterization of dominant sources of uncertainty was performed. A list of distributions and determined values of the dominant sources is shown in Appendix A. 3. A quantitative screening of the potential sources of uncertainty using Morris Elementary Effects Analysis was completed. An experimental model using the physics-based fire modeling tool Fire Dynamics Simulator was developed and coupled with the Risk Analysis Virtual Environment. The Morris analysis identified at least two parameters that can be eliminated as significant contributors (specific heat of concrete and cable jacket thickness). 4. Global importance measure (Global IM) analysis to generate a comprehensive ranking based on their influence on the plant risk. In this research, a moment-independent Global IM is used since it can address (a) uncertainty in the input parameters of the fire model, (b) uncertainty in the risk outputs, and (c) non-linearity and interactions among input parameters in the fire model, more accurately than the correlation-based and variance-based global methods. The observations from the research showed that, depending on the initial and boundary conditions of the fire scenarios, fire-induced damage could have a very small probability and could be dominated by the tail of the uncertainty distribution; hence, the accuracy of the correlation-based and variance-based methods is questionable. The moment-independent Global IM analysis in this research provides a better understanding of how experimental uncertainty data affects industry’s plant models and where improvements in that data will have the largest benefit for improving fire modeling accuracy in causing core damage. Among the five unscreened parameters obtained from the Morris EE analysis, the Global IM analysis results for the case study indicated that max heat release rate and fire location are the most important parameters. The report also outlines benefits of using a unified computational platform that integrates the underlying simulations (e.g., a fire progression model), quantitative screening (using the Morris EE method), and the Global IM analysis. A unified platform can (i) facilitate the ranking of input parameters considering multiple key fire scenarios simultaneously, rather than considering one scenario at a time, (ii) contribute to more explicit and accurate treatment of dependencies at multiple levels of Fire PRA, (iii) facilitate the sampling-based uncertainty quantification for Fire PRA, and (iv) help generating both “industry-wide” and "plant-specific" ranking of uncertainty sources in Fire PRA. Future research should be done to include additional parameters such as detection/suppression or cable fire spread. Adding a PRA software such as SAPHIRE to the RAVEN platform would help with plant model integration and improve treatment of fire-induced dependency. The I-PRA risk importance ranking methodology offered in this report can provide valuable information for efficiently (a) enhancing the realism of Fire PRA for existing plants and (b) supporting the development of Dynamic Fire PRA for advanced reactors and new plants.},
+  doi          = {10.2172/1632319},
+  url          = {https://www.osti.gov/biblio/1632319},
+  place        = {United States},
+  year         = {2020},
+  month        = {05}
+}
+
+@article{Buffington2020,
+  title = {Deep-Learning Emulators of Transient Compartment Fire Simulations for Inverse Problems and Room-Scale Calorimetry},
+  volume = {57},
+  ISSN = {1572-8099},
+  url = {http://dx.doi.org/10.1007/s10694-020-01037-2},
+  DOI = {10.1007/s10694-020-01037-2},
+  number = {6},
+  journal = {Fire Technology},
+  publisher = {Springer Science and Business Media LLC},
+  author = {Buffington,  Tyler and Cabrera,  Jan-Michael and Kurzawski,  Andrew and Ezekoye,  Ofodike A.},
+  year = {2020},
+  month = Sept,
+  pages = {2859–2885}
+}
+
+@techreport{CData,
+  author      = {Reneke, Paul A. and Peacock, Richard D. and Gilbert, Stanley W. and Cleary, Thomas},
+  title       = {{CFAST} -- Consolidated Fire and Smoke Transport ({Version 7}), {Volume 5}: {CFAST} Fire Data Generator ({CData})},
+  institution = {National Institute of Standards and Technology},
+  address     = {Gaithersburg, MD},
+  number      = {NIST TN 1889v5},
+  year        = {2021},
+  doi         = {10.6028/NIST.TN.1889v5},
+  url         = {https://doi.org/10.6028/NIST.TN.1889v5},
+}
+
+@techreport{wade2021fire,
+  title={Fire Engineering Practitioner Tools: A Survey and Analysis of Needs},
+  author={Wade, Colleen and Nilsson, Daniel and Baker, Greg and Olsson, Per},
+  year={2021},
+  institution={SFPE Foundation}
+}
+
+@techreport{osti_1784874,
+  author       = {Rabiti, Cristian and Alfonsi, Andrea and Mandelli, Diego and Cogliati, Joshua J. and Wang, Congjian and Talbot, Paul W. and Malijovec, Daniel P. and Kinoshita, Robert A. and Abdo, Mohammad Gamal M Mostafa and Sen, Sonat and others},
+  title        = {RAVEN User Manual},
+  institution  = {Idaho National Laboratory (INL), Idaho Falls, ID (United States)},
+  annote       = {RAVEN is a generic software framework to perform parametric and probabilistic analysis based on the response of complex system codes. The initial development was aimed to provide dynamic risk analysis capabilities to the Thermo-Hydraulic code RELAP-7, currently under development at the Idaho National Laboratory (INL). Although the initial goal has been fully accomplished, RAVEN is now a multi-purpose probabilistic and uncertainty quantification platform, capable to agnostically communicate with any system code. This agnosticism includes providing Application Programming Interfaces (APIs). These APIs are used to allow RAVEN to interact with any code as long as all the parameters that need to be perturbed are accessible by inputs files or via python interfaces. RAVEN is capable of investigating the system response, and investigating the input space using Monte Carlo, Grid, or Latin Hyper Cube sampling schemes, but its strength is focused to- ward system feature discovery, such as limit surfaces, separating regions of the input space leading to system failure, using dynamic supervised learning techniques. The development of RAVEN has started in 2012, when, within the Nuclear Energy Advanced Modeling and Simulation (NEAMS) program, the need to provide a modern risk evaluation framework became stronger. RAVEN principal assignment is to provide the necessary software and algorithms in order to employ the concept developed by the Risk Informed Safety Margin Characterization (RISMC) program. RISMC is one of the pathways defined within the Light Water Reactor Sustainability (LWRS) program. In the RISMC approach, the goal is not just the individuation of the frequency of an event potentially leading to a system failure, but the closeness (or not) to key safety-related events. Hence, the approach is interested in identifying and increasing the safety margins related to those events. A safety margin is a numerical value quantifying the probability that a safety metric (e.g. for an important process such as peak pressure in a pipe) is exceeded under certain conditions. The initial development of RAVEN has been focused on providing dynamic risk assessment capability to RELAP-7, currently under development at the INL and, likely, future replacement of the RELAP5-3D code. Most the capabilities that have been implemented having RELAP-7 as principal focus are easily deployable for other system codes. For this reason, several side activates are currently ongoing for coupling RAVEN with soft- ware such as RELAP5-3D, etc. The aim of this document is the explanation of the input requirements, focalizing on the input structure.},
+  doi          = {10.2172/1784874},
+  url          = {https://www.osti.gov/biblio/1784874},
+  place        = {United States},
+  year         = {2021},
+  month        = {05}
+}
+
+@inproceedings{Fu2021AAAI,
+  author       = {Fu, Eugene Yujun and Tam, Wai Cheong and Wang, Jun and Peacock, Richard and Reneke, Paul A. and Ngai, Grace and Leong, Hong Va and Cleary, Thomas},
+  title        = {Predicting Flashover Occurrence Using Surrogate Temperature Data},
+  booktitle    = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume       = {35},
+  number       = {17},
+  pages        = {14785--14794},
+  year         = {2021},
+  doi          = {10.1609/aaai.v35i17.17736},
+  url          = {https://ojs.aaai.org/index.php/AAAI/article/view/17736},
+}
+
+@article{WANG2021103341,
+title = {P-Flash – A machine learning-based model for flashover prediction using recovered temperature data},
+journal = {Fire Safety Journal},
+volume = {122},
+pages = {103341},
+year = {2021},
+issn = {0379-7112},
+doi = {https://doi.org/10.1016/j.firesaf.2021.103341},
+url = {https://www.sciencedirect.com/science/article/pii/S0379711221000825},
+author = {Jun Wang and Wai Cheong Tam and Youwei Jia and Richard Peacock and Paul Reneke and Eugene Yujun Fu and Thomas Cleary},
+keywords = {Machine learning, Flashover prediction, Fire modeling, Heat detector, Smart firefighting},
+abstract = {Research was conducted to examine the use of Support Vector Regression (SVR) to build a model to forecast the potential occurrence of flashover in a single-floor, multi-room compartment fire. Synthetic temperature data for heat detectors in different rooms were generated, 1000 simulation cases are considered, and a total of 8 million data points are utilized for model development. An operating temperature limitation is placed on heat detectors where they fail at a fixed exposure temperature of 150 ̊C and no longer provide data to more closely follow actual performance. The forecast model P-Flash (Prediction model for Flashover occurrence) is developed to use an array of heat detector temperature data, including in adjacent spaces, to recover temperature data from the room of fire origin and predict potential for flashover. Two special treatments, sequence segmentation and learning from fitting, are proposed to overcome the temperature limitation of heat detectors in real-life fire scenarios and to enhance prediction capabilities to determine if the flashover condition is met even with situations where there is no temperature data from all detectors. Experimental evaluation shows that P-Flash offers reliable prediction. The model performance is approximately 83% and 81%, respectively, for current and future flashover occurrence, considering heat detector failure at 150 ̊C. Results demonstrate that P-Flash, a new data-driven model, has potential to provide fire fighters real-time, trustworthy, and actionable information to enhance situational awareness, operational effectiveness, and safety for firefighting.}
+}
+
+@article{FANG2021103469,
+title = {Development of a machine-learning approach for identifying the stages of fire development in residential room fires},
+journal = {Fire Safety Journal},
+volume = {126},
+pages = {103469},
+year = {2021},
+issn = {0379-7112},
+doi = {https://doi.org/10.1016/j.firesaf.2021.103469},
+url = {https://www.sciencedirect.com/science/article/pii/S0379711221002113},
+author = {Hongqiang Fang and S.M. Lo and Yunjie Zhang and Yixin Shen},
+keywords = {Compartment fires, Stages of fire development, Machine learning, GMM-HMM, Fire scenarios},
+abstract = {Recognizing the stages of fire development is essential for fire emergency operations. It allows firefighters to predict what will happen next, potential fire spreads, and the likely effect of tactical actions. Currently, firefighters recognize fire stages mainly by observing and judging the signs and symptoms of fire development changing on-site. However, this kind of approach highly relies on firefighters’ knowledge and experience, making it difficult to operate. Therefore, a machine learning (ML)-based approach automatically identifying the stages of fire development in residential room fires is proposed in this paper. Modeled by Gaussian Mixture Models and Hidden Markov Models (GMM-HMM), the approach enables identifying the stages of fire development from short-term field temperature collections. To provide adequate data for model training, the two-zone fire model— CFAST and a non-parametric fire design method are applied to generate the temperature observations in various random fire scenarios. Taking the fire in a typical single-story residential construction as a case study, we establish a GMM-HMM-based recognition model with the simulated temperature data. It presents an average of 85% accuracy in identifying the fire stages within the 2 min error range. Moreover, tested with the experimental fire data, the established model also achieves successful recognitions.}
+}
+
+@article{KOU2021103310,
+title = {Deep learning based inverse model for building fire source location and intensity estimation},
+journal = {Fire Safety Journal},
+volume = {121},
+pages = {103310},
+year = {2021},
+issn = {0379-7112},
+doi = {https://doi.org/10.1016/j.firesaf.2021.103310},
+url = {https://www.sciencedirect.com/science/article/pii/S0379711221000503},
+author = {Luyao Kou and Xinzhi Wang and Xiaojing Guo and Jinwei Zhu and Hui Zhang},
+keywords = {Fire detection, Fire modeling, Source determination, Time series classification, Deep neural network},
+abstract = {Effective fire detection provides early warnings and key information for first responders and people trapped insides. The idea of integrating sensor data and fire modeling presents a general framework for fire source parameter estimation. However, most methods fail to achieve a real-time accurate estimation due to complex building structures and high computational requirements. Inspired by the capability of deep learning in data mining, a model based on Gated recurrent unit (GRU) is proposed to determine fire locations and intensity. First, a series of fire scenarios is simulated to form the dataset. Second, GRU is applied to learn representations from sensor data. Third, fire source parameters are estimated by the trained GRU with sequential sensor measurements. Multiple configurations and data are used to assess the inverse model. The results show that this model performs well and achieves a high test accuracy. The estimation of fire location is not influenced by the precision of fire simulations, while the intensity inversion is sensitive to the deviations. In addition, reliability, efficiency, and robustness of the inverse model are studied. This study is a fundamental step towards a credible and applicable deep learning-based model for fire source parameter inversion that assists in building fire protection.}
+}
+
+@article{TAM2022105258,
+title = {A spatial temporal graph neural network model for predicting flashover in arbitrary building floorplans},
+journal = {Engineering Applications of Artificial Intelligence},
+volume = {115},
+pages = {105258},
+year = {2022},
+issn = {0952-1976},
+doi = {https://doi.org/10.1016/j.engappai.2022.105258},
+url = {https://www.sciencedirect.com/science/article/pii/S0952197622003220},
+author = {Wai Cheong Tam and Eugene Yujun Fu and Jiajia Li and Xinyan Huang and Jian Chen and Michael Xuelin Huang},
+keywords = {Machine learning, Compartment fires, Synthetic fire data, Smart firefighting, Intelligent system},
+abstract = {Rapid fire progression, such as flashover, has been one of the leading causes for firefighter deaths and injuries in residential building environments. Due to long computational time of and the required prior knowledge about the fire scene, existing models cannot be used to predict the potential occurrence of flashover in practical firefighting applications. In this paper, a scene-agnostic model (FlashNet) is proposed to predict flashover based on limited heat detector temperature information up to 150 °C. FlashNet utilizes spatial temporal graph convolutional neural networks to effectively learn features from the limited temperature information and to tackle building structure variations. The proposed model is benchmarked against five different state-of-the-art flashover prediction models. Results show that FlashNet outperforms the existing flashover prediction models and it can reliably predict flashover 30 s preceding its occurrence with an overall accuracy of about 92.1%. Ablation study is carried out to examine the effectiveness of different key model components and geometric average adjacency matrix. The research outcomes from this study are expected to enhance firefighters’ situational awareness in the fire scene, protecting them from hazardous fire environments and to pave the way for the development of data-driven prediction systems.}
+}
+
+@article{KOU2022105310,
+title = {A variational inference based learning approach for decentralized building fire estimation},
+journal = {Journal of Building Engineering},
+volume = {62},
+pages = {105310},
+year = {2022},
+issn = {2352-7102},
+doi = {https://doi.org/10.1016/j.jobe.2022.105310},
+url = {https://www.sciencedirect.com/science/article/pii/S235271022201316X},
+author = {Luyao Kou and Yuxiao Li and Xinzhi Wang and Ya Peng and Hui Zhang},
+keywords = {Variational inference, Edge computing, Deep learning, Source determination, Smart firefighting},
+abstract = {Real-time estimation of the fire status is critical for reliable decision-making in building fire emergencies. Learning-based approaches for fire estimation have achieved great success, benefited from exploration of sensor data. However, existing works are mostly designed for specific building structures and seldom account for false alarms. Such flaws affect their generalization in broader environments and robustness in practical use. In this paper, we propose a decentralized learning-based approach for building fire estimation. The estimation is conducted in a decentralized scheme, where building zones conduct fire estimation respectively. The approach is built on variational inference technique, and can infer the location and dynamic intensity of the fires concurrently. Specifically, the fire estimation problem is interpreted in a latent variable model (LVM), with latent variables for fire intensity features and location features. The solution is then derived from variational inference (VI), and approximated via data learning on a novel deep network (namely FireEst-VAE). The network can produce accurate estimation of the fire intensity, while performing false alarm identification as a bonus effect. We evaluate the decentralized approach on full-scale experimental and simulation-generated data from a multi-compartment residence. The results illustrate that the proposed approach performs well on a wide range of fire scenarios with one or multiple fire locations, while preventing false alarms from common nuisance sources. The decentralized learning-based approach for fire estimation shows great potential in smart firefighting for large-scale buildings.}
+}
+
+@article{TAM2023119899,
+title = {Real-time flashover prediction model for multi-compartment building structures using attention based recurrent neural networks},
+journal = {Expert Systems with Applications},
+volume = {223},
+pages = {119899},
+year = {2023},
+issn = {0957-4174},
+doi = {https://doi.org/10.1016/j.eswa.2023.119899},
+url = {https://www.sciencedirect.com/science/article/pii/S0957417423004001},
+author = {Wai Cheong Tam and Eugene Yujun Fu and Jiajia Li and Richard Peacock and Paul Reneke and Grace Ngai and Hong Va Leong and Thomas Cleary and Michael Xuelin Huang},
+keywords = {Flashover occurrence, Machine learning, Real-time prediction, Realistic fire and opening conditions, Benchmark models},
+abstract = {This paper presents the development of an attention based bi-directional gated recurrent unit model, P-Flashv2, for the prediction of potential occurrence of flashover in a traditional 111 m2 single story ranch-style family home. Synthetic temperature data for more than 110 000 fire cases with a wide range of fire and vent opening conditions are collected. Temperature limit to heat detectors is applied to mimic the loss of temperature data in real fire scenarios. P-Flashv2 is shown to be able to make predictions with a maximum lead time of 60 s and its performance is benchmarked against eight different model architectures. Results show that P-Flashv2 has an overall accuracy of ∼ 87.7 % and ∼ 89.5% for flashover predictions with a lead time setting of 30 s and 60 s, respectively. Additional model testing is conducted to assess P-Flashv2 prediction capability in real fire scenarios. Evaluating the model again with full-scale experimental data, P-Flashv2 has an overall prediction accuracy of ∼ 82.7 % and ∼ 85.6 % for cases with the lead time of setting 30 s and 60 s, respectively. Results from this study show that the proposed machine learning based model, P-Flashv2, can be used to facilitate data-driven fire fighting and reduce fire fighter deaths and injuries.}
+}
+
+@article{FAN2023103849,
+title = {An explainable machine learning based flashover prediction model using dimension-wise class activation map},
+journal = {Fire Safety Journal},
+volume = {140},
+pages = {103849},
+year = {2023},
+issn = {0379-7112},
+doi = {https://doi.org/10.1016/j.firesaf.2023.103849},
+url = {https://www.sciencedirect.com/science/article/pii/S0379711223001170},
+author = {Linhao Fan and Wai Cheong Tam and Qi Tong and Eugene Yujun Fu and Tianshui Liang},
+keywords = {Flashover occurrence, Machine learning, Explainable multivariate series classification, Real-time prediction, Smart firefighting},
+abstract = {This paper presents the development of an explainable machine learning based flashover prediction model, named xFlashNet. Synthetic temperature data from more than 17 000 fire cases are used for model development. The effect of missing data due to heat detectors to elevated temperature from the fire scene is also considered. xFlashNet utilizes multi-residual convolutional layers to effectively learn the indicative temperature features and dimension-wise class activation map (dCAM) to interpret the model decision. The proposed model is benchmarked against three current-state-of-the-art models. Results shows that the proposed model outperforms the benchmark models and it has an overall accuracy of about 92.9%. Based on dCAM, the model decision is analyzed. Depending on the location of the fire and the heat detector operating conditions, the proposed model shows the discriminative region of the temperature inputs which influence the model to make the decision. In addition, model testing against real fire data is conducted. It is believed that this present work contributes a step forward to bring trustworthy ML systems to fire safety applications and to enhance situational awareness for firefighting safety that can help reduce firefighter injuries and deaths.}
 }
 
 @article{Tam2023_synthetic,
@@ -75,4 +260,119 @@
   year        = {2023},
   publisher   = {Springer US},
   doi         = {10.1007/s10694-020-01022-9},
+}
+
+@article{SINGH20243717,
+title = {Identification of primary input parameters affecting evacuation in ventilated main control room through CFAST simulations and application of a machine learning algorithm to replace CFAST model},
+journal = {Nuclear Engineering and Technology},
+volume = {56},
+number = {9},
+pages = {3717-3729},
+year = {2024},
+issn = {1738-5733},
+doi = {https://doi.org/10.1016/j.net.2024.04.020},
+url = {https://www.sciencedirect.com/science/article/pii/S1738573324001888},
+author = {Sumit Kumar Singh and Jinsoo Bae and Yu Zhang and Saerin Lim and Jongkook Heo and Seoung Bum Kim and Weon Gyu Shin},
+keywords = {Main control room (MCR), Nuclear power plant (NPP), Habitability, Evacuation time, CFAST, Neural networks},
+abstract = {Accurately predicting evacuation time in a ventilated main control room (MCR) during fire emergencies is crucial for ensuring the safety of personnel at nuclear power plants. This study proposes to use neural networks alongside consolidated fire and smoke transport (CFAST) simulations to serve as a surrogate model for physics-based simulation tools. Our neural networks can promptly predict the evacuation time in MCRs, proving to be a valuable asset in fire emergencies and eliminating the need for time-consuming rollouts of the CFAST simulations. The CFAST model simulates fire and evacuation scenarios in a ventilated MCR with variations in input parameters such as door conditions, ventilation flow rate, leakage area, and fire propagation time. Target output parameters, such as hot gas layer temperature (HGLT), heat flux (HF), and optical density (OD), are used alongside standardized evacuation variables to train a machine learning model for predicting evacuation time. The findings suggest that high ventilation flow rates help to dilute smoke and discharge hot gas, leading to lower target output parameters and quicker evacuation. Standardized evacuation variables exceed the required abandonment criteria for all door conditions, indicating the importance of proper evacuation procedures. The results show that neural networks can generate evacuation times close to those obtained from CFAST simulations.}
+}
+
+@article{JANG20241256,
+title = {Self- and semi-supervised learning for evacuation time modeling within fire emergencies in nuclear power plants},
+journal = {Process Safety and Environmental Protection},
+volume = {188},
+pages = {1256-1267},
+year = {2024},
+issn = {0957-5820},
+doi = {https://doi.org/10.1016/j.psep.2024.05.145},
+url = {https://www.sciencedirect.com/science/article/pii/S0957582024006645},
+author = {Geonhui Jang and Sumit Kumar Singh and Saerin Lim and Jinsoo Bae and Jongkook Heo and Yu Zhang and Weon Gyu Shin and Seoung Bum Kim},
+keywords = {Fire safety, Nuclear power plant, Evacuation time, Neural networks, Self-supervised learning, Semi-supervised learning},
+abstract = {Using neural networks for effective emergency response planning is essential to safeguard nuclear power plants and their surroundings swiftly and accurately during fire emergencies. However, achieving precise training of neural networks for fire evacuation modeling necessitates the collection of labeled data encompassing a variety of fire scenarios and their corresponding evacuation times. The acquisition of this labeled training dataset involves direct engagement in experimental simulations of evacuation times for diverse fire scenarios, accomplished through the application of the consolidated fire and smoke transport (CFAST) simulator. However, the endeavor to amass a diverse pool of labeled data imposes significant time and financial costs. To overcome this challenge, we propose using self- and semi-supervised learning to construct a metamodel that approximates the simulator and to improve the ability of neural networks that accurately predicts evacuation times even in situations with limited labeled data. The effectiveness of our proposed framework is demonstrated through the experimental results conducted on CFAST datasets, thus emphasizing its potential to develop nuclear safety guidelines based on neural networks.}
+}
+
+@Article{fire7020053,
+AUTHOR = {Yang, Yunhao and Zhang, Yuanyuan and Zhang, Guowei and Tang, Tianyao and Ning, Zhaoyu and Zhang, Zhiwei and Zhao, Ziming},
+TITLE = {Fire Source Determination Method for Underground Commercial Streets Based on Perception Data and Machine Learning},
+JOURNAL = {Fire},
+VOLUME = {7},
+YEAR = {2024},
+NUMBER = {2},
+ARTICLE-NUMBER = {53},
+URL = {https://www.mdpi.com/2571-6255/7/2/53},
+ISSN = {2571-6255},
+ABSTRACT = {Determining fire source in underground commercial street fires is critical for fire analysis. This paper proposes a method based on temperature and machine learning to determine information about fire source in underground commercial street fires. Data was obtained through consolidated fire and smoke transport (CFAST) software, and a fire database was established based on the sampling to ascertain fire scenarios. Temperature time series were chosen for feature processing, and three machine learning models for fire source determination were established: decision tree, random forest, and LightGBM. The results indicated that the trained models can determine fire source information based on processed features, achieving a precision exceeding 95%. Among these, the LightGBM model exhibited superior performance, with macro averages of precision, recall, and F1 score being 99.01%, 98.45%, and 99.04%, respectively, and a kappa value of 98.81%. The proposed method for determining the fire source provides technical support for grasping the fire situation in underground commercial streets and has good application prospects.},
+DOI = {10.3390/fire7020053}
+}
+
+@article{ALKHATIB2025111237,
+title = {A novel methodology to scientifically justify the formulation of modeling assumptions in screening analysis of Probabilistic Risk Assessment (PRA)},
+journal = {Annals of Nuclear Energy},
+volume = {214},
+pages = {111237},
+year = {2025},
+issn = {0306-4549},
+doi = {https://doi.org/10.1016/j.anucene.2025.111237},
+url = {https://www.sciencedirect.com/science/article/pii/S0306454925000544},
+author = {Sari Alkhatib and Tatsuya Sakurahara and Seyed Reihani and Zahra Mohaghegh},
+keywords = {Fire Modeling and Simulation, Machine Learning, Nuclear Power Plant, Probabilistic Risk Assessment (PRA), Screening Analysis},
+abstract = {In Probabilistic Risk Assessment (PRA) of nuclear power plants (NPPs), there is a growing reliance on modeling and simulation (M&S). Due to time and resource constraints, PRA analysts do not conduct M&S for every PRA event or its underlying factors; instead, they selectively, through screening analysis, determine the required level of realism for M&S. Since plant data for estimating the values of input parameters may not yet be fully collected, modeling assumptions would be required. This paper proposes a new approach for systematically selecting a set of proper modeling assumptions that minimize a false negative result in the screening analysis. The proposed methodology conducts uncertainty quantification and sensitivity analysis and generates a sensitivity dataset, which can then be utilized to guide and justify modeling assumptions to generate surrogate values of M&S input parameters. The proposed methodology is applied to the screening analysis of a multi-compartment fire scenario at an NPP.}
+}
+
+@article{ZHANG2026104006,
+title = {CFAST simulations and application of a machine learning algorithm for the fire safety of a switchgear room},
+journal = {Nuclear Engineering and Technology},
+volume = {58},
+number = {3},
+pages = {104006},
+year = {2026},
+issn = {1738-5733},
+doi = {https://doi.org/10.1016/j.net.2025.104006},
+url = {https://www.sciencedirect.com/science/article/pii/S1738573325005741},
+author = {Yu Zhang and Saerin Lim and Jongkook Heo and Jinsoo Bae and Seoung Bum Kim and Weon Gyu Shin},
+keywords = {Motor Control Center (MCC), Switchgear room, Nuclear Power Plant (NPP), Fire damage, CFAST, Neural networks},
+abstract = {A cabinet fire in the Motor Control Center (MCC) of a switchgear room in a nuclear power plant can cause severe equipment damage, potentially leading to critical system failures and posing significant safety risks. This study explores the use of neural networks and Consolidated Fire and Smoke Transport (CFAST) simulations as alternatives to traditional physics-based modeling tools. The proposed neural network is designed to rapidly predict cable and cabinet damage times without relying on the time-intensive CFAST simulations. The CFAST model simulates fire scenarios in a closed switchgear room, using key input parameters such as room dimensions (width, depth, height for rooms 1 and 2), air exchange rate, and ambient temperature. Target outputs include the surface temperature and heat flux of cables and cabinets, which serve as training data for a machine learning model to predict damage times. Results indicate that room 1's height has the greatest impact on cable and cabinet damage, with taller rooms experiencing faster deterioration. The neural network's predictions closely align with CFAST simulation results, demonstrating both accuracy and efficiency in fire damage assessment.}
+}
+
+@article{CHEN2026111869,
+title = {Bayesian network-based surrogate model for physical simulation in probabilistic risk assessment of nuclear power plants},
+journal = {Annals of Nuclear Energy},
+volume = {226},
+pages = {111869},
+year = {2026},
+issn = {0306-4549},
+doi = {https://doi.org/10.1016/j.anucene.2025.111869},
+url = {https://www.sciencedirect.com/science/article/pii/S0306454925006863},
+author = {Jingyu Chen and Tatsuya Sakurahara},
+keywords = {Probabilistic Risk Assessment (PRA), Nuclear power plant, Bayesian network, Surrogate modeling, Fire PRA},
+abstract = {In recent years, physical simulations, such as computational fluid dynamics (CFD) and finite element analysis (FEA), have been increasingly utilized to support probabilistic risk assessment (PRA) of nuclear power plants (NPPs). However, these simulations are often computationally intensive, particularly when used to explore broad scenario spaces and quantify uncertainty in PRA. This paper proposes a Bayesian network (BN)-based surrogate modeling approach to reduce the computational burden of physical simulations in PRA. Methodological steps for developing, validating, and applying the BN-based surrogate model (specifically, to support screening analysis in PRA) are presented. The implementation of the proposed approach is demonstrated through a case study of NPP fire modeling, where a BN-based surrogate model is constructed and validated for the Consolidated Model of Fire Growth and Smoke Transport (CFAST) code. Compared to other machine learning-based surrogate models previously studied in the PRA domain, BNs offer two key advantages: (i) representing causal relationships among variables explicitly, and (ii) providing a transparent model structure and inputs that can be effectively communicated using diagrams and tables. Additionally, the widespread adoption of BNs in the PRA domain can facilitate broader applications of the proposed approach.}
+}
+
+@article{HEO2026103862,
+title = {Explainable machine learning-based meta-modeling for predicting fire damage to motor control cabinets in a switchgear room},
+journal = {Nuclear Engineering and Technology},
+volume = {58},
+number = {1},
+pages = {103862},
+year = {2026},
+issn = {1738-5733},
+doi = {https://doi.org/10.1016/j.net.2025.103862},
+url = {https://www.sciencedirect.com/science/article/pii/S1738573325004309},
+author = {Jongkook Heo and Yu Zhang and Jinsoo Bae and Saerin Lim and Weon Gyu Shin and Seoung Bum Kim},
+keywords = {Fire damage prediction, Fire safety, Switchgear room, Machine learning, Deep learning, Explainable artificial intelligence},
+abstract = {Accurate prediction of damage to cables and cabinets in switchgear rooms during fire emergencies is crucial for personal safety and maintenance planning of critical infrastructure. Traditional software tools, such as consolidated fire and smoke transport (CFAST), are used to simulate fire emergencies based on initial fire conditions. However, applying such physics-based simulators to model sequential fire propagation damage to multiple objects is challenging because of significant computational costs. We propose to use machine learning and deep learning-based surrogate models for real-time fire damage prediction of multiple objects in switchgear rooms. To train the surrogate models, we generated a motor cabinet damage dataset using CFAST simulations of fire propagation in the switchgear room. We also use an explainable artificial intelligence (XAI) technique, Shapley additive explanations (SHAP), to interpret relationships between cabinet damage and initial fire conditions. Experimental results demonstrate that the multi-layer perceptron (MLP) is the most effective model for predicting fire damage of multiple objects. Furthermore, SHAP-based interpretations align closely with the sensitivity analysis results, providing reliable and transparent insights into the model's reasoning process. These results highlight our framework provides more robust and efficient results than the existing physics-based simulators, contributing to advancements in fire safety and resilience technology.}
+}
+
+@article{FARAJPOUR2026114956,
+title = {Fire-induced risk assessment using probabilistic fire simulation and Dynamic event tree: A case study of a TRIGA research reactor},
+journal = {Nuclear Engineering and Design},
+volume = {455},
+pages = {114956},
+year = {2026},
+issn = {0029-5493},
+doi = {https://doi.org/10.1016/j.nucengdes.2026.114956},
+url = {https://www.sciencedirect.com/science/article/pii/S0029549326002086},
+author = {Maryam Farajpour and Mohammadreza Nematollahi and Ahmad Pirouzmand and Siyamak Parsaei},
+keywords = {Fire probabilistic safety assessment (FPSA), Probabilistic fire dynamics simulation, Dynamic FPSA (DFPSA), Dynamic event tree (DET), Fire-induced risk, Nuclear reactor safety},
+abstract = {The dynamic evolution of fire behavior and the high degree of temporal variability of events during fire accidents in nuclear facilities necessitate a comprehensive risk analysis approach to accurately quantify fire-induced risk. In this research, to more realistic risk evaluation resulted from the time-dependent evolution of fire scenarios in a typical reactor, a three-module framework integrating deterministic and probabilistic safety analyses, called Dynamic FPSA, is developed for use in the Fire PSA (FPSA) methodology. The framework begins with a probabilistic fire simulation module (RAVEN–CFAST coupling) to handle fire-related stochastic variables, proceeds through a modified detection–suppression event tree module to evaluate component-level failure probabilities, and finally applies the dynamic event tree (DET) methodology within the Dynamic PSA module (RAVEN–RELAP5/MOD3.3 coupling) to capture system-level risk scenarios. A case study is conducted to demonstrate the application of the proposed framework for quantifying the risk of a postulated fire scenario in the electrical room of a TRIGA research reactor. The resulting core damage frequency indicates that the proposed framework yields a fire-induced risk of 9.105×10−5yr⁻1, whereas the conventional FPSA approach estimates 2.113×10−4yr⁻1. This corresponds to a 56% reduction in the fire-induced risk estimation, primarily due to the decreased conservatism and simplified assumptions in the traditional assessment. Applying this approach within the FPSA methodology enables a more accurate assessment of fire-induced risk in nuclear reactors and provides a valuable tool for incorporating fire-risk contributing factors into reactor safety analysis.}
 }
