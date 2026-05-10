@@ -38,6 +38,32 @@ Python ecosystem.
 
 # Statement of need
 
+A 2021 survey of fire engineering practitioners conducted by the SFPE Foundation
+[@wade2021fire] identified CFAST as one of the most widely used fire modeling tools in
+the field, ranking among the top ten software programs reported by respondents. Among
+the tools dedicated specifically to fire, CFAST ranks second behind Fire Dynamics
+Simulator (FDS) [@FDS_technical].
+
+The same survey highlights two recurring gaps and needs expressed by practitioners.
+First, respondents reported an inefficient use of fire models due to time-consuming
+pre- and post-processing of inputs and outputs, and expressed a need for easier-to-use
+software with improved presentation of results. Several respondents explicitly called
+for a transition from spreadsheet-based workflows to Python-based environments with richer output capabilities. Second, when asked about desired improvements to CFAST itself, respondents specifically requested better support for the
+*automation of risk assessment with multiple distributed input values*.
+
+`PyCFAST` directly addresses these needs by exposing the CFAST fire model
+as a Python interface. Users can construct simulation scenarios programmatically,
+execute CFAST in batch, and analyze results within the broader Python scientific
+ecosystem [@Harris2020; @reback2020pandas]. This removes the friction of using the
+graphical interface, or making custom scripts that reimplement input file generation.
+
+Because CFAST is computationally inexpensive compared to CFD-based fire models such as
+FDS, it is particularly well suited to large parametric studies, sensitivity analyses,and machine learning applications in fire safety engineering.
+
+Nevertheless, users should ensure that the scenarios stay within CFAST
+validated domain [@CFAST_technical], as synthetic data produced outside the model
+validation range may not represent real fire behavior.
+
 # State of the field
 
 # Software design
