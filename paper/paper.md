@@ -48,7 +48,9 @@ The same survey highlights two recurring gaps and needs expressed by practitione
 First, respondents reported an inefficient use of fire models due to time-consuming
 pre- and post-processing of inputs and outputs, and expressed a need for easier-to-use
 software with improved presentation of results. Several respondents explicitly called
-for a transition from spreadsheet-based workflows to Python-based environments with richer output capabilities. Second, when asked about desired improvements to CFAST itself, respondents specifically requested better support for the
+for a transition from spreadsheet-based workflows to Python-based environments with
+richer output capabilities. Second, when asked about desired improvements to CFAST
+itself, respondents specifically requested better support for the
 *automation of risk assessment with multiple distributed input values*.
 
 `PyCFAST` directly addresses these needs by exposing the CFAST fire model
@@ -58,13 +60,52 @@ ecosystem [@Harris2020; @reback2020pandas]. This removes the friction of using t
 graphical interface, or making custom scripts that reimplement input file generation.
 
 Because CFAST is computationally inexpensive compared to CFD-based fire models such as
-FDS, it is particularly well suited to large parametric studies, sensitivity analyses,and machine learning applications in fire safety engineering.
+FDS, it is particularly well suited to large parametric studies, sensitivity analyses,
+and machine learning applications in fire safety engineering.
 
 Nevertheless, users should ensure that the scenarios stay within CFAST
-validated domain [@CFAST_validation; @NUREG1824_v5], as synthetic data produced outside the model
-validation range may not represent real fire behavior.
+validated domain [@CFAST_validation; @NUREG1824_v5], as synthetic data produced outside
+the model validation range may not represent real fire behavior.
 
 # State of the field
+
+The use of CFAST for large-scale data generation in research has grown considerably
+over the past years, driven by two main application areas: probabilistic fire risk
+assessment in the nuclear industry and machine-learning–based modeling of fire
+phenomena (flashover prediction). The studies summarized in \autoref{tab:stateoffield}
+frequently require thousands to hundreds of thousands of CFAST simulations.
+
+To respond to this demand, two general-purpose tools currently support CFAST
+automation. **CData** [@CData], the official Monte Carlo simulation utility distributed
+with CFAST. It is widely adopted in the research community notably across the
+*P-Flash* / *FlashNet* family of studies [@Fu2021AAAI; @WANG2021103341; @TAM2022105258;
+@TAM2023119899; @FAN2023103849]. But CData is limited for input generation and CFAST
+execution, not for integration into complex Python workflows such as sensitivity
+analyses or optimization studies.
+
+Another tool called **RAVEN** [@osti_1784874] is commonly used in the nuclear safety
+community [@WORRELL2019128; @osti_1632319; @FARAJPOUR2026114956], it is a
+domain-agnostic uncertainty quantification and machine learning framework developed at
+Idaho National Laboratory. It natively supports surrogate modeling, sensitivity
+analysis, and optimization but coupling RAVEN to CFAST requires writing a custom
+`CodeInterface` in Python class that hardcodes the construction of the CFAST input file
+by string concatenation (see example below). When neither tool fits, researchers used
+Python scripts that reimplement input-file generation from scratch [@Buffington2020].
+
+This reflects a broader trend in the scientific community where Python has become the
+dominant language for data processing, machine learning, and scientific analysis.
+Frameworks such as PyTorch, TensorFlow, SALib, and pandas are commonly used across the
+reviewed studies for surrogate modeling, sensitivity analysis, and post-processing
+CFAST results. By providing a Python interface to CFAST, `PyCFAST` allows researchers
+and engineers to integrate CFAST simulations directly into their workflows, without the
+need to create custom code or external tools for input generation and execution.
+
+
+| Date | Authors | Title | Description | Task | Sampled Scenarios | Coupling tool |
+|------|---------|-------|-------------|------|-------------------|---------------|
+
+: Selected studies using CFAST for data generation in machine learning and probabilistic risk assessment. \label{tab:stateoffield}
+
 
 # Software design
 
