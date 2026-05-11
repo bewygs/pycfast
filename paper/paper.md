@@ -61,7 +61,7 @@ Because CFAST is computationally inexpensive compared to CFD-based fire models s
 FDS, it is particularly well suited to large parametric studies, sensitivity analyses,and machine learning applications in fire safety engineering.
 
 Nevertheless, users should ensure that the scenarios stay within CFAST
-validated domain [@CFAST_technical], as synthetic data produced outside the model
+validated domain [@CFAST_validation; @NUREG1824_v5], as synthetic data produced outside the model
 validation range may not represent real fire behavior.
 
 # State of the field
