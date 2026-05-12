@@ -3,7 +3,7 @@
 This table is a literature review as of May 2026, of recent studies that try to automate CFAST with tools such as RAVEN, CDATA or other custom scripts, whether to conduct Probabilistic Risk Assessment, perform sensitivity analysis, or generate data for machine learning.
 
 | Date | Authors | Title | Description | Task | Sampled Scenarios | Coupling tool |
-|------|---------|-------|-------------|------|-------------------|---------------|
+|------|---------|-------|-------------|------|---------------|-------------------|
 | 2019 | Worrell et al. | Machine learning of fire hazard model simulations for use in probabilistic safety assessments at nuclear power plants [@WORRELL2019128] | Max upper layer temperature prediction in NPP fire scenarios | Regression | 675,000 | RAVEN |
 | 2020 | Biersdorf et al. | Risk Importance Ranking of Fire Data Parameters to Enhance Fire PRA Model Realism [@osti_1632319] | Input parameter importance ranking for NPP Fire PRA | Sensitivity analysis | Morris EE + Monte Carlo (9 params) | RAVEN |
 | 2020 | Buffington, Cabrera, Kurzawski, Ezekoye | Deep-Learning Emulators of Transient Compartment Fire Simulations for Inverse Problems and Room-Scale Calorimetry [@Buffington2020] | HRR inversion from thermocouples (CFAST pre-train, FDS fine-tune) | Regression | 20,000 | Custom Python script |
