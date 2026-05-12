@@ -91,13 +91,14 @@ room = Compartment(
 \label{fig:cedit-vs-pycfast}
 \end{figure}
 
-Because CFAST is computationally inexpensive compared to CFD-based fire models such as
-FDS [@FDS_technical], it is particularly well suited to large parametric studies,
-sensitivity analyses, and machine learning applications in fire safety engineering.
+Moreover, because CFAST is computationally inexpensive compared to CFD-based fire
+models such as FDS [@FDS_technical], it is particularly well suited to generate data
+for large parametric studies, sensitivity analyses, and machine learning applications
+in fire safety engineering.
 
-Nevertheless, users should ensure that the scenarios stay within CFAST
-validated domain [@CFAST_validation; @NUREG1824_v5], as synthetic data produced outside
-the model validation range may not represent real fire behavior.
+Nevertheless, users should ensure that the scenarios stay within CFAST validated
+domain [@CFAST_validation; @NUREG1824_v5], as synthetic data produced outside the model
+validation range may not represent real fire behavior.
 
 # State of the field
 
