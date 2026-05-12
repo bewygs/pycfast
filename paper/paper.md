@@ -173,4 +173,8 @@ inclusion.
 
 # Acknowledgements
 
+`PyCFAST` was developed with the support of Orano, France. The author acknowledges the
+CFAST development team at the National Institute of Standards and Technology (NIST) for
+their ongoing efforts in maintaining and improving the CFAST fire modeling software.
+
 # References
