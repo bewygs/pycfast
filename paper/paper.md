@@ -227,11 +227,11 @@ cycle.
 
 As mentioned in \autoref{tab:stateoffield}, the fire research community around CFAST
 has demonstrated the need for CFAST automation, yet no dedicated Python interface
-existed prior to `PyCFAST`. Moreover, `PyCFAST` comes with a verification suite that
-reproduces NIST reference results [@CFAST_validation], to validate the reliability of
-the library. It also includes reproducible examples covering the most common workflows
-in the literature: data generation, sensitivity analysis, surrogate modeling, and
-parallel execution, available at https://pycfast.org/examples.
+existed prior to `PyCFAST`. Moreover, `PyCFAST` comes with a test suite that
+reproduces NIST Verification & Validation results [@CFAST_validation] to validate the
+reliability of the library. It also includes reproducible examples covering the most
+common workflows in the literature: data generation, sensitivity analysis, surrogate
+modeling, and parallel execution, available at https://pycfast.org/examples.
 
 # AI usage disclosure
 
