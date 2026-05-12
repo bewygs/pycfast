@@ -7,14 +7,16 @@ tags:
   - CFAST
   - parametric study
 authors:
-  - name: Benoît Wygas
+  - given-names: Benoît
+    surname: Wygas
     orcid: 0009-0009-0570-4641
     corresponding: true
     affiliation: 1
 affiliations:
   - name: Orano, France
     index: 1
-date: XX MM 2026
+    ror: "05ek91318"
+date: XX May 2026
 bibliography: paper.bib
 header-includes:
   - \usepackage{booktabs}
