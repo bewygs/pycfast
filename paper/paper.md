@@ -50,19 +50,19 @@ the tools dedicated specifically to fire, CFAST ranks second behind Fire Dynamic
 Simulator (FDS).
 
 The same survey highlights two recurring gaps and needs expressed by practitioners.
-First, respondents reported an inefficient use of fire models due to time-consuming
-pre- and post-processing of inputs and outputs, and expressed a need for easier-to-use
-software with improved presentation of results. Some respondents explicitly called
-for a transition from spreadsheet-based workflows to Python-based environments with
-richer output capabilities. Second, when asked about desired improvements to CFAST
-itself, respondents specifically requested better support for the
-*automation of risk assessment with multiple distributed input values*.
+First, respondents reported that the use of fire models was inefficient due to
+time-consuming pre- and post-processing of inputs and outputs, and expressed a need for
+easier-to-use software with improved presentation of results. Some respondents
+explicitly called for a transition from spreadsheet-based workflows to Python-based
+environments with richer output capabilities. Second, when asked about desired
+improvements to CFAST itself, respondents specifically requested better support for the
+"automation of risk assessment with multiple distributed input values".
 
 `PyCFAST` directly addresses these needs by exposing the CFAST fire model
 as a Python interface. Users can construct simulation scenarios programmatically,
 execute CFAST in batch, and analyze results within the broader Python scientific
 ecosystem [@Harris2020; @reback2020pandas]. This removes the friction of using the
-graphical interface, or making custom scripts that reimplement input file generation.
+graphical interface, or writing custom scripts that reimplement input file generation.
 
 \begin{figure}[h!]
 \centering
@@ -97,7 +97,7 @@ Because CFAST is computationally inexpensive compared to CFD-based fire
 models such as FDS [@FDS_technical], it is particularly well suited to generate data
 for large parametric studies, sensitivity analyses, and machine learning applications
 in fire safety engineering. The use of CFAST for large-scale data generation in
-research has grown considerably over the past years, driven by two main application
+research has grown considerably in recent years, driven by two main application
 areas: probabilistic fire risk assessment in the nuclear industry and
 machine-learning–based modeling of fire phenomena (flashover prediction). The selected
 studies in \autoref{tab:stateoffield} show that they frequently require from thousands
@@ -107,17 +107,17 @@ To respond to this demand, two general-purpose tools currently support CFAST
 automation. **CData** [@CData] is the official Monte Carlo simulation utility
 distributed with CFAST. It is widely used in the research community notably across the
 *flashover* family of studies [@Fu2021AAAI; @WANG2021103341; @TAM2022105258;
-@TAM2023119899; @FAN2023103849]. But CData is limited for input generation and CFAST
-execution, not directly for integration into complex Python workflows such as
+@TAM2023119899; @FAN2023103849]. However, CData is focused on Monte Carlo input
+generation and execution. It does not integrate naturally into Python workflows such as
 sensitivity analyses or optimization studies.
 
 Another tool called **RAVEN** [@osti_1784874] is commonly used in the nuclear safety
 community [@WORRELL2019128; @osti_1632319; @FARAJPOUR2026114956]; it is a
 domain-agnostic uncertainty quantification and machine learning framework developed at
 Idaho National Laboratory. It natively supports surrogate modeling, sensitivity
-analysis, and optimization but coupling RAVEN to CFAST requires writing a custom Python
-script that implements a `CodeInterface` that hardcodes the construction of the CFAST
-input file. When neither tool fits, researchers used Python scripts that reimplement
+analysis, and optimization but coupling RAVEN to CFAST requires implementing a Python
+class inheriting from RAVEN's `CodeInterfaceBase` that hardcodes the CFAST input file
+construction. When neither tool fit, researchers used Python scripts that reimplemented
 input-file generation from scratch [@Buffington2020].
 
 Below is a summary of the literature that used CFAST to generate large-scale data,
@@ -126,7 +126,7 @@ categorized by task, number of simulations, and coupling tool used.
 \newpage
 
 | Date | Authors | Task | Simulations | Coupling tool |
-|--------|----------------|------------------------|:------:|:--------------:|
+|--------|----------------|:------------------------|:------:|:--------------:|
 | 2019 | Worrell et al. [-@WORRELL2019128] | Regression | 675k | RAVEN |
 | 2020 | Biersdorf et al. [-@osti_1632319] | Sensitivity analysis | Morris EE + MC | RAVEN |
 | 2020 | Buffington et al. [-@Buffington2020] | Regression | 20k | Custom Python |
@@ -142,10 +142,9 @@ categorized by task, number of simulations, and coupling tool used.
 | 2026 | Farajpour et al. [-@FARAJPOUR2026114956] | Uncertainty Quantification | 10k | RAVEN |
 | 2026 | Batikh et al. [-@BATIKH2026112333] | Generative modeling | 11k | — |
 
-: Selected studies using CFAST for large-scale data generation. \label{tab:stateoffield}
-
-Note that a more detailed literature review is available on the `PyCFAST` GitHub
-repository: [literature review](https://github.com/bewygs/pycfast/tree/main/paper/literature_review.md).
+: Selected studies using CFAST for large-scale data generation.
+^[A more detailed literature review is available in the `PyCFAST` repository:
+<https://github.com/bewygs/pycfast/tree/main/paper/literature_review.md>.] \label{tab:stateoffield}
 
 Most studies in \autoref{tab:stateoffield} report using Python-based frameworks such as
 PyTorch, TensorFlow, SALib, or pandas for surrogate modeling, sensitivity analysis, and
@@ -162,8 +161,8 @@ From a technical perspective, `PyCFAST` exposes the CFAST Fortran namelist input
 as a Python API that fits naturally into the Python ecosystem, especially for
 conducting large parametric studies where thousands of simulations need to be
 generated. Rather than using a hardcoded template approach as done in custom scripts
-with RAVEN `CodeInterface` implementations, `PyCFAST` exposes an object-oriented
-programming interface that directly reflects the structure of CFAST input files.
+with RAVEN, `PyCFAST` exposes an object-oriented programming interface that directly
+reflects the structure of CFAST input files.
 
 The main components of the API include:
 
@@ -244,23 +243,23 @@ cycle.
 
 # Research impact statement
 
-As mentioned in \autoref{tab:stateoffield}, the fire research community around CFAST
-has demonstrated the need for CFAST automation, yet no dedicated Python interface
-existed prior to `PyCFAST`. Moreover, `PyCFAST` comes with a test suite that
-reproduces NIST Verification & Validation results [@CFAST_validation] to validate the
-reliability of the library. It also includes reproducible examples covering the most
-common workflows in the literature: data generation, sensitivity analysis, surrogate
-modeling, and parallel execution, available at https://pycfast.org/examples.
+The studies catalogued in \autoref{tab:stateoffield}, collectively ran over one million
+CFAST simulations yet had no common Python interface to rely on, for each study the
+coupling approach was redeveloped from scratch. Moreover, `PyCFAST` comes with a test
+suite that reproduces NIST Verification & Validation results [@CFAST_validation] to
+validate the reliability of the library. It also includes reproducible examples
+covering the most common workflows in the literature like data generation, sensitivity
+analysis, surrogate modeling, and parallel execution, it is available at
+<https://pycfast.org/examples>.
 
 # AI usage disclosure
 
 AI tools (Claude Code and GitHub Copilot) were used for writing documentation drafts,
-which were reviewed and edited by the author, as AI-generated text tended to be overly
-verbose. Unit tests and verification tests were developed with AI support to reduce
-repetitive manual effort. Finally, AI was used to identify relevant articles that
-may have been missed after an initial bibliography that was compiled manually by the
-author. All references were carefully read and selected by the author before
-inclusion.
+which were reviewed and edited by the author. Unit tests and verification tests were
+developed with AI support to reduce repetitive manual effort. Finally, AI was used to
+identify relevant articles that may have been missed after an initial bibliography that
+was compiled manually by the author. All references were carefully read and selected by
+the author before inclusion.
 
 # Acknowledgements
 
