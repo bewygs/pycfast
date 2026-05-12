@@ -91,23 +91,17 @@ room = Compartment(
 \label{fig:cedit-vs-pycfast}
 \end{figure}
 
-Moreover, because CFAST is computationally inexpensive compared to CFD-based fire
-models such as FDS [@FDS_technical], it is particularly well suited to generate data
-for large parametric studies, sensitivity analyses, and machine learning applications
-in fire safety engineering.
-
-Nevertheless, users should ensure that the scenarios stay within CFAST's validated
-domain [@CFAST_validation; @NUREG1824_v5], as synthetic data produced outside the model
-validation range may not represent real fire behavior.
-
 # State of the field
 
-The use of CFAST for large-scale data generation in research has grown considerably
-over the past years, driven by two main application areas: probabilistic fire risk
-assessment in the nuclear industry and machine-learning–based modeling of fire
-phenomena (flashover prediction). The selected studies in \autoref{tab:stateoffield}
-show that they frequently require from thousands to hundreds of thousands of CFAST
-simulations.
+Because CFAST is computationally inexpensive compared to CFD-based fire
+models such as FDS [@FDS_technical], it is particularly well suited to generate data
+for large parametric studies, sensitivity analyses, and machine learning applications
+in fire safety engineering. The use of CFAST for large-scale data generation in
+research has grown considerably over the past years, driven by two main application
+areas: probabilistic fire risk assessment in the nuclear industry and
+machine-learning–based modeling of fire phenomena (flashover prediction). The selected
+studies in \autoref{tab:stateoffield} show that they frequently require from thousands
+to hundreds of thousands of CFAST simulations.
 
 To respond to this demand, two general-purpose tools currently support CFAST
 automation. **CData** [@CData] is the official Monte Carlo simulation utility
@@ -128,6 +122,8 @@ input-file generation from scratch [@Buffington2020].
 
 Below is a summary of the literature that used CFAST to generate large-scale data,
 categorized by task, number of simulations, and coupling tool used.
+
+\newpage
 
 | Date | Authors | Task | Simulations | Coupling tool |
 |--------|----------------|------------------------|:------:|:--------------:|
@@ -155,6 +151,10 @@ Most studies in \autoref{tab:stateoffield} report using Python-based frameworks 
 PyTorch, TensorFlow, SALib, or pandas for surrogate modeling, sensitivity analysis, and
 post-processing of CFAST results. This reflects a broader trend where Python has become
 the dominant language for scientific computing.
+
+Nevertheless, users should ensure that the scenarios stay within CFAST's validated
+domain [@CFAST_validation; @NUREG1824_v5], as synthetic data produced outside the model
+validation range may not represent real fire behavior.
 
 # Software design
 
