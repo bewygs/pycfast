@@ -47,7 +47,7 @@ A 2021 survey of fire engineering practitioners conducted by the SFPE Foundation
 [@wade2021fire] identified CFAST as one of the most widely used fire modeling tools in
 the field, ranking among the top ten software programs reported by respondents. Among
 the tools dedicated specifically to fire, CFAST ranks second behind Fire Dynamics
-Simulator (FDS) [@FDS_technical].
+Simulator (FDS).
 
 The same survey highlights two recurring gaps and needs expressed by practitioners.
 First, respondents reported an inefficient use of fire models due to time-consuming
@@ -92,8 +92,8 @@ room = Compartment(
 \end{figure}
 
 Because CFAST is computationally inexpensive compared to CFD-based fire models such as
-FDS, it is particularly well suited to large parametric studies, sensitivity analyses,
-and machine learning applications in fire safety engineering.
+FDS [@FDS_technical], it is particularly well suited to large parametric studies,
+sensitivity analyses, and machine learning applications in fire safety engineering.
 
 Nevertheless, users should ensure that the scenarios stay within CFAST
 validated domain [@CFAST_validation; @NUREG1824_v5], as synthetic data produced outside
