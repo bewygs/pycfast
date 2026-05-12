@@ -163,6 +163,14 @@ need to create custom code or external tools for input generation and execution.
 
 # AI usage disclosure
 
+AI tools (Claude Code and GitHub Copilot) were used for writing documentation draft and
+was reviewed and edited by the author, as AI-generated text tended to be overly
+verbose. Unit tests and verification tests were developed with AI support to reduce
+repetitive manual effort. Finally, AI was used to identify relevant article
+that may have been missed after an initial bibliography that was compiled manually by
+the author. All references were carefully read and selected by the author before
+inclusion.
+
 # Acknowledgements
 
 # References
