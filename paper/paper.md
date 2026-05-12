@@ -148,16 +148,13 @@ categorized by task, number of simulations, and coupling tool used.
 
 : Selected studies using CFAST for large-scale data generation. \label{tab:stateoffield}
 
-Note that a more detailed literature review is available at https://github.com/bewygs/pycfast/tree/main/paper/literature_review.md.
+Note that a more detailed literature review is available on the `PyCFAST` GitHub
+repository: [literature review](https://github.com/bewygs/pycfast/tree/main/paper/literature_review.md).
 
-This reflects a broader trend in the scientific community where Python has become the
-dominant language for data processing, machine learning, and scientific analysis.
-Frameworks such as PyTorch, TensorFlow, SALib, and pandas are commonly used across the
-reviewed studies for surrogate modeling, sensitivity analysis, and post-processing
-CFAST results. By providing a Python interface to CFAST, `PyCFAST` allows researchers
-and engineers to integrate CFAST simulations directly into their workflows, without the
-need to create custom code or external tools for input generation and execution.
-
+Most studies in \autoref{tab:stateoffield} report using Python-based frameworks such as
+PyTorch, TensorFlow, SALib, or pandas for surrogate modeling, sensitivity analysis, and
+post-processing of CFAST results. This reflects a broader trend where Python has become
+the dominant language for scientific computing.
 
 # Software design
 
