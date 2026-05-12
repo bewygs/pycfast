@@ -122,16 +122,8 @@ domain-agnostic uncertainty quantification and machine learning framework develo
 Idaho National Laboratory. It natively supports surrogate modeling, sensitivity
 analysis, and optimization but coupling RAVEN to CFAST requires writing a custom
 `CodeInterface` in Python class that hardcodes the construction of the CFAST input file
-by string concatenation (see example below). When neither tool fits, researchers used
-Python scripts that reimplement input-file generation from scratch [@Buffington2020].
-
-This reflects a broader trend in the scientific community where Python has become the
-dominant language for data processing, machine learning, and scientific analysis.
-Frameworks such as PyTorch, TensorFlow, SALib, and pandas are commonly used across the
-reviewed studies for surrogate modeling, sensitivity analysis, and post-processing
-CFAST results. By providing a Python interface to CFAST, `PyCFAST` allows researchers
-and engineers to integrate CFAST simulations directly into their workflows, without the
-need to create custom code or external tools for input generation and execution.
+by string concatenation. When neither tool fits, researchers used Python scripts that
+reimplement input-file generation from scratch [@Buffington2020].
 
 Below is a summary of the literature that used CFAST to generate large-scale data, categorized by task, number of simulations, and coupling tool used.
 
@@ -155,6 +147,15 @@ Below is a summary of the literature that used CFAST to generate large-scale dat
 : Selected studies using CFAST for large-scale data generation. \label{tab:stateoffield}
 
 Note that a more detailed literature review is available at https://github.com/bewygs/pycfast/tree/main/paper/literature_review.md.
+
+This reflects a broader trend in the scientific community where Python has become the
+dominant language for data processing, machine learning, and scientific analysis.
+Frameworks such as PyTorch, TensorFlow, SALib, and pandas are commonly used across the
+reviewed studies for surrogate modeling, sensitivity analysis, and post-processing
+CFAST results. By providing a Python interface to CFAST, `PyCFAST` allows researchers
+and engineers to integrate CFAST simulations directly into their workflows, without the
+need to create custom code or external tools for input generation and execution.
+
 
 # Software design
 
