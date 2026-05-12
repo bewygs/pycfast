@@ -132,12 +132,28 @@ CFAST results. By providing a Python interface to CFAST, `PyCFAST` allows resear
 and engineers to integrate CFAST simulations directly into their workflows, without the
 need to create custom code or external tools for input generation and execution.
 
+Below is a summary of the literature that used CFAST to generate large-scale data, categorized by task, number of simulations, and coupling tool used.
 
-| Date | Authors | Title | Description | Task | Sampled Scenarios | Coupling tool |
-|------|---------|-------|-------------|------|-------------------|---------------|
+| Date | Authors | Task | Simulations | Coupling tool |
+|--------|----------------|------------------------|:------:|:--------------:|
+| 2019 | Worrell et al. [-@WORRELL2019128] | Regression | 675k | RAVEN |
+| 2020 | Biersdorf et al. [-@osti_1632319] | Sensitivity analysis | Morris EE + MC | RAVEN |
+| 2020 | Buffington et al. [-@Buffington2020] | Regression | 20k | Custom Python |
+| 2021 | Fang et al. [-@FANG2021103469] | Classification | 6k | — |
+| 2021–2022 | Kou et al. [-@KOU2021103310; -@KOU2022105310] | Classification + Regression | 970–2.5k | — |
+| 2021–2023 | Tam, Fu et al. [-@Fu2021AAAI; -@WANG2021103341; -@TAM2022105258; -@Tam2023_synthetic; -@TAM2023119899; -@FAN2023103849] | Classification + Regression | 5k–110k | CData |
+| 2024 | Yang et al. [-@fire7020053] | Classification | 4.8k | CData |
+| 2024 | Singh, Jang et al. [-@SINGH20243717; -@JANG20241256] | Regression + Sensitivity analysis | 11k–12k | — |
+| 2024 | Sakurahara et al. [-@Sakurahara2024_probabilistic] | Sensitivity analysis + Uncertainty Quantification | ~25k | RAVEN |
+| 2025 | Alkhatib, Sakurahara et al. [-@ALKHATIB2025111237] | Sensitivity analysis + Regression | 230k | — |
+| 2026 | Zhang, Heo et al. [-@ZHANG2026104006; -@HEO2026103862] | Regression | 6k | — |
+| 2026 | Chen, Sakurahara [-@CHEN2026111869] | Regression | 20k | — |
+| 2026 | Farajpour et al. [-@FARAJPOUR2026114956] | Uncertainty Quantification | 10k | RAVEN |
+| 2026 | Batikh et al. [-@BATIKH2026112333] | Generative modeling | 11k | — |
 
-: Selected studies using CFAST for data generation in machine learning and probabilistic risk assessment. \label{tab:stateoffield}
+: Selected studies using CFAST for large-scale data generation. \label{tab:stateoffield}
 
+Note that a more detailed literature review is available at https://github.com/bewygs/pycfast/tree/main/paper/literature_review.md.
 
 # Software design
 
