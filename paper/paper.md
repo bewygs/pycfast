@@ -158,6 +158,71 @@ the dominant language for scientific computing.
 
 # Software design
 
+From a technical perspective, `PyCFAST` exposes the CFAST Fortran namelist input format
+as a Python API that fits naturally into the Python ecosystem, especially for
+conducting large parametric studies where thousands of simulations need to be
+generated. Rather than using a hardcoded template approach as done in custom scripts
+with RAVEN `CodeInterface` implementations, `PyCFAST` exposes an object-oriented
+programming interface that directly reflects the structure of CFAST input files.
+
+The main components of the API include:
+
+- `CeilingFloorVent`
+- `Compartment`
+- `Device`
+- `Fire`
+- `Material`
+- `MechanicalVent`
+- `SimulationEnvironment`
+- `SurfaceConnection`
+- `WallVent`
+
+Each component is represented as a Python object that validates its own state.
+A central `CFASTModel` object aggregates all components and manages their interactions.
+
+Below is an example of a CFAST input file from the CFAST verification
+suite:
+
+```
+&HEAD VERSION = 7600, TITLE = 'CFAST Simulation' /
+
+!! Scenario Configuration 
+&TIME SIMULATION = 900 PRINT = 60 SMOKEVIEW = 15 SPREADSHEET = 1 / 
+&INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+&MISC  MAX_TIME_STEP = 1.9 / 
+
+!! Material Properties 
+&MATL ID = 'Steel' MATERIAL = 'Steel', 
+      CONDUCTIVITY = 54 DENSITY = 7850 SPECIFIC_HEAT = 0.465, THICKNESS = 0.0015 EMISSIVITY = 0.9 /
+...
+
+```
+
+Validation is enforced at two levels. At the component level, each object validates its
+fields on every attribute assignment, for example a `Fire` with a negative heat of
+combustion or a `Compartment` with a zero width raises an error immediately. At the
+model level, `CFASTModel` checks component dependencies, for example materials
+referenced in compartment surfaces or devices must exist in the model, fire placements
+must reference valid compartments, and so on. This two-stage approach ensures that
+invalid configurations are caught early, before any simulation is run.
+
+The `CFASTModel` class is designed to make it easy to update and iterate over
+simulation configurations. Methods `add()` and `update_*_params()` return a new model
+instance rather than mutating the existing one, so users can safely update parameters
+or add components inside a loop to generate large batches of scenarios.
+
+`PyCFAST` also comes with a `parse_cfast_file` function that reads existing CFAST `.in`
+files and reconstructs a full `CFASTModel` from them, allowing users to load and modify
+their own input files already created with CEdit without having to rewrite them from
+scratch.
+
+Finally, `PyCFAST` does not bundle a precompiled CFAST binary. An early version (0.1.2)
+distributed precompiled binaries, but this proved difficult to maintain across
+platforms and CFAST versions. Users instead specify the path to their local CFAST
+installation, or rely on automatic resolution via the `$CFAST` environment variable or
+system `PATH`. This keeps the library lightweight and decouples it from CFAST's release
+cycle.
+
 # Research impact statement
 
 As mentioned in \autoref{tab:stateoffield}, the fire research community around CFAST
@@ -180,7 +245,7 @@ inclusion.
 
 # Acknowledgements
 
-`PyCFAST` was developed with the support of Orano, France. The author acknowledges the
+`PyCFAST` was developed with the support of Orano. The author acknowledges the
 CFAST development team at the National Institute of Standards and Technology (NIST) for
 their ongoing efforts in maintaining and improving the CFAST fire modeling software.
 
