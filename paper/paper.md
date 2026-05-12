@@ -16,6 +16,11 @@ affiliations:
     index: 1
 date: XX MM 2026
 bibliography: paper.bib
+header-includes:
+  - \usepackage{booktabs}
+  - \usepackage{listings}
+  - \usepackage{xcolor}
+  - \lstset{language=Python, basicstyle=\small\ttfamily, keywordstyle=\color{blue!70}\bfseries, stringstyle=\color{red!60}, commentstyle=\color{green!50!black}\itshape, showstringspaces=false}
 ---
 
 # Summary
@@ -58,6 +63,33 @@ as a Python interface. Users can construct simulation scenarios programmatically
 execute CFAST in batch, and analyze results within the broader Python scientific
 ecosystem [@Harris2020; @reback2020pandas]. This removes the friction of using the
 graphical interface, or making custom scripts that reimplement input file generation.
+
+\begin{figure}[h!]
+\centering
+\begin{minipage}[c]{0.45\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{images/cedit-compartments-tab.png}
+\end{minipage}%
+\hspace{1em}
+\begin{minipage}[c]{0.50\textwidth}
+  \begin{lstlisting}[language=Python]
+from pycfast import Compartment
+
+room = Compartment(
+    id="Comp 1",
+    width=10.0,
+    depth=10.0,
+    height=10.0,
+    ceiling_mat_id="Gypboard",
+    wall_mat_id="Gypboard",
+    floor_mat_id="Gypboard",
+)
+  \end{lstlisting}
+\end{minipage}
+\caption{The CFAST graphical interface (CEdit) alongside its
+  \texttt{PyCFAST} equivalent for defining a compartment.}
+\label{fig:cedit-vs-pycfast}
+\end{figure}
 
 Because CFAST is computationally inexpensive compared to CFD-based fire models such as
 FDS, it is particularly well suited to large parametric studies, sensitivity analyses,
