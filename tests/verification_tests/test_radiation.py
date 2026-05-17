@@ -971,8 +971,7 @@ def test_radiation_5_simulation(tmp_path):
     prefix = "radiation_5"
 
     simulation_env = SimulationEnvironment(
-        title="radiation_4",
-        # Note: the input file has title="radiation_4" but this is radiation_5
+        title="radiation_5",
         time_simulation=1,
         print=1,
         smokeview=1,
