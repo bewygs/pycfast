@@ -6,10 +6,12 @@ on:
     branches:
       - main
     paths:
+      - .github/workflows/joss.yml
       - 'paper/paper.md'
       - 'paper/paper.bib'
   pull_request:
     paths:
+      - .github/workflows/joss.yml
       - 'paper/paper.md'
       - 'paper/paper.bib'
 
