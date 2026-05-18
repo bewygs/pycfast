@@ -1,6 +1,20 @@
 # Changelog
 All notable changes to PyCFAST are documented in this file.
 
+## [0.2.1] - 2026-05-18
+
+### New features
+- `Compartment`: support multiple materials for wall, floor and ceiling (#132)
+- Add CFAST 7.7.6 support (#128)
+- Add validation suite (#135)
+
+### Fixes
+- `Device`: allow zero value for `spray_density` (#131)
+- `CFASTModel.save()`: restore `_written_content` when using alternate `file_name` (#120)
+
+### Other changes
+- Add JOSS paper and bibliography (#141, #142)
+
 ## [0.2.0] - 2026-04-27
 
 First Beta release.
