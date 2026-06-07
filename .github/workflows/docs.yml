@@ -36,8 +36,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      CFAST_VERSION: "7.7.6"
-      CFAST_TAG: "CFAST-7.7.6"
+      CFAST_VERSION: "7.7.7"
+      CFAST_TAG: "CFAST-7.7.7"
     steps:
       - name: Checkout
         uses: actions/checkout@v6
