@@ -41,7 +41,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         cfast-version: ["7.7.0", "7.7.1", "7.7.2", "7.7.3", "7.7.4", "7.7.5", "7.7.6", "7.7.7", "latest"]
         exclude:
-          # Linux: only tested on version 7.7.5,, 7.7.6 and 7.7.7 and latest commit due to issue with gcc issue with CFAST older version
+          # Linux: only tested on version 7.7.5, 7.7.6 and 7.7.7 and latest commit due to issue with gcc issue with CFAST older version
           # binary with older versions of CFAST are not available for Linux
           - os: ubuntu-latest
             cfast-version: "7.7.0"
