@@ -35,8 +35,8 @@ jobs:
       id: cache-cfast
       uses: actions/cache@v5
       with:
-        path: ~/cfast-cache/cfast-7.7.6-linux-gcc
-        key: cfast-7.7.6-linux-gcc-${{ hashFiles('.github/workflows/validation.yml') }}
+        path: ~/cfast-cache/cfast-7.7.7-linux-gcc
+        key: cfast-7.7.7-linux-gcc-${{ hashFiles('.github/workflows/validation.yml') }}
 
     - name: Install gfortran
       if: steps.cache-cfast.outputs.cache-hit != 'true'
@@ -44,21 +44,21 @@ jobs:
       with:
         compiler: gcc
 
-    - name: Build CFAST 7.7.6 from source
+    - name: Build CFAST 7.7.7 from source
       if: steps.cache-cfast.outputs.cache-hit != 'true'
       shell: bash
       run: |
-        git clone --depth 1 --branch CFAST-7.7.6 https://github.com/firemodels/cfast.git cfast-src
+        git clone --depth 1 --branch CFAST-7.7.7 https://github.com/firemodels/cfast.git cfast-src
         cd cfast-src/Build/CFAST/gnu_linux
         chmod +x make_cfast.sh
         ./make_cfast.sh
         mkdir -p ~/cfast-cache
-        cp cfast7_linux ~/cfast-cache/cfast-7.7.6-linux-gcc
-        chmod +x ~/cfast-cache/cfast-7.7.6-linux-gcc
+        cp cfast7_linux ~/cfast-cache/cfast-7.7.7-linux-gcc
+        chmod +x ~/cfast-cache/cfast-7.7.7-linux-gcc
 
     - name: Install CFAST to system path
       run: |
-        sudo cp ~/cfast-cache/cfast-7.7.6-linux-gcc /usr/bin/cfast
+        sudo cp ~/cfast-cache/cfast-7.7.7-linux-gcc /usr/bin/cfast
         sudo chmod +x /usr/bin/cfast
 
     - name: Verify CFAST installation
@@ -69,7 +69,7 @@ jobs:
       uses: actions/cache@v5
       with:
         path: tests/validation_tests/validation_data_local
-        key: validation-data-7.7.6-${{ hashFiles('tests/validation_tests/Validation/**/*.in') }}
+        key: validation-data-7.7.7-${{ hashFiles('tests/validation_tests/Validation/**/*.in') }}
 
     - name: Generate validation reference data
       if: steps.cache-validation-data.outputs.cache-hit != 'true'
