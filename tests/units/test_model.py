@@ -1558,6 +1558,11 @@ class TestCFASTModelValidateDependencies:
         with pytest.raises(ValueError, match="maximum of 100 compartments"):
             self._make(sim_env, compartments)
 
+    def test_no_compartments(self, sim_env):
+        """Test that zero compartments raises ValueError."""
+        with pytest.raises(ValueError, match="minimum of 1"):
+            self._make(sim_env, [])
+
     def test_duplicate_compartment_ids(self, sim_env):
         """Test that duplicate compartment IDs raises ValueError."""
         with pytest.raises(ValueError, match="Duplicate id 'ROOM1'"):

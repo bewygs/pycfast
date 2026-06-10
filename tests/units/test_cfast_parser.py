@@ -922,7 +922,12 @@ class TestCFASTParser:
 
     def test_parse_file_no_diag_block(self):
         """Test parsing a file without a DIAG block."""
-        content = "&HEAD TITLE='Test Model' /\n&TIME SIMULATION=300 /"
+        # A model needs at least one &COMP block, CFAST can't run without it
+        content = (
+            "&HEAD TITLE='Test Model' /\n&TIME SIMULATION=300 /\n"
+            "&COMP ID = 'Room1', DEPTH = 5, HEIGHT = 3, WIDTH = 4, "
+            "ORIGIN = 0, 0, 0 /"
+        )
 
         with patch("builtins.open", mock_open(read_data=content)):
             with patch("pathlib.Path.exists", return_value=True):
