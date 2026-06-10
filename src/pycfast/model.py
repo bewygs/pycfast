@@ -1139,9 +1139,9 @@ class CFASTModel:
             If a fire or device position is outside its compartment's dimensions
             (suspicious but not always wrong).
         """
-        if len(self.compartments) > 100:
+        if len(self.compartments) > 100 or len(self.compartments) < 1:
             raise ValueError(
-                f"CFAST supports a maximum of 100 compartments, got {len(self.compartments)}."
+                f"CFAST needs a minimum of 1 and supports a maximum of 100 compartments, got {len(self.compartments)}."
             )
 
         # Duplicate IDs within each component type
