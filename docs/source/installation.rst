@@ -1,7 +1,7 @@
 Installation
 ============
 
-PyCFAST requires **Python 3.10 or later**. It is tested against CFAST **7.7.0** through **7.7.6**.
+PyCFAST requires **Python 3.10 or later**. It is tested against CFAST **7.7.0** through **7.7.7**.
 Versions below **7.7.0** might work but are not guaranteed to be fully compatible.
 
 It is recommended to install PyCFAST inside a virtual environment. Create one with ``venv`` or ``conda`` before installing:
