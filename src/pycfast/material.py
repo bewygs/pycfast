@@ -32,7 +32,9 @@ class Material(CFASTComponent):
     material : str
         A descriptive name for the material.
     conductivity : float
-        Thermal conductivity for the material. Default units: kW/(m·°C) or kW/(m·K).
+        # NIST CFAST documentation states kW, but CFAST input files
+        # show this is actually in W.
+        Thermal conductivity for the material. Default units: W/(m·°C) or W/(m·K).
     specific_heat : float
         Specific heat for the material. Default units: kJ/(kg·°C) or kJ/(kg·K).
     density : float
