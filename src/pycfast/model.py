@@ -290,7 +290,10 @@ class CFASTModel:
                * - ``'diagnostics'``
                  - Diagnostic information (only present if the input file contains ``&DIAG``).
 
-            Returns ``None`` if the simulation fails.
+            If CFAST execution exceeds ``timeout``, the partial output CSV
+            files produced so far are read and returned. Any individual value may be
+            ``None`` if the corresponding CSV file is missing, empty, or could not be
+            parsed.
 
         Raises
         ------
