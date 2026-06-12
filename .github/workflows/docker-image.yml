@@ -9,7 +9,7 @@ on:
       - 'src/**'
       - 'pyproject.toml'
       - 'README.md'
-      - '.github/workflows/docker.yml'
+      - '.github/workflows/docker-image.yml'
 
   pull_request:
     branches: [ "main" ]
@@ -18,7 +18,7 @@ on:
       - 'src/**'
       - 'pyproject.toml'
       - 'README.md'
-      - '.github/workflows/docker.yml'
+      - '.github/workflows/docker-image.yml'
 
   release:
     types: [published]
