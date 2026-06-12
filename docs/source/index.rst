@@ -26,7 +26,55 @@ parametric studies, automation, and reproducibility cumbersome.
 PyCFAST was originally developed internally at `Orano <https://www.orano.group/>`_ to
 integrate CFAST with the Python scientific ecosystem (notably for the
 |scipy.optimize|_ module), and complements existing tools like |CData|_ by
-exposing every CFAST component programmatically.
+exposing every CFAST component programmatically. Below is a 
+diagram of how the components of PyCFAST interact with the CFAST model:
+
+.. figure:: _static/images/pycfast-workflow.svg
+   :align: center
+   :width: 100%
+   :alt: PyCFAST workflow
+
+You describe a fire scenario with Python objects (:class:`~pycfast.Compartment`,
+:class:`~pycfast.Fire`, :class:`~pycfast.WallVent`, :class:`~pycfast.Device`…),
+assemble them into a :class:`~pycfast.CFASTModel`, and launch the simulation with
+:meth:`~pycfast.CFASTModel.run`. You can also start from an existing ``.in`` file with
+:func:`~pycfast.parsers.parse_cfast_file`.
+
+Quickstart
+==========
+
+Below is a minimal example to create a model, run it, and obtain results of the
+compartment as a pandas DataFrame:
+
+.. code-block:: python
+
+    from pycfast import CFASTModel, Compartment, SimulationEnvironment
+
+    model = CFASTModel(
+        simulation_environment=SimulationEnvironment(title="My Simulation"),
+        compartments=[Compartment(id="ROOM1", width=5.0, depth=4.0, height=2.7)],
+        file_name="my_simulation.in",
+    )
+
+    results = model.run()
+
+:meth:`~pycfast.CFASTModel.run` returns a dictionary of pandas
+:class:`~pandas.DataFrame`, one per output CSV file:
+
+.. code-block:: pycon
+
+    >>> list(results)
+    ['compartments', 'devices', 'masses', 'vents', 'walls', 'zone']
+
+    >>> results["compartments"]
+       Time   ULT_1  LLT_1  HGT_1  VOL_1  PRS_1  ...
+    0   0.0   20.00  20.00   5.00   0.01    0.0  ...
+    1   1.0   20.83  20.00   5.00   0.10    0.0  ...
+
+
+More details on how to use PyCFAST are available in the
+:doc:`Getting Started <getting_started>` guide or the :doc:`Examples <examples>`
+section, which includes more complex use cases.
 
 .. |scipy.optimize| replace:: ``scipy.optimize``
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html

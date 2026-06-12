@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 906 238" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-label="PyCFAST workflow diagram">
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#888"/>
+    </marker>
+  </defs>
+
+  <!-- code annotations -->
+  <g font-family="ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace" font-size="12">
+    <text x="12" y="16" fill="#888">from pycfast import CFASTModel</text>
+    <text x="12" y="34" fill="#888">model = CFASTModel(...)</text>
+  </g>
+
+  <!-- file format above the results arrow -->
+  <text x="716" y="52" font-family="ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace" font-size="12" fill="#888" text-anchor="middle">*.csv</text>
+
+  <!-- boxes -->
+  <g>
+    <rect x="12"  y="60" width="158" height="64" rx="8" fill="#8172B3"/>
+    <rect x="206" y="60" width="140" height="64" rx="8" fill="#4C72B0"/>
+    <rect x="382" y="60" width="140" height="64" rx="8" fill="#5A6B7B"/>
+    <rect x="558" y="60" width="140" height="64" rx="8" fill="#C96A3B"/>
+    <rect x="734" y="60" width="160" height="64" rx="8" fill="#55A868"/>
+  </g>
+
+  <!-- box labels -->
+  <g fill="#ffffff" text-anchor="middle">
+    <text x="91"  y="88"  font-size="14">Fire scenario</text>
+    <text x="91"  y="108" font-size="11" fill="#e7e2f0">Compartment, Fire, Vent…</text>
+
+    <text x="276" y="88"  font-size="14">CFASTModel</text>
+    <text x="276" y="108" font-size="11" fill="#dde6f0">build &amp; validate</text>
+
+    <text x="452" y="88"  font-size="14">.in input file</text>
+    <text x="452" y="108" font-size="11" fill="#e2e6ea">&amp;HEAD, &amp;COMP, &amp;FIRE…</text>
+
+    <text x="628" y="88"  font-size="14">CFAST</text>
+    <text x="628" y="108" font-size="11" fill="#f3e3d8">fire simulation</text>
+
+    <text x="814" y="88"  font-size="14">Results</text>
+    <text x="814" y="108" font-size="11" fill="#dfeede">pandas DataFrames</text>
+  </g>
+
+  <!-- forward arrows: tips land exactly on the next box edge -->
+  <g stroke="#888" stroke-width="2" marker-end="url(#arrow)">
+    <line x1="171" y1="92" x2="205" y2="92"/>
+    <line x1="347" y1="92" x2="381" y2="92"/>
+    <line x1="523" y1="92" x2="557" y2="92"/>
+    <line x1="699" y1="92" x2="733" y2="92"/>
+  </g>
+
+  <!-- optional reverse path: parse an existing .in file back into a model -->
+  <g>
+    <path d="M452,124 L452,150 L276,150 L276,126" fill="none" stroke="#888" stroke-width="2"
+          stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+    <text x="364" y="170" text-anchor="middle" font-size="12" fill="#888"
+          font-family="ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace">parse_cfast_file()</text>
+    <text x="364" y="186" text-anchor="middle" font-size="11" fill="#888" font-style="italic">load an existing CFAST file</text>
+  </g>
+
+  <!-- run() spans serialize -> simulate -> parse results -->
+  <g>
+    <path d="M382,198 L382,206 L894,206 L894,198" fill="none" stroke="#999" stroke-width="1.5"/>
+    <text x="638" y="228" text-anchor="middle" font-size="12" fill="#888"
+          font-family="ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace">results = model.run()</text>
+  </g>
+</svg>
