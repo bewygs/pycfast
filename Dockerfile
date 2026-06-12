@@ -1,9 +1,9 @@
 FROM ubuntu:24.04 AS cfast-builder
 
-ARG CFAST_TAG=CFAST-7.7.6
-ARG CFAST_BUILD_DIR=gnu_linux_64
+ARG CFAST_TAG=CFAST-7.7.7
+ARG CFAST_BUILD_DIR=gnu_linux
 ARG CFAST_BUILD_SCRIPT=make_cfast.sh
-ARG CFAST_BINARY_NAME=cfast7_linux_64
+ARG CFAST_BINARY_NAME=cfast7_linux
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
