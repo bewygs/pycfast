@@ -247,10 +247,19 @@ jobs:
         fi
         cfast
 
+    - name: Cache verification data
+      if: matrix.cfast-version != 'latest'
+      id: cache-verif
+      uses: actions/cache@v5
+      with:
+        path: tests/verification_tests/verification_data_local
+        key: verif-${{ matrix.cfast-version }}-${{ runner.os }}-${{ hashFiles('tests/verification_tests/Verification/**/*.in', 'tests/generate_reference_data.py') }}
+
     - name: Run verification data
       shell: bash
       # Due to small numerical differences between compilers/platforms we generate
       # the verification data on each platform with the same binary used for tests
+      if: matrix.cfast-version == 'latest' || steps.cache-verif.outputs.cache-hit != 'true'
       run: |
         cd tests
         python generate_reference_data.py --suite verification
