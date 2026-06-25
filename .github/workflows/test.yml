@@ -136,7 +136,7 @@ jobs:
     - name: Cache CFAST binary (Linux)
       if: runner.os == 'Linux' && matrix.cfast-version != 'latest'
       id: cache-cfast-linux
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ~/cfast-cache/cfast-${{ matrix.cfast-version }}-linux-gcc
         key: cfast-${{ matrix.cfast-version }}-linux-gcc-${{ hashFiles('.github/workflows/test.yml') }}
@@ -191,7 +191,7 @@ jobs:
     - name: Cache CFAST binary (Windows)
       if: runner.os == 'Windows' && matrix.cfast-version != 'latest'
       id: cache-cfast-windows
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ~/cfast-cache/cfast-${{ matrix.cfast-version }}-windows
         key: cfast-installer-${{ matrix.cfast-version }}-windows-${{ hashFiles('.github/workflows/test.yml') }}
@@ -250,7 +250,7 @@ jobs:
     - name: Cache verification data
       if: matrix.cfast-version != 'latest'
       id: cache-verif
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: tests/verification_tests/verification_data_local
         key: verif-${{ matrix.cfast-version }}-${{ runner.os }}-${{ hashFiles('tests/verification_tests/Verification/**/*.in', 'tests/generate_reference_data.py') }}
