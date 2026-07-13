@@ -15,6 +15,7 @@ CFAST models are composed of various components that represent different aspects
    Compartment
    Device
    Fire
+   FireDefinition
    Material
    MechanicalVent
    SimulationEnvironment

@@ -16,7 +16,7 @@ from . import datasets
 from .ceiling_floor_vent import CeilingFloorVent
 from .compartment import Compartment
 from .device import Device
-from .fire import Fire
+from .fire import Fire, FireDefinition
 from .material import Material
 from .mechanical_vent import MechanicalVent
 from .model import CFASTModel
@@ -33,6 +33,7 @@ __all__ = [
     "Compartment",
     "Device",
     "Fire",
+    "FireDefinition",
     "Material",
     "MechanicalVent",
     "CFASTModel",

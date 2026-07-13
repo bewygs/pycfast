@@ -23,7 +23,7 @@ from ._base_component import CFASTComponent
 from .ceiling_floor_vent import CeilingFloorVent
 from .compartment import Compartment
 from .device import Device
-from .fire import Fire
+from .fire import Fire, FireDefinition
 from .material import Material
 from .mechanical_vent import MechanicalVent
 from .simulation_environment import SimulationEnvironment
@@ -1096,7 +1096,17 @@ class CFASTModel:
 
             for header, items in sections:
                 content_parts.extend(["\n", f"{header}\n"])
-                if items:
+                if not items:
+                    continue
+                if items is self.fires:
+                    for fire in self.fires:
+                        content_parts.append(fire.to_instance_string())
+                    seen_fire_ids: set[str] = set()
+                    for fire in self.fires:
+                        if fire.fire_id not in seen_fire_ids:
+                            seen_fire_ids.add(fire.fire_id)
+                            content_parts.append(fire.definition.to_input_string())
+                else:
                     # Cast items to list to help mypy understand it's iterable
                     items_list = cast(list[Any], items)
                     content_parts.extend(item.to_input_string() for item in items_list)
@@ -1173,6 +1183,18 @@ class CFASTModel:
             if fire.comp_id not in comp_ids:
                 raise ValueError(
                     f"Fire '{fire.id}': comp_id='{fire.comp_id}' does not match any defined compartment."
+                )
+
+        fire_definitions: dict[str, FireDefinition] = {}
+        for fire in self.fires:
+            existing = fire_definitions.get(fire.fire_id)
+            if existing is None:
+                fire_definitions[fire.fire_id] = fire.definition
+            elif fire.definition != existing:
+                raise ValueError(
+                    f"Fire '{fire.id}': fire_id='{fire.fire_id}' is shared by fires "
+                    "with conflicting definitions (chemistry or data_table differ). "
+                    "A fire_id must map to a single fire definition."
                 )
 
         for device in self.devices:

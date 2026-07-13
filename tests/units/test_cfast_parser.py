@@ -33,7 +33,9 @@ class TestCFASTParser:
         assert parser.fires == []
         assert parser.devices == []
         assert parser.surface_connections == []
-        assert parser._fire_hash_map == {}
+        assert parser._pending_fires == []
+        assert parser._fire_chem == {}
+        assert parser._fire_data_rows == {}
 
     def test_reset(self):
         """Test parser reset functionality."""
@@ -41,7 +43,8 @@ class TestCFASTParser:
         # Modify some parser state
         parser.simulation_environment.title = "Test"
         parser.material_properties.append(Mock())
-        parser._fire_hash_map["test"] = Mock()
+        parser._pending_fires.append({"fire_id": "test"})
+        parser._fire_chem["test"] = {"carbon": 1}
 
         # Reset should clear everything
         parser.reset()
@@ -54,7 +57,9 @@ class TestCFASTParser:
         assert parser.fires == []
         assert parser.devices == []
         assert parser.surface_connections == []
-        assert parser._fire_hash_map == {}
+        assert parser._pending_fires == []
+        assert parser._fire_chem == {}
+        assert parser._fire_data_rows == {}
 
     def test_parse_file_not_found(self):
         """Test parsing a non-existent file."""
@@ -543,7 +548,7 @@ class TestCFASTParser:
         assert vent.flow == 0.5
 
     def test_parse_fire_block(self):
-        """Test FIRE block parsing."""
+        """FIRE block parsing collects a pending instance (no Fire built yet)."""
         parser = CFASTParser()
         params = {
             "ID": "Fire1",
@@ -554,21 +559,17 @@ class TestCFASTParser:
 
         parser._parse_fire_block(params)
 
-        assert len(parser._fire_hash_map) == 1
-        assert "TestFire" in parser._fire_hash_map
-        fire = parser._fire_hash_map["TestFire"]
-        assert fire.id == "Fire1"
-        assert fire.comp_id == "Room1"
-        assert fire.fire_id == "TestFire"
-        assert fire.location == [2.5, 2.5]
+        assert len(parser._pending_fires) == 1
+        instance = parser._pending_fires[0]
+        assert instance["id"] == "Fire1"
+        assert instance["comp_id"] == "Room1"
+        assert instance["fire_id"] == "TestFire"
+        assert instance["location"] == [2.5, 2.5]
+        assert parser._fire_data_rows["TestFire"] == []
 
     def test_parse_chemistry_block(self):
-        """Test CHEM block parsing."""
+        """CHEM block parsing stores chemistry keyed by fire_id."""
         parser = CFASTParser()
-        # First create a fire
-        parser._fire_hash_map["TestFire"] = Mock()
-        parser._fire_hash_map["TestFire"].fire_id = "TestFire"
-
         params = {
             "ID": "TestFire",
             "CARBON": 1,
@@ -582,25 +583,11 @@ class TestCFASTParser:
 
         parser._parse_chemistry_block(params)
 
-        fire = parser._fire_hash_map["TestFire"]
-        assert fire.carbon == 1
-        assert fire.hydrogen == 4
-        assert fire.oxygen == 0
-        assert fire.heat_of_combustion == 50000
-
-    def test_parse_chemistry_block_missing_fire(self):
-        """Test CHEM block parsing with missing fire ID."""
-        parser = CFASTParser()
-        params = {
-            "ID": "NonExistentFire",
-            "CARBON": 1,
-            "HYDROGEN": 4,
-        }
-
-        with pytest.raises(
-            ValueError, match="FIRE_ID NonExistentFire in CHEM block not found"
-        ):
-            parser._parse_chemistry_block(params)
+        chem = parser._fire_chem["TestFire"]
+        assert chem["carbon"] == 1
+        assert chem["hydrogen"] == 4
+        assert chem["oxygen"] == 0
+        assert chem["heat_of_combustion"] == 50000
 
     def test_parse_table_block_labels(self):
         """Test TABL block parsing with LABELS (should be skipped)."""
@@ -611,26 +598,14 @@ class TestCFASTParser:
         parser._parse_table_block(params)
 
     def test_parse_table_block_data(self):
-        """Test TABL block parsing with DATA."""
+        """Test TABL block parsing with DATA stores rows keyed by fire_id."""
         parser = CFASTParser()
-        mock_fire = Mock()
-        parser._fire_hash_map["TestFire"] = mock_fire
 
         params = {"ID": "TestFire", "DATA": [0, 100]}
 
         parser._parse_table_block(params)
 
         assert parser._fire_data_rows["TestFire"] == [[0, 100]]
-
-    def test_parse_table_block_data_missing_fire(self):
-        """Test TABL block parsing with DATA but missing fire."""
-        parser = CFASTParser()
-        params = {"ID": "NonExistentFire", "DATA": [0, 100]}
-
-        with pytest.raises(
-            ValueError, match="FIRE_ID NonExistentFire in TABL block not found"
-        ):
-            parser._parse_table_block(params)
 
     def test_parse_device_block_cylinder(self):
         """Test DEVC block parsing for CYLINDER device."""
@@ -1084,3 +1059,43 @@ class TestParseCFASTFile:
             assert model.simulation_environment.time_simulation == 600
         finally:
             os.unlink(temp_file)
+
+
+class TestSharedFireDefinitionRegression:
+    """Regression test for issue #136: &FIRE records sharing a FIRE_ID."""
+
+    def test_shared_fire_id_round_trip(self, tmp_path):
+        """Fires sharing a FIRE_ID are all kept; the definition is saved once."""
+        content = """\
+&HEAD TITLE = 'Shared fire definition' /
+&TIME SIMULATION = 300 /
+&COMP ID = 'Room', DEPTH = 5, HEIGHT = 3, WIDTH = 4, ORIGIN = 0, 0, 0 /
+&FIRE ID = 'burner1', COMP_ID = 'Room', FIRE_ID = 'shared', LOCATION = 5.45, 2.15 /
+&FIRE ID = 'burner2', COMP_ID = 'Room', FIRE_ID = 'shared', LOCATION = 4.25, 2.15 /
+&CHEM ID = 'shared' CARBON = 1 HYDROGEN = 4 OXYGEN = 0 NITROGEN = 0 CHLORINE = 0
+    HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.25 /
+&TABL ID = 'shared' LABELS = 'TIME', 'HRR', 'HEIGHT', 'AREA', 'CO_YIELD',
+    'SOOT_YIELD', 'HCN_YIELD', 'HCL_YIELD', 'TRACE_YIELD' /
+&TABL ID = 'shared' DATA = 0, 0, 0.5, 0.36, 0, 0.001, 0, 0, 0 /
+&TABL ID = 'shared' DATA = 30, 100, 0.5, 0.36, 0, 0.001, 0, 0, 0 /
+&TAIL /"""
+        in_file = tmp_path / "shared_fires.in"
+        in_file.write_text(content)
+
+        model = parse_cfast_file(in_file)
+
+        assert {fire.id for fire in model.fires} == {"burner1", "burner2"}
+        burner1, burner2 = model.fires
+        assert burner1.location == [5.45, 2.15]
+        assert burner2.location == [4.25, 2.15]
+        assert burner1.definition is burner2.definition
+        assert burner1.radiative_fraction == 0.25
+        assert burner1.data_table == [
+            [0, 0, 0.5, 0.36, 0, 0.001, 0, 0, 0],
+            [30, 100, 0.5, 0.36, 0, 0.001, 0, 0, 0],
+        ]
+
+        saved = Path(model.save(str(tmp_path / "roundtrip.in"))).read_text()
+        assert saved.count("&FIRE ") == 2
+        assert saved.count("&CHEM ") == 1
+        assert saved.count("DATA =") == 2
