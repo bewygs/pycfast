@@ -12,7 +12,7 @@ import pytest
 from pycfast.ceiling_floor_vent import CeilingFloorVent
 from pycfast.compartment import Compartment
 from pycfast.device import Device
-from pycfast.fire import Fire
+from pycfast.fire import Fire, FireDefinition
 from pycfast.material import Material
 from pycfast.mechanical_vent import MechanicalVent
 from pycfast.model import CFASTModel, _resolve_cfast_exe
@@ -1574,6 +1574,23 @@ class TestCFASTModelValidateDependencies:
         fire_dup = Fire(id="FIRE1", comp_id="ROOM1", fire_id="PU", location=[2.0, 2.0])
         with pytest.raises(ValueError, match="Duplicate id 'FIRE1'"):
             self._make(sim_env, [room1], fires=[fire, fire_dup])
+
+    def test_shared_fire_definition_allowed(self, sim_env, room1):
+        """Two fires referencing one shared definition validate cleanly."""
+        defn = FireDefinition(fire_id="PU", carbon=1, hydrogen=4)
+        b1 = Fire(id="burner1", comp_id="ROOM1", location=[1.0, 1.0], definition=defn)
+        b2 = Fire(id="burner2", comp_id="ROOM1", location=[2.0, 2.0], definition=defn)
+        model = self._make(sim_env, [room1], fires=[b1, b2])
+        assert len(model.fires) == 2
+
+    def test_conflicting_shared_fire_definition_raises(self, sim_env, room1):
+        """Same fire_id with differing definitions raises ValueError."""
+        d1 = FireDefinition(fire_id="PU", carbon=1, hydrogen=4)
+        d2 = FireDefinition(fire_id="PU", carbon=2, hydrogen=4)
+        b1 = Fire(id="burner1", comp_id="ROOM1", location=[1.0, 1.0], definition=d1)
+        b2 = Fire(id="burner2", comp_id="ROOM1", location=[2.0, 2.0], definition=d2)
+        with pytest.raises(ValueError, match="conflicting definitions"):
+            self._make(sim_env, [room1], fires=[b1, b2])
 
     def test_duplicate_device_ids(self, sim_env, room1):
         """Test that duplicate device IDs raises ValueError."""

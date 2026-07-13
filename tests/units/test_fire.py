@@ -4,10 +4,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pycfast.fire import Fire
+from pycfast.fire import Fire, FireDefinition
 
 """
-Tests for the Fire class.
+Tests for the Fire and FireDefinition classes.
 """
 
 
@@ -889,3 +889,81 @@ class TestFireSetattrValidation:
         fire = make_fire()
         with pytest.raises(ValueError, match="location must be a list of two floats"):
             fire.location = location
+
+
+class TestFireDefinition:
+    """Tests for the FireDefinition class and the Fire `definition` argument."""
+
+    def test_inline_chem_builds_anonymous_definition(self):
+        """The common inline-chemistry path auto-builds a FireDefinition."""
+        fire = Fire(
+            id="FIRE1",
+            comp_id="ROOM1",
+            fire_id="WOOD",
+            location=[1.0, 2.0],
+            carbon=2,
+            radiative_fraction=0.3,
+        )
+        assert isinstance(fire.definition, FireDefinition)
+        assert fire.definition.fire_id == "WOOD"
+        assert fire.definition.carbon == 2
+        assert fire.fire_id == "WOOD"
+        assert fire.carbon == 2
+
+    def test_shared_definition_two_instances(self):
+        """Two instances can reference one shared definition object."""
+        defn = FireDefinition(
+            fire_id="100kW",
+            carbon=1,
+            hydrogen=4,
+            radiative_fraction=0.25,
+            data_table=[[0, 100, 0.5, 0.36, 0, 0, 0, 0, 0]],
+        )
+        b1 = Fire(id="burner1", comp_id="C", location=[5.45, 2.15], definition=defn)
+        b2 = Fire(id="burner2", comp_id="C", location=[4.25, 2.15], definition=defn)
+
+        assert b1.definition is b2.definition is defn
+        assert b1.fire_id == b2.fire_id == "100kW"
+        assert b1.radiative_fraction == 0.25
+        assert b1.location != b2.location
+
+    def test_definition_and_inline_chem_mutually_exclusive(self):
+        """Passing both `definition` and inline chemistry/fire_id raises."""
+        defn = FireDefinition(fire_id="100kW")
+        with pytest.raises(ValueError, match="either a `definition` or inline"):
+            Fire(
+                id="b",
+                comp_id="C",
+                location=[1.0, 1.0],
+                definition=defn,
+                carbon=2,
+            )
+
+    def test_definition_and_fire_id_mutually_exclusive(self):
+        """Passing both `definition` and `fire_id` raises."""
+        defn = FireDefinition(fire_id="100kW")
+        with pytest.raises(ValueError, match="either a `definition` or inline"):
+            Fire(
+                id="b",
+                comp_id="C",
+                fire_id="100kW",
+                location=[1.0, 1.0],
+                definition=defn,
+            )
+
+    def test_fire_id_required_without_definition(self):
+        """Without a definition, fire_id is required."""
+        with pytest.raises(ValueError, match="`fire_id` is required"):
+            Fire(id="b", comp_id="C", location=[1.0, 1.0])
+
+    def test_definition_equality(self):
+        """FireDefinition equality compares chemistry and data table."""
+        kwargs = {
+            "fire_id": "x",
+            "carbon": 1,
+            "hydrogen": 4,
+            "data_table": [[0, 100, 0.5, 0.36, 0, 0, 0, 0, 0]],
+        }
+        assert FireDefinition(**kwargs) == FireDefinition(**kwargs)
+        assert FireDefinition(**{**kwargs, "carbon": 2}) != FireDefinition(**kwargs)
+        assert FireDefinition(fire_id="x") != object()

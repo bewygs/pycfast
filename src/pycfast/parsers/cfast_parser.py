@@ -17,7 +17,7 @@ import f90nml  # type: ignore
 from ..ceiling_floor_vent import CeilingFloorVent
 from ..compartment import Compartment
 from ..device import Device
-from ..fire import Fire
+from ..fire import Fire, FireDefinition
 from ..material import Material
 from ..mechanical_vent import MechanicalVent
 from ..model import CFASTModel
@@ -100,7 +100,11 @@ class CFASTParser:
         self.devices: list[Device] = []
         self.surface_connections: list[SurfaceConnection] = []
 
-        self._fire_hash_map: dict[str, Fire] = {}
+        # &FIRE records are collected as pending instances while &CHEM / &TABL
+        # records are collected per fire_id. They are joined into
+        # Fire + FireDefinition objects in _finalize_fire_parsing().
+        self._pending_fires: list[dict[str, Any]] = []
+        self._fire_chem: dict[str, dict[str, Any]] = {}
         self._fire_data_rows: dict[str, list[list[float]]] = {}
 
     def parse_file(
@@ -250,16 +254,33 @@ class CFASTParser:
 
     def _finalize_fire_parsing(self) -> None:
         """
-        Finalize fire parsing by adding all fires from hash map to fires list.
+        Join &FIRE instances with their &CHEM / &TABL definitions.
 
-        This method is called after all blocks are parsed to ensure that
-        chemistry and data table information has been properly associated
-        with fire objects.
+        This method is called after all blocks are parsed. A :class:`FireDefinition`
+        is built per unique ``fire_id`` (from its CHEM chemistry and TABL data rows)
+        and shared by every :class:`Fire` instance that references it.
         """
-        for fire_id, fire in self._fire_hash_map.items():
-            rows = self._fire_data_rows.get(fire_id, [])
-            if rows:
-                fire.data_table = rows
+        definitions: dict[str, FireDefinition] = {}
+
+        def _definition_for(fire_id: str) -> FireDefinition:
+            if fire_id not in definitions:
+                chem = self._fire_chem.get(fire_id, {})
+                rows = self._fire_data_rows.get(fire_id) or None
+                definitions[fire_id] = FireDefinition(
+                    fire_id=fire_id, data_table=rows, **chem
+                )
+            return definitions[fire_id]
+
+        for instance in self._pending_fires:
+            fire = Fire(
+                id=instance["id"],
+                comp_id=instance["comp_id"],
+                location=instance["location"],
+                ignition_criterion=instance.get("ignition_criterion"),
+                set_point=instance.get("set_point"),
+                device_id=instance.get("device_id"),
+                definition=_definition_for(instance["fire_id"]),
+            )
             self.fires.append(fire)
 
     def _clean_content(self, content: str) -> str:
@@ -663,19 +684,12 @@ class CFASTParser:
         }
 
         fire_params = self._extract_params(params, param_map)
-        fire = Fire(**fire_params)
-
-        self._fire_hash_map[fire.fire_id] = fire
-        self._fire_data_rows[fire.fire_id] = []
+        self._pending_fires.append(fire_params)
+        self._fire_data_rows.setdefault(fire_params["fire_id"], [])
 
     def _parse_chemistry_block(self, params: dict[str, Any]) -> None:
         """Parse CHEM namelist block for fire chemistry."""
         fire_id = self._get_param(params, "ID", required=True, param_type=str)
-
-        if fire_id not in self._fire_hash_map:
-            raise ValueError(
-                f"FIRE_ID {fire_id} in CHEM block not found in any FIRE block."
-            )
 
         param_map = {
             "carbon": {"source": "CARBON", "required": True, "type": float},
@@ -695,14 +709,7 @@ class CFASTParser:
             },
         }
 
-        chemistry_params = self._extract_params(params, param_map)
-
-        fire = self._fire_hash_map[fire_id]
-        for param_name, value in chemistry_params.items():
-            setattr(fire, param_name, value)
-
-        # Update the hash map (CFAST relies on fire_id not id)
-        self._fire_hash_map[fire.fire_id] = fire
+        self._fire_chem[fire_id] = self._extract_params(params, param_map)
 
     def _parse_table_block(self, params: dict[str, Any]) -> None:
         """Parse TABL namelist block for fire data tables."""
@@ -723,14 +730,7 @@ class CFASTParser:
             fire_id = table_params["fire_id"]
             current_row = table_params["data_row"]
 
-            if fire_id not in self._fire_hash_map:
-                raise ValueError(
-                    f"FIRE_ID {fire_id} in TABL block not found in any FIRE block."
-                )
-
-            if fire_id not in self._fire_data_rows:
-                self._fire_data_rows[fire_id] = []
-            self._fire_data_rows[fire_id].append(current_row)
+            self._fire_data_rows.setdefault(fire_id, []).append(current_row)
 
     def _parse_device_block(self, params: dict[str, Any]) -> None:
         """Parse DEVC namelist block."""

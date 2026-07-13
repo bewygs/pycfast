@@ -33,9 +33,6 @@ def get_test_parameters():
     return test_params
 
 
-KNOWN_FAILING_DIRS = {"NIST_NRC_Corner_Effects"}
-
-
 @pytest.mark.slow
 @pytest.mark.local
 @pytest.mark.parametrize("input_file,parent_dir,file_prefix", get_test_parameters())
@@ -54,11 +51,6 @@ def test_parser_validation(input_file, parent_dir, file_prefix, tmp_path):
         file_prefix: File name without extension (e.g., 'WTC_01')
         tmp_path: Pytest temporary directory fixture
     """
-    if parent_dir in KNOWN_FAILING_DIRS:
-        pytest.skip(
-            f"Known bug in {parent_dir} due to Fire class handling table, need to fix"
-        )
-
     reference_data_dir = get_reference_data_dir(
         Path(__file__).parent, "validation_data_local", parent_dir
     )
