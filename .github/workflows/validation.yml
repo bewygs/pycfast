@@ -33,7 +33,7 @@ jobs:
 
     - name: Cache CFAST binary
       id: cache-cfast
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ~/cfast-cache/cfast-7.7.7-linux-gcc
         key: cfast-7.7.7-linux-gcc-${{ hashFiles('.github/workflows/validation.yml') }}
@@ -66,7 +66,7 @@ jobs:
 
     - name: Cache validation reference data
       id: cache-validation-data
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: tests/validation_tests/validation_data_local
         key: validation-data-7.7.7-${{ hashFiles('tests/validation_tests/Validation/**/*.in') }}
