@@ -132,7 +132,39 @@ Check out the [examples](https://pycfast.org/examples.html) for more usage scena
 
 ## Installation
 
-PyCFAST requires **Python 3.10 or later**. It is fully [tested on verification input files](https://github.com/bewygs/pycfast/tree/main/tests/verification_tests) and [validation input files](https://github.com/bewygs/pycfast/tree/main/tests/validation_tests) from CFAST version **7.7.0** to version **7.7.7**. Versions below **7.7.0** might work but are not guaranteed to be fully compatible.
+PyCFAST requires **Python 3.10 or later** *and* a working installation of **[CFAST](https://pages.nist.gov/cfast/) itself** — see [CFAST Installation](#cfast-installation) below for platform-specific instructions. It is fully [tested on verification input files](https://github.com/bewygs/pycfast/tree/main/tests/verification_tests) and [validation input files](https://github.com/bewygs/pycfast/tree/main/tests/validation_tests) from CFAST version **7.7.0** to version **7.7.7**. Versions below **7.7.0** might work but are not guaranteed to be fully compatible.
+
+### CFAST Installation
+
+CFAST is developed and distributed by NIST, independently of PyCFAST. Download and install it from the [NIST CFAST website](https://pages.nist.gov/cfast/) or the [CFAST GitHub repository](https://github.com/firemodels/cfast), then ensure `cfast` is available in your PATH.
+
+- **Windows**: download and run the official installer for the version you want from the [CFAST releases page](https://github.com/firemodels/cfast/releases) (look for the `.exe` asset, e.g. `CFAST-X.Y.Z_SMV-A.B.C.exe`), which installs the `cfast` executable for you.
+
+- **Linux / macOS**: NIST does not publish pre-built binaries for these platforms, so CFAST must be compiled from source with a Fortran compiler (`gfortran`). See the [Compiling CFAST wiki page](https://github.com/firemodels/cfast/wiki/Compiling-CFAST) for full details:
+
+    ```bash
+    # 1. Install a Fortran compiler
+    sudo apt-get install gfortran        # Debian/Ubuntu
+    # sudo dnf install gcc-gfortran      # Fedora/RHEL
+    # brew install gcc                   # macOS
+
+    # 2. Clone the CFAST source, pinned to the release tag you want (see the releases page above)
+    git clone --depth 1 --branch <CFAST_TAG> https://github.com/firemodels/cfast.git
+    cd cfast/Build/CFAST/gnu_linux       # macOS: cd cfast/Build/CFAST/gnu_osx
+
+    # 3. Build the executable
+    chmod +x make_cfast.sh
+    ./make_cfast.sh
+
+    # 4. Install it on your PATH
+    sudo cp cfast7_linux /usr/local/bin/cfast   # macOS: cfast7_osx instead of cfast7_linux
+    sudo chmod +x /usr/local/bin/cfast
+    ```
+
+    Notes:
+    - CFAST versions below 7.7.5 do not reliably build on Linux with modern `gfortran` (see [#32](https://github.com/bewygs/pycfast/issues/32)).
+    - The macOS build was manually verified to work but is not covered by PyCFAST's CI.
+    - If the build fails, the compiler and flags for each platform target are defined in `Build/CFAST/makefile`. Adjust them there to match your machine.
 
 ### Pip or Conda
 
@@ -156,9 +188,9 @@ cd pycfast
 python -m pip install .
 ```
 
-### CFAST Installation
+### Configuring the CFAST Executable
 
-Download and install CFAST from the [NIST CFAST website](https://pages.nist.gov/cfast/) or the [CFAST GitHub repository](https://github.com/firemodels/cfast). Follow the installation instructions for your operating system and ensure `cfast` is available in your PATH. If CFAST is installed in a non-standard location, you can manually specify the path with these methods:
+If CFAST is installed in a non-standard location, you can manually specify the path with these methods:
 
 - From an environment variable ``CFAST``:
 
