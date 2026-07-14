@@ -132,7 +132,7 @@ Check out the [examples](https://pycfast.org/examples.html) for more usage scena
 
 ## Installation
 
-PyCFAST requires **Python 3.10 or later** *and* a working installation of **[CFAST](https://pages.nist.gov/cfast/) itself** — see [CFAST Installation](#cfast-installation) below for platform-specific instructions. It is fully [tested on verification input files](https://github.com/bewygs/pycfast/tree/main/tests/verification_tests) and [validation input files](https://github.com/bewygs/pycfast/tree/main/tests/validation_tests) from CFAST version **7.7.0** to version **7.7.7**. Versions below **7.7.0** might work but are not guaranteed to be fully compatible.
+PyCFAST requires **Python 3.10 or later** *and* a working installation of **[CFAST](https://pages.nist.gov/cfast/) itself**. It is fully [tested on verification input files](https://github.com/bewygs/pycfast/tree/main/tests/verification_tests) and [validation input files](https://github.com/bewygs/pycfast/tree/main/tests/validation_tests) from CFAST version **7.7.0** to version **7.7.7**. Versions below **7.7.0** might work but are not guaranteed to be fully compatible.
 
 ### CFAST Installation
 
