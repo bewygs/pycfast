@@ -22,6 +22,7 @@ from .mechanical_vent import MechanicalVent
 from .model import CFASTModel
 from .simulation_environment import SimulationEnvironment
 from .surface_connection import SurfaceConnection
+from .visualization import Visualization
 from .wall_vent import WallVent
 
 logging.getLogger("pycfast").addHandler(logging.NullHandler())
@@ -39,6 +40,7 @@ __all__ = [
     "CFASTModel",
     "SimulationEnvironment",
     "SurfaceConnection",
+    "Visualization",
     "WallVent",
 ]
 

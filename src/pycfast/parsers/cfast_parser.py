@@ -23,6 +23,7 @@ from ..mechanical_vent import MechanicalVent
 from ..model import CFASTModel
 from ..simulation_environment import SimulationEnvironment
 from ..surface_connection import SurfaceConnection
+from ..visualization import Visualization
 from ..wall_vent import WallVent
 
 # CFAST namelist block type constants
@@ -39,6 +40,8 @@ BLOCK_TYPE_CHEM = "CHEM"
 BLOCK_TYPE_TABL = "TABL"
 BLOCK_TYPE_DEVC = "DEVC"
 BLOCK_TYPE_CONN = "CONN"
+BLOCK_TYPE_ISOF = "ISOF"
+BLOCK_TYPE_SLCF = "SLCF"
 BLOCK_TYPE_TAIL = "TAIL"
 
 # VENT type constants
@@ -76,6 +79,8 @@ class CFASTParser:
         List of Device objects.
     surface_connections: List[SurfaceConnection]
         List of SurfaceConnection objects.
+    visualizations: List[Visualization]
+        List of Visualization objects.
     """
 
     def __init__(self) -> None:
@@ -99,6 +104,7 @@ class CFASTParser:
         self.fires: list[Fire] = []
         self.devices: list[Device] = []
         self.surface_connections: list[SurfaceConnection] = []
+        self.visualizations: list[Visualization] = []
 
         # &FIRE records are collected as pending instances while &CHEM / &TABL
         # records are collected per fire_id. They are joined into
@@ -182,6 +188,7 @@ class CFASTParser:
             fires=self.fires,
             devices=self.devices,
             surface_connections=self.surface_connections,
+            visualizations=self.visualizations,
             file_name=file_name,
         )
 
@@ -216,6 +223,8 @@ class CFASTParser:
             BLOCK_TYPE_TABL.lower(): self._parse_table_block,
             BLOCK_TYPE_DEVC.lower(): self._parse_device_block,
             BLOCK_TYPE_CONN.lower(): self._parse_connection_block,
+            BLOCK_TYPE_ISOF.lower(): self._parse_isof_block,
+            BLOCK_TYPE_SLCF.lower(): self._parse_slcf_block,
         }
 
         # f90nml returns a dictionary with namelist names as keys (lowercase)
@@ -830,6 +839,37 @@ class CFASTParser:
             raise ValueError(f"Unknown Surface Connections type: {conn_type}")
 
         self.surface_connections.append(surface_connection)
+
+    def _parse_isof_block(self, params: dict[str, Any]) -> None:
+        """Parse an ISOF (isosurface visualization) namelist block."""
+        param_map = {
+            "value": {"source": "VALUE", "required": True, "type": float},
+            "comp_id": {"source": "COMP_ID", "type": str},
+        }
+        isof_params = self._extract_params(params, param_map)
+        self.visualizations.append(Visualization.isosurface(**isof_params))
+
+    def _parse_slcf_block(self, params: dict[str, Any]) -> None:
+        """Parse a SLCF (slice file visualization) namelist block."""
+        domain = self._get_param(params, "DOMAIN", required=True, param_type=str)
+
+        if domain == "2-D":
+            param_map = {
+                "plane": {"source": "PLANE", "required": True, "type": str},
+                "position": {"source": "POSITION", "default": 0.0, "type": float},
+                "comp_id": {"source": "COMP_ID", "type": str},
+            }
+            slcf_params = self._extract_params(params, param_map)
+            visualization = Visualization.slice_2d(**slcf_params)
+
+        elif domain == "3-D":
+            comp_id = self._get_param(params, "COMP_ID", param_type=str)
+            visualization = Visualization.slice_3d(comp_id=comp_id)
+
+        else:
+            raise ValueError(f"Unknown SLCF domain: {domain}")
+
+        self.visualizations.append(visualization)
 
 
 def sanitize_cfast_title_and_material(content: str) -> str:

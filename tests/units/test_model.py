@@ -18,6 +18,7 @@ from pycfast.mechanical_vent import MechanicalVent
 from pycfast.model import CFASTModel, _resolve_cfast_exe
 from pycfast.simulation_environment import SimulationEnvironment
 from pycfast.surface_connection import SurfaceConnection
+from pycfast.visualization import Visualization
 from pycfast.wall_vent import WallVent
 
 """
@@ -98,6 +99,12 @@ class TestCFASTModel:
             fraction=0.5,
         )
 
+        visualization = Visualization.slice_2d(
+            plane="X",
+            position=1.5,
+            comp_id="ROOM1",
+        )
+
         return CFASTModel(
             simulation_environment=simulation_env,
             compartments=[compartment1, compartment2],
@@ -108,6 +115,7 @@ class TestCFASTModel:
             fires=[fire],
             devices=[device],
             surface_connections=[surface_conn],
+            visualizations=[visualization],
             file_name="full_test.in",
         )
 
@@ -125,6 +133,7 @@ class TestCFASTModel:
         assert model.fires == []
         assert model.devices == []
         assert model.surface_connections == []
+        assert model.visualizations == []
         assert model.file_name == "test.in"
         assert model.extra_arguments == []
 
@@ -141,6 +150,7 @@ class TestCFASTModel:
         assert len(model.fires) == 1
         assert len(model.devices) == 1
         assert len(model.surface_connections) == 1
+        assert len(model.visualizations) == 1
         assert model.file_name == "full_test.in"
 
     def test_init_with_extra_arguments(self):
@@ -215,6 +225,7 @@ class TestCFASTModel:
                 assert "&FIRE ID = 'FIRE1'" in content
                 assert "&DEVC ID = 'TEMP1'" in content
                 assert "&CONN TYPE = 'WALL'" in content
+                assert "&SLCF COMP_ID = 'ROOM1' DOMAIN = '2-D'" in content
                 assert "&TAIL /" in content
 
     def test_write_input_section_order(self):
@@ -233,10 +244,13 @@ class TestCFASTModel:
                 matl_pos = content.find("&MATL")
                 comp_pos = content.find("&COMP")
                 fire_pos = content.find("&FIRE")
+                slcf_pos = content.find("&SLCF")
                 tail_pos = content.find("&TAIL")
 
                 # Check order (all should be >= 0 and in ascending order)
-                assert 0 <= head_pos < matl_pos < comp_pos < fire_pos < tail_pos
+                assert (
+                    0 <= head_pos < matl_pos < comp_pos < fire_pos < slcf_pos < tail_pos
+                )
 
     def test_write_input_file(self):
         """Test writing input file to disk."""
@@ -648,6 +662,7 @@ class TestCFASTModel:
         assert "wall_vents=1" in repr_str
         assert "devices=1" in repr_str
         assert "material_properties=1" in repr_str
+        assert "visualizations=1" in repr_str
 
     def test_str(self):
         """Test __str__ method delegates to summary()."""
@@ -683,6 +698,7 @@ class TestCFASTModel:
         )  # This is included in the full model
         assert "devices" in component_types
         assert "material_properties" in component_types
+        assert "visualizations" in component_types
 
     def test_iter_minimal(self) -> None:
         """Test __iter__ method with minimal model."""
@@ -715,6 +731,7 @@ class TestCFASTModel:
         assert "Fire (1):" in result
         assert "Wall Vents (1):" in result
         assert "Device (1):" in result
+        assert "Visualizations (1):" in result
 
     # Tests for update methods
     def test_update_fire_params(self) -> None:
@@ -1007,6 +1024,27 @@ class TestCFASTModel:
         # Check that new model has updated values
         assert updated_model.surface_connections[0].fraction == 0.8
 
+    def test_update_visualization_params(self) -> None:
+        """Test update_visualization_params method."""
+        model = self.create_full_model()
+        original_position = model.visualizations[0].position
+
+        # Test updating visualization parameters (only supports index)
+        updated_model = model.update_visualization_params(visualization=0, position=2.0)
+
+        # Check that original model is unchanged
+        assert model.visualizations[0].position == original_position
+
+        # Check that new model has updated values
+        assert updated_model.visualizations[0].position == 2.0
+
+    def test_update_visualization_params_invalid_comp_id(self) -> None:
+        """Test that updating a visualization with an unknown comp_id raises."""
+        model = self.create_full_model()
+
+        with pytest.raises(ValueError, match="does not match any defined compartment"):
+            model.update_visualization_params(visualization=0, comp_id="UNKNOWN_ROOM")
+
     def test_method_chaining(self) -> None:
         """Test that update methods can be chained."""
         model = self.create_full_model()
@@ -1215,6 +1253,31 @@ class TestCFASTModel:
         assert updated_model.surface_connections[-1].comp_ids == "ROOM2"
         assert updated_model.surface_connections[-1].fraction == 0.5
 
+    def test_add_visualization(self) -> None:
+        """Test adding a visualization to the model."""
+        model = self.create_full_model()
+        original_viz_count = len(model.visualizations)
+
+        isosurface = Visualization.isosurface(value=305.0, comp_id="ROOM2")
+        updated_model = model.add(isosurface)
+
+        # Check that original model is unchanged
+        assert len(model.visualizations) == original_viz_count
+
+        # Check that new model has additional visualization
+        assert len(updated_model.visualizations) == original_viz_count + 1
+        assert updated_model.visualizations[-1].viz_type == "ISOSURFACE"
+        assert updated_model.visualizations[-1].comp_id == "ROOM2"
+        assert updated_model.visualizations[-1].value == 305.0
+
+    def test_add_visualization_invalid_comp_id(self) -> None:
+        """Test that adding a visualization with an unknown comp_id raises."""
+        model = self.create_full_model()
+
+        isosurface = Visualization.isosurface(value=305.0, comp_id="UNKNOWN_ROOM")
+        with pytest.raises(ValueError, match="does not match any defined compartment"):
+            model.add(isosurface)
+
     def test_add_methods_chaining(self) -> None:
         """Test that add methods can be chained together."""
         model = self.create_full_model()
@@ -1264,6 +1327,7 @@ class TestCFASTModel:
             devices=None,
             material_properties=None,
             surface_connections=None,
+            visualizations=None,
         )
 
         # Test adding to None lists
@@ -1284,11 +1348,14 @@ class TestCFASTModel:
             thickness=0.15,
         )
 
-        updated_model = model.add(fire).add(device).add(material)
+        visualization = Visualization.slice_3d(comp_id="ROOM1")
+
+        updated_model = model.add(fire).add(device).add(material).add(visualization)
 
         assert len(updated_model.fires) == 1
         assert len(updated_model.devices) == 1
         assert len(updated_model.material_properties) == 1
+        assert len(updated_model.visualizations) == 1
 
     def test_add_unsupported_type_raises(self) -> None:
         """add() must reject objects that are not a known component type."""

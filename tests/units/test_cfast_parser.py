@@ -33,6 +33,7 @@ class TestCFASTParser:
         assert parser.fires == []
         assert parser.devices == []
         assert parser.surface_connections == []
+        assert parser.visualizations == []
         assert parser._pending_fires == []
         assert parser._fire_chem == {}
         assert parser._fire_data_rows == {}
@@ -57,6 +58,7 @@ class TestCFASTParser:
         assert parser.fires == []
         assert parser.devices == []
         assert parser.surface_connections == []
+        assert parser.visualizations == []
         assert parser._pending_fires == []
         assert parser._fire_chem == {}
         assert parser._fire_data_rows == {}
@@ -171,6 +173,88 @@ class TestCFASTParser:
             assert "&DIAG RESIDUE = .TRUE." in model.simulation_environment.extra_custom
         finally:
             os.unlink(temp_file)
+
+    def test_parse_file_with_visualizations(self):
+        """Test parsing a file with SLCF and ISOF visualization blocks."""
+        content_with_visualizations = """&HEAD VERSION = 7600, TITLE = 'Visualization Test' /
+                                         &TIME SIMULATION = 900 /
+                                         &COMP ID = 'Room1', DEPTH = 5, HEIGHT = 3, WIDTH = 4, ORIGIN = 0, 0, 0 /
+                                         &SLCF DOMAIN = '2-D'  POSITION = 2.5, PLANE = 'X' /
+                                         &SLCF COMP_ID = 'Room1' DOMAIN = '3-D' /
+                                         &ISOF VALUE = 305 /
+                                         &TAIL /"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".in", delete=False) as f:
+            f.write(content_with_visualizations)
+            temp_file = f.name
+
+        try:
+            parser = CFASTParser()
+            model = parser.parse_file(temp_file)
+
+            assert len(model.visualizations) == 3
+
+            slice_2d = model.visualizations[0]
+            assert slice_2d.viz_type == "2-D"
+            assert slice_2d.plane == "X"
+            assert slice_2d.position == 2.5
+            assert slice_2d.comp_id is None
+
+            slice_3d = model.visualizations[1]
+            assert slice_3d.viz_type == "3-D"
+            assert slice_3d.comp_id == "Room1"
+
+            isosurface = model.visualizations[2]
+            assert isosurface.viz_type == "ISOSURFACE"
+            assert isosurface.value == 305.0
+            assert isosurface.comp_id is None
+
+            # Round-trip: parsed visualizations regenerate equivalent namelists
+            assert (
+                slice_2d.to_input_string()
+                == "&SLCF DOMAIN = '2-D' PLANE = 'X' POSITION = 2.5 /\n"
+            )
+            assert (
+                slice_3d.to_input_string()
+                == "&SLCF COMP_ID = 'Room1' DOMAIN = '3-D' /\n"
+            )
+            assert isosurface.to_input_string() == "&ISOF VALUE = 305.0 /\n"
+        finally:
+            os.unlink(temp_file)
+
+    def test_parse_file_slcf_default_position(self):
+        """Test that a 2-D SLCF block without POSITION defaults to 0.0."""
+        content = """&HEAD VERSION = 7600, TITLE = 'SLCF Default Test' /
+                     &TIME SIMULATION = 900 /
+                     &COMP ID = 'Room1', DEPTH = 5, HEIGHT = 3, WIDTH = 4, ORIGIN = 0, 0, 0 /
+                     &SLCF DOMAIN = '2-D' PLANE = 'Y' /
+                     &TAIL /"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".in", delete=False) as f:
+            f.write(content)
+            temp_file = f.name
+
+        try:
+            parser = CFASTParser()
+            model = parser.parse_file(temp_file)
+
+            assert len(model.visualizations) == 1
+            assert model.visualizations[0].plane == "Y"
+            assert model.visualizations[0].position == 0.0
+        finally:
+            os.unlink(temp_file)
+
+    def test_parse_slcf_block_unknown_domain(self):
+        """Test that an unknown SLCF domain raises a ValueError."""
+        parser = CFASTParser()
+        with pytest.raises(ValueError, match="Unknown SLCF domain"):
+            parser._parse_slcf_block({"DOMAIN": "4-D"})
+
+    def test_parse_isof_block_missing_value(self):
+        """Test that an ISOF block without VALUE raises a ValueError."""
+        parser = CFASTParser()
+        with pytest.raises(ValueError, match="Missing required parameter: VALUE"):
+            parser._parse_isof_block({"COMP_ID": "Room1"})
 
     def test_parse_file_with_unknown_block(self):
         """Test parsing a file with unknown block type (should warn but not fail)."""

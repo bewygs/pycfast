@@ -13,6 +13,7 @@ from pycfast.mechanical_vent import MechanicalVent
 from pycfast.model import CFASTModel
 from pycfast.simulation_environment import SimulationEnvironment
 from pycfast.surface_connection import SurfaceConnection
+from pycfast.visualization import Visualization
 from pycfast.wall_vent import WallVent
 
 
@@ -77,6 +78,11 @@ def add_doctest_namespace(doctest_namespace: dict) -> dict:
         comp_ids="ROOM2",
         fraction=0.5,
     )
+    visualization = Visualization.slice_2d(
+        plane="X",
+        position=2.5,
+        comp_id="ROOM1",
+    )
     model = CFASTModel(
         simulation_environment=simulation_env,
         compartments=[room1, room2],
@@ -87,6 +93,7 @@ def add_doctest_namespace(doctest_namespace: dict) -> dict:
         fires=[fire1],
         devices=[temp_sensor],
         surface_connections=[surface_conn],
+        visualizations=[visualization],
     )
 
     doctest_namespace["model"] = model
@@ -100,6 +107,7 @@ def add_doctest_namespace(doctest_namespace: dict) -> dict:
     doctest_namespace["Fire"] = Fire
     doctest_namespace["Device"] = Device
     doctest_namespace["SurfaceConnection"] = SurfaceConnection
+    doctest_namespace["Visualization"] = Visualization
     doctest_namespace["np"] = np
     doctest_namespace["pd"] = pd
     doctest_namespace["simulation_env"] = simulation_env
