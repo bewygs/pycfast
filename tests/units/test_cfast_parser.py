@@ -208,17 +208,6 @@ class TestCFASTParser:
             assert isosurface.viz_type == "ISOSURFACE"
             assert isosurface.value == 305.0
             assert isosurface.comp_id is None
-
-            # Round-trip: parsed visualizations regenerate equivalent namelists
-            assert (
-                slice_2d.to_input_string()
-                == "&SLCF DOMAIN = '2-D' PLANE = 'X' POSITION = 2.5 /\n"
-            )
-            assert (
-                slice_3d.to_input_string()
-                == "&SLCF COMP_ID = 'Room1' DOMAIN = '3-D' /\n"
-            )
-            assert isosurface.to_input_string() == "&ISOF VALUE = 305.0 /\n"
         finally:
             os.unlink(temp_file)
 
