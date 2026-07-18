@@ -551,6 +551,21 @@ class TestCFASTParser:
 
         assert parser.compartments[0].grid == (20, 30, 40)
 
+    def test_parse_compartment_block_invalid_grid(self):
+        """Test COMP block parsing with too few GRID values."""
+        parser = CFASTParser()
+        params = {
+            "ID": "Room1",
+            "WIDTH": 4.0,
+            "DEPTH": 5.0,
+            "HEIGHT": 3.0,
+            "ORIGIN": [0.0, 0.0, 0.0],
+            "GRID": [20, 30],  # Missing Z value
+        }
+
+        with pytest.raises(ValueError, match="GRID must contain at least 3 values"):
+            parser._parse_compartment_block(params)
+
     def test_parse_compartment_block_invalid_origin(self):
         """Test COMP block parsing with invalid origin coordinates."""
         parser = CFASTParser()
