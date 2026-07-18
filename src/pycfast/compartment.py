@@ -106,6 +106,13 @@ class Compartment(CFASTComponent):
     cross_sect_heights : list[float], optional
         Height off the floor of the compartment for variable cross-sectional area definition.
         Cross-sectional area values should be input in order by ascending height. Default units: m.
+    grid : tuple[int, int, int], optional
+        Number of Smokeview slice-file data points along the compartment's X, Y and
+        Z axes: (grid_x, grid_y, grid_z). Increasing these values can dramatically
+        slow simulation execution, since the gas temperature and velocity are
+        evaluated at each grid location whenever a Smokeview output is written.
+        The default is appropriate for most simulations. Default units: n/a,
+        default value: (50, 50, 50).
 
     Notes
     -----
@@ -158,6 +165,7 @@ class Compartment(CFASTComponent):
         leak_area_ratio: list[float] | None = None,  # [wall_leak, floor_leak]
         cross_sect_areas: list[float] | None = None,
         cross_sect_heights: list[float] | None = None,
+        grid: tuple[int, int, int] = (50, 50, 50),
     ):
         self.id = id
         self.width = width
@@ -177,6 +185,7 @@ class Compartment(CFASTComponent):
         self.leak_area_ratio = leak_area_ratio
         self.cross_sect_areas = cross_sect_areas
         self.cross_sect_heights = cross_sect_heights
+        self.grid = grid
 
         self._validate()
         self._initialized = True
@@ -264,6 +273,22 @@ class Compartment(CFASTComponent):
                 raise ValueError(
                     f"Compartment '{self.id}': {coord} must be >= 0, got {val}. "
                     "Negative positions are not allowed by CFAST."
+                )
+
+        if not isinstance(self.grid, (list, tuple)) or len(self.grid) != 3:
+            raise ValueError(
+                f"Compartment '{self.id}': grid must be a 3-element sequence "
+                f"(grid_x, grid_y, grid_z), got {self.grid!r}."
+            )
+
+        for g, val in (
+            ("grid_x", self.grid[0]),
+            ("grid_y", self.grid[1]),
+            ("grid_z", self.grid[2]),
+        ):
+            if not isinstance(val, int) or val <= 0:
+                raise ValueError(
+                    f"Compartment '{self.id}': {g} must be a positive integer, got {val}."
                 )
 
     def __repr__(self) -> str:
@@ -379,7 +404,7 @@ class Compartment(CFASTComponent):
             sanitized = [v if v is not None else 0 for v in origin_values]
             rec.add_list_field("ORIGIN", sanitized)
 
-        rec.add_list_field("GRID", [50, 50, 50])  # Fixed by CFAST
+        rec.add_list_field("GRID", self.grid)
         rec.add_list_field("LEAK_AREA_RATIO", self.leak_area_ratio)
 
         return rec.build()
