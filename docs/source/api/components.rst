@@ -20,4 +20,5 @@ CFAST models are composed of various components that represent different aspects
    MechanicalVent
    SimulationEnvironment
    SurfaceConnection
+   Visualization
    WallVent

@@ -29,6 +29,7 @@ from .mechanical_vent import MechanicalVent
 from .simulation_environment import SimulationEnvironment
 from .surface_connection import SurfaceConnection
 from .utils import CSV_READ_CONFIGS
+from .visualization import Visualization
 from .wall_vent import WallVent
 
 logger = logging.getLogger("pycfast")
@@ -54,6 +55,7 @@ _COMPONENT_SPECS: dict[str, tuple[type, str, str, tuple[str, ...]]] = {
     "mech_vent":    (MechanicalVent,    "mechanical_vents",    "Mechanical vent",    ("id",)),
     "device":       (Device,            "devices",             "Device",             ("id",)),
     "surface_conn": (SurfaceConnection, "surface_connections", "Surface connection", ()),
+    "visualization": (Visualization,    "visualizations",      "Visualization",      ()),
 }
 # fmt: on
 
@@ -140,6 +142,8 @@ class CFASTModel:
         List of fire definitions
     targets: List[Device]
         List of target/sensor definitions
+    visualizations: List[Visualization]
+        List of Smokeview visualization definitions
     file_name: str
         Name of the CFAST input file to generate
     cfast_exe: str
@@ -182,6 +186,7 @@ class CFASTModel:
         fires: list[Fire] | None = None,
         devices: list[Device] | None = None,
         surface_connections: list[SurfaceConnection] | None = None,
+        visualizations: list[Visualization] | None = None,
         file_name: str = "cfast_input.in",
         cfast_exe: str | None = None,
         extra_arguments: list[str] | None = None,
@@ -195,6 +200,7 @@ class CFASTModel:
         self.fires = fires or []
         self.devices = devices or []
         self.surface_connections = surface_connections or []
+        self.visualizations = visualizations or []
         self.file_name = file_name
         self.cfast_exe = cfast_exe
         self.extra_arguments = extra_arguments or []
@@ -213,6 +219,7 @@ class CFASTModel:
             f"devices={len(self.devices)}",
             f"material_properties={len(self.material_properties)}",
             f"surface_connections={len(self.surface_connections)}",
+            f"visualizations={len(self.visualizations)}",
         ]
 
         return f"CFASTModel(file_name='{self.file_name}', {', '.join(components)})"
@@ -232,6 +239,7 @@ class CFASTModel:
             ("devices", self.devices),
             ("material_properties", self.material_properties),
             ("surface_connections", self.surface_connections),
+            ("visualizations", self.visualizations),
         ]
 
         for component_type, components in component_types:
@@ -729,6 +737,38 @@ class CFASTModel:
         """
         return self._update_component("surface_conn", connection, **kwargs)
 
+    def update_visualization_params(
+        self,
+        visualization: int | None = None,
+        **kwargs: Any,
+    ) -> CFASTModel:
+        """
+        Update visualization parameters and return a new model instance.
+
+        Parameters
+        ----------
+        visualization : int | None, optional
+            Visualization identifier. Can be:
+            - int: Visualization index (0-based)
+            - None: Updates first visualization (index 0)
+        **kwargs : Any
+            Visualization attributes to update. See Visualization class
+            documentation for available parameters.
+
+        Returns
+        -------
+        CFASTModel
+            New model instance with updated visualization parameters
+
+        Examples
+        --------
+        >>> new_model = model.update_visualization_params(
+        ...     visualization=0,
+        ...     position=1.5
+        ... )
+        """
+        return self._update_component("visualization", visualization, **kwargs)
+
     def add(self, component: CFASTComponent) -> CFASTModel:
         """
         Add a component to the model and return a new model instance with it included.
@@ -738,7 +778,7 @@ class CFASTModel:
         component : CFASTComponent
             One of: :class:`Fire`, :class:`Compartment`, :class:`Material`,
             :class:`WallVent`, :class:`CeilingFloorVent`, :class:`MechanicalVent`,
-            :class:`Device`, :class:`SurfaceConnection`.
+            :class:`Device`, :class:`SurfaceConnection`, :class:`Visualization`.
 
         Returns
         -------
@@ -965,6 +1005,11 @@ class CFASTModel:
             for conn in self.surface_connections:
                 lines.append(f"    {conn}")
 
+        if self.visualizations:
+            lines.append(f"  Visualizations ({len(self.visualizations)}):")
+            for viz in self.visualizations:
+                lines.append(f"    {viz}")
+
         return "\n".join(lines)
 
     def view_cfast_input_file(self, pretty_print: bool = True) -> str:
@@ -1092,6 +1137,7 @@ class CFASTModel:
                 ("!! Fire", self.fires),
                 ("!! Device", self.devices),
                 ("!! Surface Connections", self.surface_connections),
+                ("!! Visualizations", self.visualizations),
             ]
 
             for header, items in sections:
@@ -1133,9 +1179,9 @@ class CFASTModel:
         - Duplicate ``id`` within any component list (compartments, fires, devices,
           wall/ceiling-floor/mechanical vents, material properties).
         - More than 100 compartments (hard CFAST limit).
-        - ``comp_id`` of a fire, device, vent, or surface connection referencing an
-          undefined compartment (``"OUTSIDE"`` is accepted as second compartment for
-          wall vents).
+        - ``comp_id`` of a fire, device, vent, surface connection, or visualization
+          referencing an undefined compartment (``"OUTSIDE"`` is accepted as second
+          compartment for wall vents).
         - ``material_id`` of a device or compartment surface (ceiling/wall/floor)
           referencing an undefined material.
         - ``device_id`` of a fire or vent referencing an undefined device.
@@ -1237,6 +1283,13 @@ class CFASTModel:
             if sc.comp_ids not in comp_ids:
                 raise ValueError(
                     f"SurfaceConnection: comp_ids='{sc.comp_ids}' does not match any defined compartment."
+                )
+
+        # comp_id of Visualization must exist in compartments (None means all compartments)
+        for viz in self.visualizations:
+            if viz.comp_id is not None and viz.comp_id not in comp_ids:
+                raise ValueError(
+                    f"Visualization: comp_id='{viz.comp_id}' does not match any defined compartment."
                 )
 
         material_map = {m.id: m for m in self.material_properties}
