@@ -35,8 +35,7 @@ class Visualization(CFASTComponent):
       temperature is equal to the value specified.
 
     Visualizations can be placed in a single compartment or, when no
-    compartment is specified, at the same position and axis in all
-    compartments.
+    compartment is specified, in all compartments.
 
     Parameters
     ----------
@@ -46,15 +45,16 @@ class Visualization(CFASTComponent):
         3-D surface of constant gas temperature.
     comp_id : str | None
         Compartment ID where the visualization is placed. If None (default),
-        the visualization applies to all compartments. Validated against the
-        model compartments in CFASTModel._validate_dependencies.
+        the visualization applies to all compartments.
     plane : str | None
         Axis perpendicular to the slice ("X", "Y" or "Z"). Required for
         2-D slices, must be None otherwise.
     position : float | None
-        Position (m) along the specified axis where the slice is placed,
-        measured from the compartment origin. Required for 2-D slices,
-        must be None otherwise.
+        Position (m) along the specified axis where the slice is placed:
+        measured from the compartment origin when comp_id is given, in
+        absolute domain coordinates when comp_id is None (compartments the
+        plane does not intersect are silently skipped). Required for 2-D
+        slices, must be None otherwise.
     value : float | None
         Gas temperature (°C) of the isosurface. Required for isosurfaces,
         must be None otherwise.
@@ -75,7 +75,7 @@ class Visualization(CFASTComponent):
     By default, slice files are generated with a grid of 50 data points in
     each direction for each compartment specified. The grid spacing can be
     adjusted individually by compartment with the ``grid`` parameter of
-    :class:`Compartment`.
+    :class:`Compartment` (not implemented yet).
 
     Examples
     --------
@@ -262,15 +262,13 @@ class Visualization(CFASTComponent):
 
         Parameters
         ----------
-        plane : str
-            Axis perpendicular to the slice ("X", "Y" or "Z"). The slice is
-            placed perpendicular to the selected axis.
-        position : float
-            Position (m) along the specified axis where the slice is placed,
-            measured from the compartment origin. Default: 0.0.
-        comp_id : str | None
-            Compartment identifier. If None (default), the slice is placed
-            at the same position and axis in all compartments.
+        plane: str
+            Axis perpendicular to the slice ("X", "Y" or "Z")
+        position: float
+            Position (m) along the axis: relative to the compartment origin
+            if comp_id is given, absolute if None. Default: 0.0
+        comp_id: str | None
+            Compartment ID, or None (default) for all compartments
 
         Returns
         -------
@@ -290,9 +288,8 @@ class Visualization(CFASTComponent):
 
         Parameters
         ----------
-        comp_id : str | None
-            Compartment identifier. If None (default), a 3-D slice is
-            created in all compartments.
+        comp_id: str | None
+            Compartment ID, or None (default) for all compartments
 
         Returns
         -------
@@ -312,11 +309,10 @@ class Visualization(CFASTComponent):
 
         Parameters
         ----------
-        value : float
-            Gas temperature (°C) of the isosurface.
-        comp_id : str | None
-            Compartment identifier. If None (default), the isosurface is
-            created in all compartments.
+        value: float
+            Gas temperature (°C) of the isosurface
+        comp_id: str | None
+            Compartment ID, or None (default) for all compartments
 
         Returns
         -------
