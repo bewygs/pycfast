@@ -1278,6 +1278,14 @@ class TestCFASTModel:
         with pytest.raises(ValueError, match="does not match any defined compartment"):
             model.add(isosurface)
 
+    def test_add_visualization_comp_id_none(self) -> None:
+        """Test that a visualization with comp_id=None passes dependency validation."""
+        model = self.create_full_model()
+
+        updated_model = model.add(Visualization.isosurface(value=305.0))
+
+        assert updated_model.visualizations[-1].comp_id is None
+
     def test_add_methods_chaining(self) -> None:
         """Test that add methods can be chained together."""
         model = self.create_full_model()
