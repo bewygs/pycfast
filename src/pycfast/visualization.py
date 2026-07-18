@@ -138,12 +138,15 @@ class Visualization(CFASTComponent):
                 f"Visualization: viz_type='{self.viz_type}' must be one of {set(self.VALID_TYPES)}."
             )
 
-        if self.comp_id is not None and (
-            not isinstance(self.comp_id, str) or not self.comp_id
-        ):
-            raise ValueError(
-                "Visualization: comp_id must be a non-empty string or None."
-            )
+        if self.comp_id is not None:
+            if not isinstance(self.comp_id, str):
+                raise TypeError(
+                    f"Visualization: comp_id must be a str, got {type(self.comp_id).__name__}."
+                )
+            if not self.comp_id:
+                raise ValueError(
+                    "Visualization: comp_id must be a non-empty string or None."
+                )
 
         if self.viz_type == "2-D":
             if self.plane is None:
