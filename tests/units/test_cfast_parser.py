@@ -533,6 +533,23 @@ class TestCFASTParser:
         assert comp.ceiling_mat_id == "GYPSUM"
         assert comp.wall_mat_id == "CONCRETE"
         assert comp.floor_mat_id == "STEEL"
+        assert comp.grid == (50, 50, 50)
+
+    def test_parse_compartment_block_custom_grid(self):
+        """Test COMP block parsing with an explicit GRID value."""
+        parser = CFASTParser()
+        params = {
+            "ID": "Room1",
+            "WIDTH": 4.0,
+            "DEPTH": 5.0,
+            "HEIGHT": 3.0,
+            "ORIGIN": [0.0, 0.0, 0.0],
+            "GRID": [20, 30, 40],
+        }
+
+        parser._parse_compartment_block(params)
+
+        assert parser.compartments[0].grid == (20, 30, 40)
 
     def test_parse_compartment_block_invalid_origin(self):
         """Test COMP block parsing with invalid origin coordinates."""

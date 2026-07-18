@@ -30,6 +30,7 @@ class TestCompartment:
         assert comp.leak_area_ratio is None
         assert comp.cross_sect_areas is None
         assert comp.cross_sect_heights is None
+        assert comp.grid == (50, 50, 50)
 
     def test_init_with_all_parameters(self):
         """Test initialization with all parameters."""
@@ -52,6 +53,7 @@ class TestCompartment:
             leak_area_ratio=[0.0001, 0.0002],
             cross_sect_areas=[10.0, 15.0],
             cross_sect_heights=[1.0, 2.0],
+            grid=(20, 30, 40),
         )
         assert comp.id == "BEDROOM"
         assert comp.width == 3.5
@@ -71,6 +73,7 @@ class TestCompartment:
         assert comp.leak_area_ratio == [0.0001, 0.0002]
         assert comp.cross_sect_areas == [10.0, 15.0]
         assert comp.cross_sect_heights == [1.0, 2.0]
+        assert comp.grid == (20, 30, 40)
 
     def test_init_shaft_and_hall_both_true(self):
         """Test that initialization fails when both shaft and hall are True."""
@@ -97,6 +100,31 @@ class TestCompartment:
         """Test that initialization fails with wrong leak area ratio length."""
         with pytest.raises(ValueError, match="must contain exactly 2 values"):
             Compartment(id="ROOM1", leak_area_ratio=leak_area_ratio)
+
+    @pytest.mark.parametrize(
+        "grid",
+        [
+            pytest.param((50, 50), id="too-few"),
+            pytest.param((50, 50, 50, 50), id="too-many"),
+        ],
+    )
+    def test_init_invalid_grid_length(self, grid: tuple[int, ...]):
+        """Test that initialization fails with wrong grid length."""
+        with pytest.raises(ValueError, match="grid must be a 3-element sequence"):
+            Compartment(id="ROOM1", grid=grid)
+
+    @pytest.mark.parametrize(
+        "grid",
+        [
+            pytest.param((0, 50, 50), id="zero"),
+            pytest.param((-1, 50, 50), id="negative"),
+            pytest.param((50.0, 50, 50), id="non-integer"),
+        ],
+    )
+    def test_init_invalid_grid_values(self, grid: tuple):
+        """Test that initialization fails with non-positive or non-integer grid values."""
+        with pytest.raises(ValueError, match="must be a positive integer"):
+            Compartment(id="ROOM1", grid=grid)
 
     @pytest.mark.parametrize("param", ["width", "depth", "height"])
     def test_negative_dimension(self, param: str):
@@ -210,6 +238,14 @@ class TestCompartment:
         )
         result = comp.to_input_string()
         assert "LEAK_AREA_RATIO = 0.0001, 0.0002" in result
+
+    def test_to_input_string_custom_grid(self):
+        """Test input string generation with a custom grid."""
+        comp = Compartment(
+            id="ROOM1", width=3.0, depth=4.0, height=2.4, grid=(20, 30, 40)
+        )
+        result = comp.to_input_string()
+        assert "GRID = 20, 30, 40" in result
 
     def test_to_input_string_custom_origin(self):
         """Test input string generation with custom origin."""
@@ -527,6 +563,12 @@ class TestCompartmentSetattrValidation:
             ValueError, match="leak_area_ratio must contain exactly 2 values"
         ):
             comp.leak_area_ratio = invalid_ratio
+
+    def test_setattr_invalid_grid_length(self):
+        """Setting a grid with wrong length raises."""
+        comp = Compartment(id="ROOM1")
+        with pytest.raises(ValueError, match="grid must be a 3-element sequence"):
+            comp.grid = (50, 50)
 
     def test_setattr_mismatched_cross_sect_lengths(self):
         """Setting mismatched cross section list lengths raises."""

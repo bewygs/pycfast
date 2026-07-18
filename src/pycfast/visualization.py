@@ -75,7 +75,7 @@ class Visualization(CFASTComponent):
     By default, slice files are generated with a grid of 50 data points in
     each direction for each compartment specified. The grid spacing can be
     adjusted individually by compartment with the ``grid`` parameter of
-    :class:`Compartment` (not implemented yet).
+    :class:`Compartment`.
 
     Examples
     --------

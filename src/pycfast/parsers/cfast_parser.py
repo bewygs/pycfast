@@ -544,6 +544,11 @@ class CFASTParser:
                 raise ValueError("ORIGIN must contain at least 3 coordinates [x, y, z]")
             return origin_list[0], origin_list[1], origin_list[2]
 
+        def extract_grid(grid_list: list[int]) -> tuple[int, int, int]:
+            if not grid_list or len(grid_list) < 3:
+                raise ValueError("GRID must contain at least 3 values [x, y, z]")
+            return int(grid_list[0]), int(grid_list[1]), int(grid_list[2])
+
         param_map: dict[str, dict[str, Any]] = {
             "id": {"source": "ID", "required": True, "type": str},
             "width": {"source": "WIDTH", "required": True, "type": float},
@@ -560,6 +565,12 @@ class CFASTParser:
             "leak_area_ratio": {"source": "LEAK_AREA_RATIO", "type": list},
             "cross_sect_areas": {"source": "CROSS_SECT_AREAS", "type": list},
             "cross_sect_heights": {"source": "CROSS_SECT_HEIGHTS", "type": list},
+            "grid": {
+                "source": "GRID",
+                "default": (50, 50, 50),
+                "type": list,
+                "transform": extract_grid,
+            },
             "_origin": {
                 "source": "ORIGIN",
                 "required": True,
