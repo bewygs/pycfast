@@ -99,14 +99,15 @@ class Device(CFASTComponent):
     ------
     TypeError
         If location, normal, or convection_coefficients is not a sequence.
+        If location or normal contain non-numeric values.
     ValueError
-        If location does not contain exactly 3 numeric values.
+        If location does not contain exactly 3 values.
         If convection_coefficients does not contain exactly 2 values.
         If target type is specified but required target parameters are missing.
         If detector type is specified but required detector parameters are missing.
         If spray_density is negative.
         If both normal and surface_orientation are specified or both are None.
-        If normal vector does not contain exactly 3 numeric values.
+        If normal vector does not contain exactly 3 values.
         If unknown device type is specified.
 
     Examples
@@ -287,6 +288,9 @@ class Device(CFASTComponent):
 
         Raises
         ------
+        TypeError
+            If location, normal or convection_coefficients are not sequences,
+            or if location or normal contain non-numeric values.
         ValueError
             If any attribute violates the constraints.
 
@@ -312,11 +316,14 @@ class Device(CFASTComponent):
                     f"exactly 2 values (front, back), got {self.convection_coefficients}."
                 )
 
-        if len(self.location) != 3 or not all(
-            isinstance(coord, int | float) for coord in self.location
-        ):
+        if len(self.location) != 3:
             raise ValueError(
                 "location must be a sequence of 3 numbers representing (x, y, z) position."
+            )
+        if not all(isinstance(coord, int | float) for coord in self.location):
+            raise TypeError(
+                f"Device '{self.id}': location coordinates must be numbers "
+                "(int or float)."
             )
 
         target_types = {"PLATE", "CYLINDER"}
@@ -339,11 +346,14 @@ class Device(CFASTComponent):
                         f"Device '{self.id}': normal must be a sequence, "
                         f"got {type(self.normal).__name__}."
                     )
-                if len(self.normal) != 3 or not all(
-                    isinstance(n, int | float) for n in self.normal
-                ):
+                if len(self.normal) != 3:
                     raise ValueError(
                         "normal must be a sequence of 3 numbers representing (nx, ny, nz)."
+                    )
+                if not all(isinstance(n, int | float) for n in self.normal):
+                    raise TypeError(
+                        f"Device '{self.id}': normal components must be numbers "
+                        "(int or float)."
                     )
 
             if self.temperature_depth is not None:

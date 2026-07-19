@@ -197,6 +197,10 @@ class Compartment(CFASTComponent):
 
         Raises
         ------
+        TypeError
+            If leak_area_ratio, cross_sect_areas, cross_sect_heights or grid
+            are not of the expected sequence type, or if a grid value is not
+            an int.
         ValueError
             If any attribute violates the constraints.
         """
@@ -284,7 +288,12 @@ class Compartment(CFASTComponent):
                     "Negative positions are not allowed by CFAST."
                 )
 
-        if not isinstance(self.grid, tuple) or len(self.grid) != 3:
+        if not isinstance(self.grid, tuple):
+            raise TypeError(
+                f"Compartment '{self.id}': grid must be a tuple, "
+                f"got {type(self.grid).__name__}."
+            )
+        if len(self.grid) != 3:
             raise ValueError(
                 f"Compartment '{self.id}': grid must be a 3-element sequence "
                 f"(grid_x, grid_y, grid_z), got {self.grid!r}."
@@ -295,7 +304,12 @@ class Compartment(CFASTComponent):
             ("grid_y", self.grid[1]),
             ("grid_z", self.grid[2]),
         ):
-            if not isinstance(val, int) or val <= 0:
+            if not isinstance(val, int):
+                raise TypeError(
+                    f"Compartment '{self.id}': {g} must be an int, "
+                    f"got {type(val).__name__}."
+                )
+            if val <= 0:
                 raise ValueError(
                     f"Compartment '{self.id}': {g} must be a positive integer, got {val}."
                 )

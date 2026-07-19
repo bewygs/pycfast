@@ -113,18 +113,28 @@ class TestCompartment:
         with pytest.raises(ValueError, match="grid must be a 3-element sequence"):
             Compartment(id="ROOM1", grid=grid)
 
+    @pytest.mark.parametrize("grid", ["50x50x50", 50, None])
+    def test_init_grid_not_tuple(self, grid: object):
+        """Test that a non-tuple grid raises TypeError."""
+        with pytest.raises(TypeError, match="grid must be a tuple"):
+            Compartment(id="ROOM1", grid=grid)  # type: ignore[arg-type]
+
     @pytest.mark.parametrize(
         "grid",
         [
             pytest.param((0, 50, 50), id="zero"),
             pytest.param((-1, 50, 50), id="negative"),
-            pytest.param((50.0, 50, 50), id="non-integer"),
         ],
     )
     def test_init_invalid_grid_values(self, grid: tuple):
-        """Test that initialization fails with non-positive or non-integer grid values."""
+        """Test that initialization fails with non-positive grid values."""
         with pytest.raises(ValueError, match="must be a positive integer"):
             Compartment(id="ROOM1", grid=grid)
+
+    def test_init_non_integer_grid_value(self):
+        """Test that a non-integer grid value raises TypeError."""
+        with pytest.raises(TypeError, match="grid_x must be an int"):
+            Compartment(id="ROOM1", grid=(50.0, 50, 50))  # type: ignore[arg-type]
 
     @pytest.mark.parametrize("param", ["width", "depth", "height"])
     def test_negative_dimension(self, param: str):
