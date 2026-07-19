@@ -39,6 +39,7 @@ jobs:
           # hatch-vcs needs the full history and tags to resolve the package
           # version in the sdist-builder stage (see Dockerfile).
           fetch-depth: 0
+          fetch-tags: true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4

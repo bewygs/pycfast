@@ -25,6 +25,7 @@ jobs:
           # hatch-vcs needs the full history and tags to resolve the package
           # version from the release tag.
           fetch-depth: 0
+          fetch-tags: true
 
       - uses: actions/setup-python@v6
         with:
