@@ -21,7 +21,7 @@ RUN chmod +x ${CFAST_BUILD_SCRIPT} && ./${CFAST_BUILD_SCRIPT}
 RUN cp ${CFAST_BINARY_NAME} /usr/local/bin/cfast && \
     chmod +x /usr/local/bin/cfast
 
-FROM python:3.14-slim
+FROM python:3.14-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -36,10 +36,36 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-COPY pyproject.toml README.md LICENSE ./
+# Builds the sdist from the local checkout. The package version is resolved
+# by hatch-vcs from git tags, so this stage needs the full repo (including
+# .git) with unabridged history — the CI checkout step must use
+# fetch-depth: 0, or the version will fail to resolve.
+FROM base AS sdist-builder
 
-COPY ./src ./src
+WORKDIR /src
 
-RUN uv pip install --system --no-cache .
+COPY . .
+
+RUN uv build --sdist --out-dir /dist
+
+# Default target: install the package built from the local checkout above.
+FROM base AS local
+
+COPY --from=sdist-builder /dist /dist
+
+RUN uv pip install --system --no-cache /dist/*.tar.gz
+
+CMD ["python"]
+
+# Release target: install the already-published PyPI release. No git
+# history is needed here since the version is pinned explicitly.
+FROM base AS pypi
+
+ARG PYCFAST_VERSION
+
+RUN test -n "$PYCFAST_VERSION" || \
+    (echo "PYCFAST_VERSION build-arg is required for the 'pypi' target" >&2 && exit 1)
+
+RUN uv pip install --system --no-cache "pycfast==${PYCFAST_VERSION}"
 
 CMD ["python"]

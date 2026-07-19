@@ -1,0 +1,18 @@
+# Keep .git — hatch-vcs needs it to resolve the package version during the
+# Docker build (see the sdist-builder stage in the Dockerfile).
+
+.venv
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+__pycache__/
+*.py[codz]
+htmlcov/
+.coverage
+docs/build/
+docs/_build/
+tests/verification_tests/verification_data_local/
+tests/validation_tests/validation_data_local/
+dist/
+build/
+*.egg-info/
