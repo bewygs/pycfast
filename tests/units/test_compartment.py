@@ -70,7 +70,7 @@ class TestCompartment:
         assert comp.origin_z == 0.0
         assert comp.shaft is False
         assert comp.hall is True
-        assert comp.leak_area_ratio == [0.0001, 0.0002]
+        assert comp.leak_area_ratio == (0.0001, 0.0002)
         assert comp.cross_sect_areas == [10.0, 15.0]
         assert comp.cross_sect_heights == [1.0, 2.0]
         assert comp.grid == (20, 30, 40)
@@ -392,7 +392,6 @@ class TestCompartment:
     @pytest.mark.parametrize(
         ("param", "value"),
         [
-            pytest.param("leak_area_ratio", (0.1, 0.2), id="leak_area_ratio-tuple"),
             pytest.param("cross_sect_areas", (10.0, 15.0), id="cross_sect_areas-tuple"),
             pytest.param(
                 "cross_sect_heights", (1.0, 2.0), id="cross_sect_heights-tuple"
@@ -512,12 +511,24 @@ class TestCompartment:
         comp.hall = False
         assert comp.hall is False
 
-    def test_setattr_list_properties(self) -> None:
-        """Test attribute assignment for list properties."""
-        comp = Compartment(id="ROOM1")
+    def test_sequence_params_accept_list_and_tuple(self) -> None:
+        """Test that leak_area_ratio/grid accept lists and tuples, stored as tuples."""
+        from_list = Compartment(
+            id="ROOM1", leak_area_ratio=[0.001, 0.002], grid=[20, 30, 40]
+        )
+        from_tuple = Compartment(
+            id="ROOM1", leak_area_ratio=(0.001, 0.002), grid=(20, 30, 40)
+        )
+        for comp in (from_list, from_tuple):
+            assert comp.leak_area_ratio == (0.001, 0.002)
+            assert comp.grid == (20, 30, 40)
+            assert isinstance(comp.leak_area_ratio, tuple)
+            assert isinstance(comp.grid, tuple)
 
-        comp.leak_area_ratio = [0.001, 0.002]
-        assert comp.leak_area_ratio == [0.001, 0.002]
+    def test_leak_area_ratio_invalid_type(self) -> None:
+        """Test that a non-sequence leak_area_ratio raises TypeError."""
+        with pytest.raises(TypeError, match="leak_area_ratio must be a sequence"):
+            Compartment(id="ROOM1", leak_area_ratio="0.001,0.002")  # type: ignore[arg-type]
 
     def test_setattr_cross_sect_requires_both_set(self) -> None:
         """cross_sect_areas/heights cannot be set individually via attribute access.

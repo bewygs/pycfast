@@ -46,13 +46,13 @@ class TestMechanicalVent:
             offsets=[0.0, 0.0],
         )
         assert vent.id == "VENT_1"
-        assert vent.comps_ids == ["ROOM1", "ROOM2"]
-        assert vent.area == [0.5, 0.5]
-        assert vent.heights == [2.0, 2.0]
-        assert vent.orientations == ["VERTICAL", "VERTICAL"]
+        assert vent.comps_ids == ("ROOM1", "ROOM2")
+        assert vent.area == (0.5, 0.5)
+        assert vent.heights == (2.0, 2.0)
+        assert vent.orientations == ("VERTICAL", "VERTICAL")
         assert vent.flow == 0
-        assert vent.cutoffs == [200, 300]
-        assert vent.offsets == [0.0, 0.0]
+        assert vent.cutoffs == (200, 300)
+        assert vent.offsets == (0.0, 0.0)
         assert vent.filter_time == 0
         assert vent.filter_efficiency == 0
 
@@ -78,13 +78,13 @@ class TestMechanicalVent:
             post_fraction=0.2,
         )
         assert vent.id == "SUPPLY_1"
-        assert vent.comps_ids == ["OUTSIDE", "ROOM1"]
-        assert vent.area == [0.1, 0.1]
-        assert vent.heights == [3.0, 2.8]
-        assert vent.orientations == ["HORIZONTAL", "HORIZONTAL"]
+        assert vent.comps_ids == ("OUTSIDE", "ROOM1")
+        assert vent.area == (0.1, 0.1)
+        assert vent.heights == (3.0, 2.8)
+        assert vent.orientations == ("HORIZONTAL", "HORIZONTAL")
         assert vent.flow == 0.5
-        assert vent.cutoffs == [100, 150]
-        assert vent.offsets == [0.0, 1.0]
+        assert vent.cutoffs == (100, 150)
+        assert vent.offsets == (0.0, 1.0)
         assert vent.filter_time == 0.0
         assert vent.filter_efficiency == 0.0
         assert vent.open_close_criterion == "TEMPERATURE"
@@ -142,6 +142,40 @@ class TestMechanicalVent:
                 comps_ids=["OUTSIDE", "ROOM1"],
                 **{field: bad_value},
             )
+
+    def test_sequence_params_accept_list_and_tuple(self):
+        """Test that all pair parameters accept lists and tuples, stored as tuples."""
+        from_list = MechanicalVent(
+            id="FAN1",
+            comps_ids=["OUTSIDE", "ROOM1"],
+            area=[0.1, 0.2],
+            heights=[3.0, 2.8],
+            orientations=["HORIZONTAL", "VERTICAL"],
+            cutoffs=[100, 150],
+            offsets=[0.5, 1.0],
+        )
+        from_tuple = MechanicalVent(
+            id="FAN1",
+            comps_ids=("OUTSIDE", "ROOM1"),
+            area=(0.1, 0.2),
+            heights=(3.0, 2.8),
+            orientations=("HORIZONTAL", "VERTICAL"),
+            cutoffs=(100, 150),
+            offsets=(0.5, 1.0),
+        )
+        for vent in (from_list, from_tuple):
+            assert vent.comps_ids == ("OUTSIDE", "ROOM1")
+            assert vent.area == (0.1, 0.2)
+            assert vent.heights == (3.0, 2.8)
+            assert vent.orientations == ("HORIZONTAL", "VERTICAL")
+            assert vent.cutoffs == (100, 150)
+            assert vent.offsets == (0.5, 1.0)
+            assert isinstance(vent.comps_ids, tuple)
+            assert isinstance(vent.area, tuple)
+            assert isinstance(vent.heights, tuple)
+            assert isinstance(vent.orientations, tuple)
+            assert isinstance(vent.cutoffs, tuple)
+            assert isinstance(vent.offsets, tuple)
 
     @pytest.mark.parametrize(
         "cutoffs",
@@ -356,10 +390,10 @@ class TestMechanicalVent:
         )
 
         # Check defaults are applied
-        assert vent.area == [0, 0]
-        assert vent.heights == [0, 0]
-        assert vent.orientations == ["VERTICAL", "VERTICAL"]
-        assert vent.cutoffs == [200, 300]
+        assert vent.area == (0, 0)
+        assert vent.heights == (0, 0)
+        assert vent.orientations == ("VERTICAL", "VERTICAL")
+        assert vent.cutoffs == (200, 300)
         assert vent.flow == 0
 
     def test_repr(self) -> None:
@@ -378,10 +412,10 @@ class TestMechanicalVent:
         repr_str = repr(vent)
         assert "MechanicalVent(" in repr_str
         assert "id='SUPPLY_FAN'" in repr_str
-        assert "comps_ids=['OUTSIDE', 'LOBBY']" in repr_str
+        assert "comps_ids=('OUTSIDE', 'LOBBY')" in repr_str
         assert "flow=1.2" in repr_str
-        assert "area=[0.2, 0.2]" in repr_str
-        assert "heights=[3.5, 2.5]" in repr_str
+        assert "area=(0.2, 0.2)" in repr_str
+        assert "heights=(3.5, 2.5)" in repr_str
 
     def test_str(self) -> None:
         """Test __str__ method."""
@@ -429,6 +463,7 @@ class TestMechanicalVent:
         )
 
         vent.id = "NEW_VENT_ID"
+        vent.comps_ids = ["OUTSIDE", "MEETING_ROOM"]
         vent.flow = 0.75
         vent.area = [0.2, 0.2]
         vent.heights = [3.0, 3.0]
@@ -437,22 +472,13 @@ class TestMechanicalVent:
         vent.offsets = [1.5, 2.0]
 
         assert vent.id == "NEW_VENT_ID"
+        assert vent.comps_ids == ("OUTSIDE", "MEETING_ROOM")
         assert vent.flow == 0.75
-        assert vent.area == [0.2, 0.2]
-        assert vent.heights == [3.0, 3.0]
-        assert vent.orientations == ["VERTICAL", "VERTICAL"]
-        assert vent.cutoffs == [80, 120]
-        assert vent.offsets == [1.5, 2.0]
-
-    def test_setattr_compartment_lists(self) -> None:
-        """Test attribute assignment for the compartment list."""
-        vent = MechanicalVent(
-            id="LIST_VENT", comps_ids=["ROOM1", "ROOM2"], offsets=[0.0, 0.0]
-        )
-
-        vent.comps_ids = ["OUTSIDE", "MEETING_ROOM"]
-
-        assert vent.comps_ids == ["OUTSIDE", "MEETING_ROOM"]
+        assert vent.area == (0.2, 0.2)
+        assert vent.heights == (3.0, 3.0)
+        assert vent.orientations == ("VERTICAL", "VERTICAL")
+        assert vent.cutoffs == (80, 120)
+        assert vent.offsets == (1.5, 2.0)
 
 
 class TestMechanicalVentSetattrValidation:

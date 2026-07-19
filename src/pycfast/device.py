@@ -44,9 +44,9 @@ class Device(CFASTComponent):
         detector in the same simulation).
     comp_id : str
         The compartment in which the target or detector is located.
-    location : list[float]
+    location : tuple[float, float, float]
         Position of the device as distances from the compartment walls and floor.
-        Format: [x, y, z] where x is distance from left wall, y is distance from
+        Format: (x, y, z) where x is distance from left wall, y is distance from
         front wall, z is height above floor. Default units: m.
     type : str
         Type of device. Options: "PLATE", "CYLINDER" (targets), "HEAT_DETECTOR",
@@ -58,9 +58,9 @@ class Device(CFASTComponent):
     surface_orientation : str, optional
         Predefined surface orientation for targets. Alternative to specifying
         normal vector directly.
-    normal : list[float], optional
+    normal : tuple[float, float, float], optional
         Specifies a vector of unit length perpendicular to the exposed surface of
-        the target. Format: [nx, ny, nz]. For example, the vector (-1,0,0) indicates
+        the target. Format: (nx, ny, nz). For example, the vector (-1,0,0) indicates
         that the target is facing the left wall. The vector (0,0,1) is facing the ceiling.
         Required for targets when surface_orientation is not specified.
     thickness : float, optional
@@ -92,15 +92,16 @@ class Device(CFASTComponent):
         by Evans. Required for SPRINKLER. Default units: m/s.
     adiabatic : bool
         Usually should never be used, only when DIAG. Default: False.
-    convection_coefficients : list[float], optional
+    convection_coefficients : tuple[float, float], optional
         Usually should never be used, only when DIAG.
 
     Raises
     ------
     TypeError
-        If location, normal, or convection_coefficients is not a list.
+        If location, normal, or convection_coefficients is not a sequence.
     ValueError
         If location does not contain exactly 3 numeric values.
+        If convection_coefficients does not contain exactly 2 values.
         If target type is specified but required target parameters are missing.
         If detector type is specified but required detector parameters are missing.
         If spray_density is negative.
@@ -182,17 +183,19 @@ class Device(CFASTComponent):
         {"CEILING", "FRONT WALL", "BACK WALL", "LEFT WALL", "RIGHT WALL", "FLOOR"}
     )
 
+    _TUPLE_FIELDS = frozenset({"location", "normal", "convection_coefficients"})
+
     def __init__(
         self,
         id: str,
         comp_id: str,
-        location: list[float | int],
+        location: tuple[float, float, float],
         type: str,
         material_id: str | None = None,
         surface_orientation: str
         | None = None,  # can be a VALID_SURFACE_ORIENTATIONS value or a fire id
         # we allow every string because device can't be linked to fire.id (not fire.fire_id) until CFASTModel is built
-        normal: list[float | int] | None = None,
+        normal: tuple[float, float, float] | None = None,
         thickness: float | None = None,
         temperature_depth: float = 0.5,
         depth_units: str = "M",
@@ -201,7 +204,7 @@ class Device(CFASTComponent):
         obscuration: float = 23.93,
         spray_density: float | None = None,
         adiabatic: bool = False,
-        convection_coefficients: list[float] | None = None,
+        convection_coefficients: tuple[float, float] | None = None,
     ):
         self.id = id
         self.comp_id = comp_id
@@ -225,13 +228,11 @@ class Device(CFASTComponent):
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the Device."""
-        location_str = f"[{', '.join(map(str, self.location))}]"
-
         if self.type in {"PLATE", "CYLINDER"}:
             return (
                 f"Device("
                 f"id='{self.id}', type='{self.type}', comp_id='{self.comp_id}', "
-                f"location={location_str}, material_id='{self.material_id}', "
+                f"location={self.location}, material_id='{self.material_id}', "
                 f"thickness={self.thickness}, temperature_depth={self.temperature_depth}"
                 ")"
             )
@@ -249,7 +250,7 @@ class Device(CFASTComponent):
             return (
                 f"Device("
                 f"id='{self.id}', type='{self.type}', comp_id='{self.comp_id}', "
-                f"location={location_str}{detector_str}"
+                f"location={self.location}{detector_str}"
                 ")"
             )
 
@@ -294,24 +295,28 @@ class Device(CFASTComponent):
         UserWarning
             For SMOKE_DETECTOR devices, if obscuration is outside [0, 100] %/m.
         """
-        for param, list_val in (("location", self.location),):
-            if not isinstance(list_val, list):
-                raise TypeError(
-                    f"Device '{self.id}': {param} must be a list, got {type(list_val).__name__}."
-                )
-        if self.convection_coefficients is not None and not isinstance(
-            self.convection_coefficients, list
-        ):
+        if not isinstance(self.location, tuple):
             raise TypeError(
-                f"Device '{self.id}': convection_coefficients must be a list, "
-                f"got {type(self.convection_coefficients).__name__}."
+                f"Device '{self.id}': location must be a sequence, "
+                f"got {type(self.location).__name__}."
             )
+        if self.convection_coefficients is not None:
+            if not isinstance(self.convection_coefficients, tuple):
+                raise TypeError(
+                    f"Device '{self.id}': convection_coefficients must be a sequence, "
+                    f"got {type(self.convection_coefficients).__name__}."
+                )
+            if len(self.convection_coefficients) != 2:
+                raise ValueError(
+                    f"Device '{self.id}': convection_coefficients must contain "
+                    f"exactly 2 values (front, back), got {self.convection_coefficients}."
+                )
 
         if len(self.location) != 3 or not all(
             isinstance(coord, int | float) for coord in self.location
         ):
             raise ValueError(
-                "location must be a list of 3 numbers representing [x, y, z] position."
+                "location must be a sequence of 3 numbers representing (x, y, z) position."
             )
 
         target_types = {"PLATE", "CYLINDER"}
@@ -329,15 +334,16 @@ class Device(CFASTComponent):
                     "surface_orientation (but not both)"
                 )
             if self.normal is not None and self.surface_orientation is None:
-                if not isinstance(self.normal, list):
+                if not isinstance(self.normal, tuple):
                     raise TypeError(
-                        f"Device '{self.id}': normal must be a list, got {type(self.normal).__name__}."
+                        f"Device '{self.id}': normal must be a sequence, "
+                        f"got {type(self.normal).__name__}."
                     )
                 if len(self.normal) != 3 or not all(
                     isinstance(n, int | float) for n in self.normal
                 ):
                     raise ValueError(
-                        "normal must be a list of 3 numbers representing [nx, ny, nz]."
+                        "normal must be a sequence of 3 numbers representing (nx, ny, nz)."
                     )
 
             if self.temperature_depth is not None:
@@ -466,16 +472,16 @@ class Device(CFASTComponent):
         cls,
         id: str,
         comp_id: str,
-        location: list[float | int],
+        location: tuple[float, float, float],
         type: str,
         material_id: str,
         temperature_depth: float = 0.5,
         thickness: float | None = None,
         surface_orientation: str | None = None,
-        normal: list[float | int] | None = None,
+        normal: tuple[float, float, float] | None = None,
         depth_units: str = "M",
         adiabatic: bool = False,
-        convection_coefficients: list[float] | None = None,
+        convection_coefficients: tuple[float, float] | None = None,
     ) -> Device:
         """
         Create a target device.
@@ -486,16 +492,16 @@ class Device(CFASTComponent):
             Unique identifier
         comp_id: str
             Compartment ID
-        location: list[float | int]
-            [x, y, z] position
+        location: tuple[float, float, float]
+            (x, y, z) position
         target_type: str
             "PLATE" or "CYLINDER"
         material_id: str
             Material identifier
         surface_orientation: str | None
             Surface orientation string (mutually exclusive with normal)
-        normal: list[float | int] | None
-            [nx, ny, nz] normal vector (mutually exclusive with surface_orientation)
+        normal: tuple[float, float, float] | None
+            (nx, ny, nz) normal vector (mutually exclusive with surface_orientation)
         thickness: float | None
             Target thickness in meters
         temperature_depth: float
@@ -546,7 +552,7 @@ class Device(CFASTComponent):
         cls,
         id: str,
         comp_id: str,
-        location: list[float | int],
+        location: tuple[float, float, float],
         setpoint: float,
         rti: float,
     ) -> Device:
@@ -559,8 +565,8 @@ class Device(CFASTComponent):
             Unique identifier
         comp_id: str
             Compartment ID
-        location: list[float | int]
-            [x, y, z] position
+        location: tuple[float, float, float]
+            (x, y, z) position
         setpoint: float
             Activation temperature
         rti: float
@@ -595,7 +601,7 @@ class Device(CFASTComponent):
         cls,
         id: str,
         comp_id: str,
-        location: list[float | int],
+        location: tuple[float, float, float],
         obscuration: float = 23.93,
     ) -> Device:
         """
@@ -607,8 +613,8 @@ class Device(CFASTComponent):
             Unique identifier
         comp_id: str
             Compartment ID
-        location: list[float | int]
-            [x, y, z] position
+        location: tuple[float, float, float]
+            (x, y, z) position
         obscuration: float
             Obscuration threshold in %/m, default: 23.93 %/m (8 %/ft)
 
@@ -639,7 +645,7 @@ class Device(CFASTComponent):
         cls,
         id: str,
         comp_id: str,
-        location: list[float | int],
+        location: tuple[float, float, float],
         setpoint: float,
         rti: float,
         spray_density: float,
@@ -653,8 +659,8 @@ class Device(CFASTComponent):
             Unique identifier
         comp_id: str
             Compartment ID
-        location: list[float | int]
-            [x, y, z] position
+        location: tuple[float, float, float]
+            (x, y, z) position
         setpoint: float
             Activation temperature
         rti: float

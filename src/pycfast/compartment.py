@@ -95,10 +95,10 @@ class Compartment(CFASTComponent):
         with a different empirical correlation that results in a somewhat higher temperature near
         the ceiling. This will impact, for example, detectors, sprinkler, and targets near the
         ceiling in corridors.
-    leak_area_ratio : list[float], optional
+    leak_area_ratio : tuple[float, float], optional
         CFAST can automatically calculate leakage between one or more compartments and the outdoors.
         Leakage is specified as a leakage area per unit wall area and/or per unit floor area.
-        Format: [Wall Leakage, Floor Leakage]. Default units: m²/m².
+        Format: (Wall Leakage, Floor Leakage). Default units: m²/m².
     cross_sect_areas : list[float], optional
         Cross-sectional area at the corresponding height for variable cross-sectional area
         compartments. Used for defining compartment properties for spaces which are not
@@ -145,6 +145,8 @@ class Compartment(CFASTComponent):
     ... )
     """
 
+    _TUPLE_FIELDS = frozenset({"leak_area_ratio", "grid"})
+
     def __init__(
         self,
         id: str = "Comp 1",
@@ -162,7 +164,7 @@ class Compartment(CFASTComponent):
         origin_z: float | None = 0,
         shaft: bool | None = None,
         hall: bool | None = None,
-        leak_area_ratio: list[float] | None = None,  # [wall_leak, floor_leak]
+        leak_area_ratio: tuple[float, float] | None = None,  # (wall_leak, floor_leak)
         cross_sect_areas: list[float] | None = None,
         cross_sect_heights: list[float] | None = None,
         grid: tuple[int, int, int] = (50, 50, 50),
@@ -203,8 +205,15 @@ class Compartment(CFASTComponent):
                 f"Compartment '{self.id}': shaft and hall cannot both be True."
             )
 
+        if self.leak_area_ratio is not None and not isinstance(
+            self.leak_area_ratio, tuple
+        ):
+            raise TypeError(
+                f"Compartment '{self.id}': leak_area_ratio must be a sequence of "
+                f"two values, got {type(self.leak_area_ratio).__name__}."
+            )
+
         for param, list_val in (
-            ("leak_area_ratio", self.leak_area_ratio),
             ("cross_sect_areas", self.cross_sect_areas),
             ("cross_sect_heights", self.cross_sect_heights),
         ):
@@ -238,7 +247,7 @@ class Compartment(CFASTComponent):
         if self.leak_area_ratio is not None and len(self.leak_area_ratio) != 2:
             raise ValueError(
                 f"Compartment '{self.id}': leak_area_ratio must contain exactly 2 values "
-                "[wall_leak, floor_leak]"
+                "(wall_leak, floor_leak)"
             )
 
         if (self.cross_sect_areas is None) != (self.cross_sect_heights is None):
@@ -275,7 +284,7 @@ class Compartment(CFASTComponent):
                     "Negative positions are not allowed by CFAST."
                 )
 
-        if not isinstance(self.grid, (list, tuple)) or len(self.grid) != 3:
+        if not isinstance(self.grid, tuple) or len(self.grid) != 3:
             raise ValueError(
                 f"Compartment '{self.id}': grid must be a 3-element sequence "
                 f"(grid_x, grid_y, grid_z), got {self.grid!r}."

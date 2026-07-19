@@ -44,7 +44,7 @@ class TestWallVent:
             offset=1.0,
         )
         assert vent.id == "DOOR1"
-        assert vent.comps_ids == ["ROOM1", "ROOM2"]
+        assert vent.comps_ids == ("ROOM1", "ROOM2")
         assert vent.bottom == 0.0
         assert vent.height == 2.0
         assert vent.width == 0.9
@@ -77,7 +77,7 @@ class TestWallVent:
             post_fraction=0.2,
         )
         assert vent.id == "DOOR1"
-        assert vent.comps_ids == ["ROOM1", "ROOM2"]
+        assert vent.comps_ids == ("ROOM1", "ROOM2")
         assert vent.bottom == 0.0
         assert vent.height == 2.0
         assert vent.width == 0.9
@@ -198,9 +198,17 @@ class TestWallVent:
             )
 
     def test_init_invalid_comps_ids_type(self):
-        """Test that non-list comps_ids raises TypeError."""
-        with pytest.raises(TypeError, match="comps_ids must be a list"):
+        """Test that non-sequence comps_ids raises TypeError."""
+        with pytest.raises(TypeError, match="comps_ids must be a sequence"):
             WallVent(id="DOOR1", comps_ids="ROOM1,ROOM2")  # type: ignore[arg-type]
+
+    def test_comps_ids_accepts_list_and_tuple(self):
+        """Test that comps_ids accepts lists and tuples, stored as a tuple."""
+        from_list = WallVent(id="DOOR1", comps_ids=["ROOM1", "ROOM2"])
+        from_tuple = WallVent(id="DOOR1", comps_ids=("ROOM1", "ROOM2"))
+        for vent in (from_list, from_tuple):
+            assert vent.comps_ids == ("ROOM1", "ROOM2")
+            assert isinstance(vent.comps_ids, tuple)
 
     def test_to_input_string_basic(self, make_wall_vent):
         """Test basic input string generation."""
@@ -388,7 +396,7 @@ class TestWallVent:
         repr_str = repr(vent)
         assert "WallVent(" in repr_str
         assert "id='DOOR_MAIN'" in repr_str
-        assert "comps_ids=['LIVING_ROOM', 'KITCHEN']" in repr_str
+        assert "comps_ids=('LIVING_ROOM', 'KITCHEN')" in repr_str
         assert "bottom=0.0" in repr_str
         assert "height=2.1" in repr_str
         assert "width=0.9" in repr_str
@@ -431,7 +439,7 @@ class TestWallVent:
         assert vent.id == "NEW_VENT"
 
         vent.comps_ids = ["ROOM1", "ROOM2"]
-        assert vent.comps_ids == ["ROOM1", "ROOM2"]
+        assert vent.comps_ids == ("ROOM1", "ROOM2")
 
         vent.bottom = 0.3
         assert vent.bottom == 0.3
@@ -477,7 +485,7 @@ class TestWallVentSetattrValidation:
         """Setting OUTSIDE as second compartment is accepted."""
         vent = make_wall_vent()
         vent.comps_ids = ["ROOM1", "OUTSIDE"]
-        assert vent.comps_ids == ["ROOM1", "OUTSIDE"]
+        assert vent.comps_ids == ("ROOM1", "OUTSIDE")
 
     @pytest.mark.parametrize(
         ("key", "value"),

@@ -27,10 +27,10 @@ class TestDevice:
         )
         assert device.id == "TARGET1"
         assert device.comp_id == "ROOM1"
-        assert device.location == [1.0, 2.0, 1.5]
+        assert device.location == (1.0, 2.0, 1.5)
         assert device.type == "PLATE"
         assert device.material_id == "STEEL"
-        assert device.normal == [0, 0, -1]
+        assert device.normal == (0, 0, -1)
         assert device.surface_orientation is None
         assert device.thickness == 0.001
         assert device.temperature_depth == 0.0005
@@ -101,7 +101,9 @@ class TestDevice:
 
     def test_init_invalid_location_length(self):
         """Test that initialization fails with wrong location dimensions."""
-        with pytest.raises(ValueError, match="location must be a list of 3 numbers"):
+        with pytest.raises(
+            ValueError, match="location must be a sequence of 3 numbers"
+        ):
             Device(
                 id="DEV1",
                 comp_id="ROOM1",
@@ -112,35 +114,37 @@ class TestDevice:
                 temperature_depth=0.0005,
             )
 
-    def test_init_location_not_a_list(self):
-        """Test that initialization fails with TypeError when location is not a list."""
-        with pytest.raises(TypeError, match="location must be a list"):
+    def test_init_location_not_a_sequence(self):
+        """Test that initialization fails with TypeError when location is a string."""
+        with pytest.raises(TypeError, match="location must be a sequence"):
             Device(
                 id="DEV1",
                 comp_id="ROOM1",
-                location=(1.0, 2.0, 1.5),  # type: ignore  # tuple, not list
+                location="1.0,2.0,1.5",  # type: ignore[arg-type]
                 type="PLATE",
                 material_id="STEEL",
                 normal=[0, 0, -1],
                 temperature_depth=0.0005,
             )
 
-    def test_init_normal_not_a_list(self):
-        """Test that initialization fails with TypeError when normal is not a list."""
-        with pytest.raises(TypeError, match="normal must be a list"):
+    def test_init_normal_not_a_sequence(self):
+        """Test that initialization fails with TypeError when normal is a string."""
+        with pytest.raises(TypeError, match="normal must be a sequence"):
             Device(
                 id="DEV1",
                 comp_id="ROOM1",
                 location=[1.0, 2.0, 1.5],
                 type="PLATE",
                 material_id="STEEL",
-                normal=(0, 0, -1),  # type: ignore  # tuple, not list
+                normal="0,0,-1",  # type: ignore[arg-type]
                 temperature_depth=0.0005,
             )
 
-    def test_init_convection_coefficients_not_a_list(self):
-        """Test that initialization fails with TypeError when convection_coefficients is not a list."""
-        with pytest.raises(TypeError, match="convection_coefficients must be a list"):
+    def test_init_convection_coefficients_not_a_sequence(self):
+        """Test that initialization fails when convection_coefficients is a float."""
+        with pytest.raises(
+            TypeError, match="convection_coefficients must be a sequence"
+        ):
             Device(
                 id="DEV1",
                 comp_id="ROOM1",
@@ -148,7 +152,48 @@ class TestDevice:
                 type="PLATE",
                 material_id="STEEL",
                 normal=[0, 0, -1],
-                convection_coefficients=(10.0, 20.0),  # type: ignore  # tuple, not list
+                convection_coefficients=10.0,  # type: ignore[arg-type]
+            )
+
+    def test_sequence_params_accept_list_and_tuple(self):
+        """Test that location/normal/convection_coefficients accept both forms."""
+        from_list = Device(
+            id="DEV1",
+            comp_id="ROOM1",
+            location=[1.0, 2.0, 1.5],
+            type="PLATE",
+            material_id="STEEL",
+            normal=[0, 0, -1],
+            convection_coefficients=[10.0, 20.0],
+        )
+        from_tuple = Device(
+            id="DEV1",
+            comp_id="ROOM1",
+            location=(1.0, 2.0, 1.5),
+            type="PLATE",
+            material_id="STEEL",
+            normal=(0, 0, -1),
+            convection_coefficients=(10.0, 20.0),
+        )
+        for device in (from_list, from_tuple):
+            assert device.location == (1.0, 2.0, 1.5)
+            assert device.normal == (0, 0, -1)
+            assert device.convection_coefficients == (10.0, 20.0)
+            assert isinstance(device.location, tuple)
+            assert isinstance(device.normal, tuple)
+            assert isinstance(device.convection_coefficients, tuple)
+
+    def test_convection_coefficients_invalid_length(self):
+        """Test that convection_coefficients rejects sequences of length != 2."""
+        with pytest.raises(ValueError, match="convection_coefficients must contain"):
+            Device(
+                id="DEV1",
+                comp_id="ROOM1",
+                location=[1.0, 2.0, 1.5],
+                type="PLATE",
+                material_id="STEEL",
+                normal=[0, 0, -1],
+                convection_coefficients=[10.0, 20.0, 30.0],
             )
 
     def test_valid_surface_orientations_constant(self):
@@ -165,7 +210,9 @@ class TestDevice:
 
     def test_init_invalid_location_type(self):
         """Test that initialization fails with non-numeric location values."""
-        with pytest.raises(ValueError, match="location must be a list of 3 numbers"):
+        with pytest.raises(
+            ValueError, match="location must be a sequence of 3 numbers"
+        ):
             # This should fail validation even though it passes type checking temporarily
             invalid_location = [1.0, "invalid", 1.5]  # type: ignore
             Device(
@@ -234,7 +281,7 @@ class TestDevice:
 
     def test_init_target_invalid_normal(self):
         """Test that target initialization fails with invalid normal vector."""
-        with pytest.raises(ValueError, match="normal must be a list of 3 numbers"):
+        with pytest.raises(ValueError, match="normal must be a sequence of 3 numbers"):
             Device(
                 id="TARGET1",
                 comp_id="ROOM1",
@@ -543,10 +590,10 @@ class TestDevice:
             normal=[0, 0, -1],
             thickness=0.001,
             temperature_depth=0.0005,
-            convection_coefficients=[10.0, 20.0, 30.0],
+            convection_coefficients=[10.0, 20.0],
         )
         result = device.to_input_string()
-        assert "CONVECTION_COEFFICIENTS = 10.0, 20.0, 30.0" in result
+        assert "CONVECTION_COEFFICIENTS = 10.0, 20.0" in result
 
     # Test class methods
     def test_create_target_classmethod(self):
@@ -564,7 +611,7 @@ class TestDevice:
         assert isinstance(device, Device)
         assert device.type == "PLATE"
         assert device.material_id == "STEEL"
-        assert device.normal == [0, 0, -1]
+        assert device.normal == (0, 0, -1)
 
     def test_create_target_classmethod_validation(self):
         """Test that create_target class method validates inputs."""
@@ -656,7 +703,7 @@ class TestDevice:
         assert "id='TEMP_01'" in repr_str
         assert "type='PLATE'" in repr_str
         assert "comp_id='ROOM1'" in repr_str
-        assert "location=[1.0, 2.0, 1.5]" in repr_str
+        assert "location=(1.0, 2.0, 1.5)" in repr_str
         assert "material_id='STEEL'" in repr_str
         assert "thickness=0.001" in repr_str
         assert "temperature_depth=0.0005" in repr_str
@@ -761,7 +808,8 @@ class TestDevice:
         assert device.comp_id == "NEW_ROOM"
 
         device.location = [4.0, 5.0, 6.0]
-        assert device.location == [4.0, 5.0, 6.0]
+        assert device.location == (4.0, 5.0, 6.0)
+        assert isinstance(device.location, tuple)
 
 
 class TestDeviceSetattrValidation:
@@ -785,7 +833,9 @@ class TestDeviceSetattrValidation:
             material_id="CONCRETE",
             surface_orientation="CEILING",
         )
-        with pytest.raises(ValueError, match="location must be a list of 3 numbers"):
+        with pytest.raises(
+            ValueError, match="location must be a sequence of 3 numbers"
+        ):
             device.location = invalid_location
 
     def test_setattr_target_empty_material_id(self):
@@ -850,4 +900,5 @@ class TestDeviceSetattrValidation:
             location=[1.0, 2.0, 3.0],
         )
         device.location = [4.0, 5.0, 6.0]
-        assert device.location == [4.0, 5.0, 6.0]
+        assert device.location == (4.0, 5.0, 6.0)
+        assert isinstance(device.location, tuple)

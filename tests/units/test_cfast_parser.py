@@ -145,7 +145,7 @@ class TestCFASTParser:
             assert fire.id == "Fire1"
             assert fire.comp_id == "Room1"
             assert fire.fire_id == "TestFire"
-            assert fire.location == [2.5, 2.5]
+            assert fire.location == (2.5, 2.5)
             assert fire.carbon == 1
             assert fire.hydrogen == 4
             assert fire.oxygen == 0
@@ -600,7 +600,7 @@ class TestCFASTParser:
         assert len(parser.wall_vents) == 1
         vent = parser.wall_vents[0]
         assert vent.id == "DOOR1"
-        assert vent.comps_ids == ["Room1", "Room2"]
+        assert vent.comps_ids == ("Room1", "Room2")
         assert vent.bottom == 0.0
         assert vent.height == 2.0
         assert vent.width == 0.8
@@ -623,10 +623,10 @@ class TestCFASTParser:
         assert len(parser.ceiling_floor_vents) == 1
         vent = parser.ceiling_floor_vents[0]
         assert vent.id == "CEILING_VENT1"
-        assert vent.comps_ids == ["Room1", "Room2"]
+        assert vent.comps_ids == ("Room1", "Room2")
         assert vent.area == 0.5
         assert vent.shape == "ROUND"
-        assert vent.offsets == [1.0, 2.0]
+        assert vent.offsets == (1.0, 2.0)
 
     def test_parse_mechanical_vent(self):
         """Test mechanical vent parsing."""
@@ -647,9 +647,9 @@ class TestCFASTParser:
         assert len(parser.mechanical_vents) == 1
         vent = parser.mechanical_vents[0]
         assert vent.id == "MECH_VENT1"
-        assert vent.comps_ids == ["Room1", "Room2"]
-        assert vent.area == [0.1, 0.1]
-        assert vent.heights == [2.0, 2.0]
+        assert vent.comps_ids == ("Room1", "Room2")
+        assert vent.area == (0.1, 0.1)
+        assert vent.heights == (2.0, 2.0)
         assert vent.flow == 0.5
 
     def test_parse_fire_block(self):
@@ -732,7 +732,7 @@ class TestCFASTParser:
         device = parser.devices[0]
         assert device.id == "Target1"
         assert device.comp_id == "Room1"
-        assert device.location == [1.0, 2.0, 1.5]
+        assert device.location == (1.0, 2.0, 1.5)
 
     def test_parse_device_block_heat_detector(self):
         """Test DEVC block parsing for HEAT_DETECTOR."""
@@ -1191,8 +1191,8 @@ class TestSharedFireDefinitionRegression:
 
         assert {fire.id for fire in model.fires} == {"burner1", "burner2"}
         burner1, burner2 = model.fires
-        assert burner1.location == [5.45, 2.15]
-        assert burner2.location == [4.25, 2.15]
+        assert burner1.location == (5.45, 2.15)
+        assert burner2.location == (4.25, 2.15)
         assert burner1.definition is burner2.definition
         assert burner1.radiative_fraction == 0.25
         assert burner1.data_table == [

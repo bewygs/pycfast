@@ -778,6 +778,18 @@ class TestCFASTModel:
         assert updated_model3.fires[0].data_table[0][1] == 0  # HRR at t=0
         assert updated_model3.fires[0].data_table[1][1] == 1000  # HRR at t=60
 
+    def test_update_params_normalizes_lists_to_tuples(self) -> None:
+        """Lists passed to update_*_params are stored as tuples."""
+        model = self.create_full_model()
+
+        updated_model = model.update_fire_params(fire=0, location=[4.0, 5.0])
+        assert updated_model.fires[0].location == (4.0, 5.0)
+        assert isinstance(updated_model.fires[0].location, tuple)
+
+        updated_model = model.update_device_params(device=0, location=[1.0, 1.0, 2.0])
+        assert updated_model.devices[0].location == (1.0, 1.0, 2.0)
+        assert isinstance(updated_model.devices[0].location, tuple)
+
     def test_update_fire_params_with_numpy_array(self) -> None:
         """Test update_fire_params with numpy array data_table."""
         model = self.create_full_model()
@@ -1105,7 +1117,7 @@ class TestCFASTModel:
         assert len(updated_model.fires) == original_fire_count + 1
         assert updated_model.fires[-1].id == "FIRE2"
         assert updated_model.fires[-1].comp_id == "ROOM1"
-        assert updated_model.fires[-1].location == [3.0, 3.0]
+        assert updated_model.fires[-1].location == (3.0, 3.0)
 
     def test_add_fire_to_empty_list(self) -> None:
         """Test adding fire when fires list starts empty."""
@@ -1176,7 +1188,7 @@ class TestCFASTModel:
 
         # Check that new model has additional wall vent
         assert len(updated_model.wall_vents) == original_vent_count + 1
-        assert updated_model.wall_vents[-1].comps_ids == ["ROOM1", "ROOM2"]
+        assert updated_model.wall_vents[-1].comps_ids == ("ROOM1", "ROOM2")
         assert updated_model.wall_vents[-1].width == 1.0
 
     def test_add_ceiling_floor_vent(self) -> None:
@@ -1192,7 +1204,7 @@ class TestCFASTModel:
 
         # Check that new model has additional ceiling/floor vent
         assert len(updated_model.ceiling_floor_vents) == original_vent_count + 1
-        assert updated_model.ceiling_floor_vents[-1].comps_ids == ["ROOM1", "ROOM2"]
+        assert updated_model.ceiling_floor_vents[-1].comps_ids == ("ROOM1", "ROOM2")
         assert updated_model.ceiling_floor_vents[-1].area == 0.5
 
     def test_add_mechanical_vent(self) -> None:
@@ -1208,7 +1220,7 @@ class TestCFASTModel:
 
         # Check that new model has additional mechanical vent
         assert len(updated_model.mechanical_vents) == original_vent_count + 1
-        assert updated_model.mechanical_vents[-1].comps_ids == ["ROOM1", "OUTSIDE"]
+        assert updated_model.mechanical_vents[-1].comps_ids == ("ROOM1", "OUTSIDE")
         assert updated_model.mechanical_vents[-1].flow == 0.5
 
     def test_add_device(self) -> None:
@@ -1231,7 +1243,7 @@ class TestCFASTModel:
         # Check that new model has additional device
         assert len(updated_model.devices) == original_device_count + 1
         assert updated_model.devices[-1].comp_id == "ROOM1"
-        assert updated_model.devices[-1].location == [2.0, 2.0, 2.4]
+        assert updated_model.devices[-1].location == (2.0, 2.0, 2.4)
 
     def test_add_surface_connection(self) -> None:
         """Test adding a surface connection to the model."""

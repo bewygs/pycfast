@@ -32,10 +32,10 @@ class TestCeilingFloorVent:
         """Test basic initialization with required parameters."""
         vent = CeilingFloorVent(id="VENT1", comps_ids=["UPPER", "LOWER"], area=1.0)
         assert vent.id == "VENT1"
-        assert vent.comps_ids == ["UPPER", "LOWER"]
+        assert vent.comps_ids == ("UPPER", "LOWER")
         assert vent.area == 1.0
         assert vent.shape == "ROUND"
-        assert vent.offsets == [0, 0]
+        assert vent.offsets == (0, 0)
 
     def test_init_with_all_parameters(self):
         """Test initialization with all parameters."""
@@ -52,10 +52,10 @@ class TestCeilingFloorVent:
             post_fraction=0.2,
         )
         assert vent.id == "VENT1"
-        assert vent.comps_ids == ["UPPER", "LOWER"]
+        assert vent.comps_ids == ("UPPER", "LOWER")
         assert vent.area == 2.5
         assert vent.shape == "SQUARE"
-        assert vent.offsets == [2.0, 3.0]
+        assert vent.offsets == (2.0, 3.0)
         assert vent.open_close_criterion == "TEMPERATURE"
         assert vent.set_point == 150.0
         assert vent.device_id == "TEMP_SENSOR"
@@ -66,21 +66,33 @@ class TestCeilingFloorVent:
         ("param", "value"),
         [
             pytest.param("comps_ids", "AB", id="comps_ids-string"),
-            pytest.param("comps_ids", ("UPPER", "LOWER"), id="comps_ids-tuple"),
-            pytest.param("offsets", (1.0, 2.0), id="offsets-tuple"),
             pytest.param("offsets", 1.0, id="offsets-float"),
         ],
     )
-    def test_required_list_params_wrong_type(self, param, value):
-        """Test that required list parameters reject non-list types."""
+    def test_sequence_params_wrong_type(self, param, value):
+        """Test that fixed-length sequence parameters reject invalid types."""
         kwargs: dict[str, object] = {
             "id": "VENT1",
             "comps_ids": ["UPPER", "LOWER"],
             "area": 1.0,
             param: value,
         }
-        with pytest.raises(TypeError, match=f"{param} must be a list"):
+        with pytest.raises(TypeError, match=f"{param} must be a sequence"):
             CeilingFloorVent(**kwargs)  # type: ignore[arg-type]
+
+    def test_sequence_params_accept_list_and_tuple(self):
+        """Test that comps_ids/offsets accept lists and tuples, stored as tuples."""
+        from_list = CeilingFloorVent(
+            id="VENT1", comps_ids=["UPPER", "LOWER"], area=1.0, offsets=[1.0, 2.0]
+        )
+        from_tuple = CeilingFloorVent(
+            id="VENT1", comps_ids=("UPPER", "LOWER"), area=1.0, offsets=(1.0, 2.0)
+        )
+        for vent in (from_list, from_tuple):
+            assert vent.comps_ids == ("UPPER", "LOWER")
+            assert vent.offsets == (1.0, 2.0)
+            assert isinstance(vent.comps_ids, tuple)
+            assert isinstance(vent.offsets, tuple)
 
     @pytest.mark.parametrize(
         ("param", "value"),
@@ -156,7 +168,7 @@ class TestCeilingFloorVent:
 
     def test_invalid_offsets_length(self):
         """Test that offsets with wrong length are rejected."""
-        with pytest.raises(ValueError, match="offsets must be a list of two values"):
+        with pytest.raises(ValueError, match="offsets must be a sequence of two"):
             CeilingFloorVent(
                 id="VENT1",
                 comps_ids=["UPPER", "LOWER"],
@@ -425,7 +437,7 @@ class TestCeilingFloorVent:
         vent = CeilingFloorVent(
             id="VENT1", comps_ids=["UPPER", "LOWER"], area=1.0, offsets=None
         )
-        assert vent.offsets == [0, 0]
+        assert vent.offsets == (0, 0)
 
     def test_repr(self):
         """Test __repr__ method."""
@@ -440,10 +452,10 @@ class TestCeilingFloorVent:
         repr_str = repr(vent)
         assert "CeilingFloorVent(" in repr_str
         assert "id='STAIR_VENT'" in repr_str
-        assert "comps_ids=['UPPER_FLOOR', 'LOWER_FLOOR']" in repr_str
+        assert "comps_ids=('UPPER_FLOOR', 'LOWER_FLOOR')" in repr_str
         assert "area=2.0" in repr_str
         assert "shape='SQUARE'" in repr_str
-        assert "offsets=[1.0, 2.0]" in repr_str
+        assert "offsets=(1.0, 2.0)" in repr_str
 
     def test_str(self):
         """Test __str__ method."""
