@@ -1,6 +1,25 @@
 # Changelog
 All notable changes to PyCFAST are documented in this file.
 
+## [0.2.2] - 2026-07-19
+
+### New features
+- Add `Visualization` component for Smokeview outputs (2-D/3-D slices, isosurfaces) (#129, #194)
+- `Compartment`: add `grid` parameter to control Smokeview slice-file resolution (#197)
+- Add CFAST 7.7.7 support (#163)
+
+### API changes
+- `Device.location`, `Device.normal`, `Device.convection_coefficients` and other sequence parameters across `Compartment`, `Fire`, `CeilingFloorVent`, `MechanicalVent`, `WallVent` now expect `tuple` instead of `list` (#198)
+
+### Fixes
+- `CFASTModel`: raise `ValueError` for models with zero compartments (#165, #166)
+- `Fire`: preserve multiple fire instances sharing a `FIRE_ID` (#136, #190)
+- Raise `TypeError` instead of `ValueError` for wrong parameter types across `Compartment`, `Device`, `SurfaceConnection`, and `CFASTModel.save()` (#199)
+
+### Other changes
+- Update Docker workflows for the `hatch-vcs` migration; version is now derived automatically from git tags (#200)
+- Documentation and dependency updates
+
 ## [0.2.1] - 2026-05-18
 
 ### New features
