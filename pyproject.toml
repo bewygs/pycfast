@@ -1,6 +1,6 @@
 [project]
 name = "pycfast"
-version = "0.2.2dev0"
+dynamic = ["version"]
 description = "Python interface for building, running, and analyzing CFAST fire simulation models"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -82,10 +82,16 @@ all = [
 
 [build-system]
 requires = [
-    "setuptools>=61.0",
-    "wheel"
+    "hatchling",
+    "hatch-vcs",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pycfast"]
 
 [tool.uv.sources]
 torch = [{ index = "pytorch-cpu" }]
@@ -94,12 +100,6 @@ torch = [{ index = "pytorch-cpu" }]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
-
-[tool.setuptools.packages.find]
-where = ["src"]
-
-[tool.setuptools.package-data]
-"pycfast.datasets" = ["data/*.csv.gz"]
 
 [tool.ruff]
 line-length = 88
