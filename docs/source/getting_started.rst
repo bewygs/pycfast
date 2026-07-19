@@ -55,7 +55,7 @@ Door between the two rooms with a :class:`~pycfast.WallVent`:
 
     wall_vent = WallVent(
         id="wallvent",
-        comps_ids=["ROOM1", "ROOM2"],
+        comps_ids=("ROOM1", "ROOM2"),
         bottom=0.0,
         height=2.0,
         width=0.9,
@@ -130,7 +130,7 @@ Fire in the first room (references compartment ID and fire data table):
         id="FIRE1",
         comp_id="ROOM1",
         fire_id="POLYURETHANE",
-        location=[2.0, 2.0],
+        location=(2.0, 2.0),
         data_table=fire_data
     )
 

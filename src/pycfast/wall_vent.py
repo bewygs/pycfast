@@ -29,8 +29,8 @@ class WallVent(CFASTComponent):
     id : str
         The selected name must be unique (i.e., not the same as another vent in the same
         simulation).
-    comps_ids : list[str]
-        List of two compartment IDs connected by this vent. The first compartment is the
+    comps_ids : tuple[str, str]
+        Pair of compartment IDs connected by this vent. The first compartment is the
         reference for all vent specifications. All specifications of the vent are made
         relative to the floor of the first compartment.
     bottom : float, optional
@@ -101,10 +101,12 @@ class WallVent(CFASTComponent):
     ... )
     """
 
+    _TUPLE_FIELDS = frozenset({"comps_ids"})
+
     def __init__(
         self,
         id: str,
-        comps_ids: list[str],
+        comps_ids: tuple[str, str],
         bottom: float | None = 0,
         height: float | None = 0,
         width: float | None = 0,
@@ -143,7 +145,7 @@ class WallVent(CFASTComponent):
         Raises
         ------
         TypeError
-            If list parameters (comps_ids, time, fraction) are not lists.
+            If comps_ids is not a sequence, or time/fraction are not lists.
         ValueError
             If any attribute violates the constraints.
 
@@ -152,9 +154,10 @@ class WallVent(CFASTComponent):
         UserWarning
             If height or width is 0 (no flow will occur through this vent).
         """
-        if not isinstance(self.comps_ids, list):
+        if not isinstance(self.comps_ids, tuple):
             raise TypeError(
-                f"WallVent '{self.id}': comps_ids must be a list, got {type(self.comps_ids).__name__}."
+                f"WallVent '{self.id}': comps_ids must be a sequence of two "
+                f"compartment IDs, got {type(self.comps_ids).__name__}."
             )
         for param, opt_list_val in (
             ("time", self.time),

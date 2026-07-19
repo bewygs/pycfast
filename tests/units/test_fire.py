@@ -42,7 +42,7 @@ class TestFire:
         assert fire.id == "FIRE1"
         assert fire.comp_id == "ROOM1"
         assert fire.fire_id == "POLYURETHANE"
-        assert fire.location == [2.0, 3.0]
+        assert fire.location == (2.0, 3.0)
         assert fire.carbon == 1
         assert fire.chlorine == 0
         assert fire.hydrogen == 4
@@ -90,14 +90,26 @@ class TestFire:
         assert fire.radiative_fraction == 0.35
         assert fire.data_table == data_table
 
+    def test_location_accepts_list_and_tuple(self):
+        """Test that location accepts lists and tuples, stored as a tuple."""
+        from_list = Fire(
+            id="FIRE1", comp_id="ROOM1", fire_id="POLYURETHANE", location=[2.0, 3.0]
+        )
+        from_tuple = Fire(
+            id="FIRE1", comp_id="ROOM1", fire_id="POLYURETHANE", location=(2.0, 3.0)
+        )
+        for fire in (from_list, from_tuple):
+            assert fire.location == (2.0, 3.0)
+            assert isinstance(fire.location, tuple)
+
     def test_init_invalid_location_type(self):
-        """Test that initialization fails when location is not a list."""
-        with pytest.raises(TypeError, match="location must be a list"):
+        """Test that initialization fails when location is not a sequence."""
+        with pytest.raises(TypeError, match="location must be a sequence"):
             Fire(
                 id="FIRE1",
                 comp_id="ROOM1",
                 fire_id="POLYURETHANE",
-                location=(2.0, 3.0),  # type: ignore[arg-type]
+                location="2.0,3.0",  # type: ignore[arg-type]
             )
 
     @pytest.mark.parametrize(
@@ -109,7 +121,9 @@ class TestFire:
     )
     def test_init_invalid_location_length(self, location: list[float]):
         """Test that initialization fails with wrong location dimensions."""
-        with pytest.raises(ValueError, match="location must be a list of two floats"):
+        with pytest.raises(
+            ValueError, match="location must be a sequence of two floats"
+        ):
             Fire(
                 id="FIRE1",
                 comp_id="ROOM1",
@@ -369,7 +383,7 @@ class TestFire:
         assert "id='FIRE1'" in repr_str
         assert "comp_id='ROOM1'" in repr_str
         assert "fire_id='POLYURETHANE'" in repr_str
-        assert "location=[2.0, 3.0]" in repr_str
+        assert "location=(2.0, 3.0)" in repr_str
         assert "heat_of_combustion=25000" in repr_str
         assert "radiative_fraction=0.4" in repr_str
         assert "data_rows=2" in repr_str
@@ -439,7 +453,8 @@ class TestFire:
         assert fire.comp_id == "NEW_ROOM"
 
         fire.location = [3.0, 4.0]
-        assert fire.location == [3.0, 4.0]
+        assert fire.location == (3.0, 4.0)
+        assert isinstance(fire.location, tuple)
 
         fire.radiative_fraction = 0.5
         assert fire.radiative_fraction == 0.5
@@ -887,7 +902,9 @@ class TestFireSetattrValidation:
     def test_setattr_invalid_location_length(self, make_fire, location: list[float]):
         """Setting a location with wrong length raises."""
         fire = make_fire()
-        with pytest.raises(ValueError, match="location must be a list of two floats"):
+        with pytest.raises(
+            ValueError, match="location must be a sequence of two floats"
+        ):
             fire.location = location
 
 

@@ -151,7 +151,7 @@ upper_level = Compartment(
 
 wall_vent = WallVent(
     id="WallVent_1",
-    comps_ids=["Comp 1", "OUTSIDE"],
+    comps_ids=("Comp 1", "OUTSIDE"),
     bottom=0.02,
     height=0.3,
     width=0.2,
@@ -160,21 +160,21 @@ wall_vent = WallVent(
 )
 ceiling_floor_vents = CeilingFloorVent(
     id="CeilFloorVent_1",
-    comps_ids=["Comp 2", "Comp 1"],
+    comps_ids=("Comp 2", "Comp 1"),
     area=0.01,
     shape="SQUARE",
-    offsets=[0.84, 0.86],
+    offsets=(0.84, 0.86),
 )
 
 mechanical_vents = MechanicalVent(
     id="mech",
-    comps_ids=["OUTSIDE", "Comp 1"],
-    area=[1.2, 10],
-    heights=[1, 1],
-    orientations=["HORIZONTAL", "HORIZONTAL"],
+    comps_ids=("OUTSIDE", "Comp 1"),
+    area=(1.2, 10),
+    heights=(1, 1),
+    orientations=("HORIZONTAL", "HORIZONTAL"),
     flow=1,
-    cutoffs=[250, 300],
-    offsets=[0, 0.6],
+    cutoffs=(250, 300),
+    offsets=(0, 0.6),
     filter_time=1.2,
     filter_efficiency=5,
 )
@@ -197,7 +197,7 @@ propane_fire = Fire(
     id="Propane",
     comp_id="Comp 1",
     fire_id="Propane_Fire",
-    location=[0.3, 0.3],
+    location=(0.3, 0.3),
     carbon=5,
     chlorine=2,
     hydrogen=8,
@@ -255,7 +255,7 @@ propane_fire = Fire(
 target = Device.create_target(
     id="Target_1",
     comp_id="Comp 1",
-    location=[0.5, 0.5, 0],
+    location=(0.5, 0.5, 0),
     type="CYLINDER",
     material_id="Gypboard",
     surface_orientation="CEILING",
@@ -425,7 +425,7 @@ for device in model.devices:
 new_device = Device.create_target(
     id="Target_2",
     comp_id="Comp 2",
-    location=[0.5, 0.5, 0.5],
+    location=(0.5, 0.5, 0.5),
     type="CYLINDER",
     material_id="Gypboard",
     surface_orientation="CEILING",

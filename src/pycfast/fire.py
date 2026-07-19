@@ -557,9 +557,9 @@ class Fire(CFASTComponent):
         in the same simulation). IDs for fire definitions can be the same as ones for
         fire instances. Not required when ``definition`` is given (the id is taken
         from the definition).
-    location : list[float]
+    location : tuple[float, float]
         Position of the center of the base of the fire relative to the front left corner
-        of the compartment. Format: [x, y]. Default units: m, default value: compartment center.
+        of the compartment. Format: (x, y). Default units: m, default value: compartment center.
     ignition_criterion : str, optional
         The time of ignition can be controlled by a user-specified time, or by a
         user-specified target's surface temperature or incident heat flux.
@@ -729,12 +729,14 @@ class Fire(CFASTComponent):
 
     DEFAULT_DATA_TABLE: list[list[float]] = FireDefinition.DEFAULT_DATA_TABLE
 
+    _TUPLE_FIELDS = frozenset({"location"})
+
     def __init__(
         self,
         id: str,
         comp_id: str,
         fire_id: str | None = None,
-        location: list[float] | None = None,
+        location: tuple[float, float] | None = None,
         ignition_criterion: str | None = None,
         set_point: float | None = None,
         device_id: str | None = None,
@@ -781,7 +783,7 @@ class Fire(CFASTComponent):
 
         self.id = id
         self.comp_id = comp_id
-        self.location = location if location is not None else []
+        self.location: tuple[float, ...] = location if location is not None else ()
         self.ignition_criterion = ignition_criterion
         self.set_point = set_point
         self.device_id = device_id
@@ -798,13 +800,14 @@ class Fire(CFASTComponent):
         Raises
         ------
         TypeError
-            If location is not a list.
+            If location is not a sequence.
         ValueError
             If any instance attribute violates the constraints.
         """
-        if not isinstance(self.location, list):
+        if not isinstance(self.location, tuple):
             raise TypeError(
-                f"Fire '{self.id}': location must be a list, got {type(self.location).__name__}."
+                f"Fire '{self.id}': location must be a sequence, "
+                f"got {type(self.location).__name__}."
             )
 
         if self.ignition_criterion is not None:
@@ -830,7 +833,7 @@ class Fire(CFASTComponent):
 
         if len(self.location) != 2:
             raise ValueError(
-                f"Fire '{self.id}': location must be a list of two floats [x, y]."
+                f"Fire '{self.id}': location must be a sequence of two floats (x, y)."
             )
 
     @property
@@ -927,13 +930,12 @@ class Fire(CFASTComponent):
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the Fire."""
-        location_str = f"[{', '.join(map(str, self.location))}]"
         data_rows = len(self.data_table) if self.data_table else 0
 
         return (
             f"Fire("
             f"id='{self.id}', comp_id='{self.comp_id}', fire_id='{self.fire_id}', "
-            f"location={location_str}, "
+            f"location={self.location}, "
             f"heat_of_combustion={self.heat_of_combustion}, "
             f"radiative_fraction={self.radiative_fraction}, "
             f"data_rows={data_rows}"

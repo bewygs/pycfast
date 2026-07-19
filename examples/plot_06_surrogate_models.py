@@ -449,7 +449,7 @@ def run_cfast_simulation(row: pd.Series) -> float:
     )
     temp_model = temp_model.update_device_params(
         device="Targ 1",
-        location=[50.0, 50.0, row["target_location_z"]],
+        location=(50.0, 50.0, row["target_location_z"]),
     )
     sim_results = temp_model.run()
     return float(sim_results["devices"]["TRGSURT_1"].max())

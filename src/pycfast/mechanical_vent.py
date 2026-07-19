@@ -49,31 +49,31 @@ class MechanicalVent(CFASTComponent):
     id : str
         The selected name must be unique (i.e., not the same as another mechanical
         ventilation system in the same simulation).
-    comps_ids : list[str]
-        List containing the compartment from which the fan flow originates (first)
+    comps_ids : tuple[str, str]
+        Pair containing the compartment from which the fan flow originates (first)
         and the compartment to which the fan flow terminates (second).
-    area : list[float]
+    area : tuple[float, float]
         Cross-sectional area of the opening for each compartment connection.
-        Default units: m², default value: [0, 0] m².
-    heights : list[float]
+        Default units: m², default value: (0, 0) m².
+    heights : tuple[float, float]
         Height of the midpoint of the duct opening above the floor for each
-        compartment connection. Default units: m, default value: [0, 0] m.
-    orientations : list[str]
+        compartment connection. Default units: m, default value: (0, 0) m.
+    orientations : tuple[str, str]
         Flow orientation for each connection. A horizontal diffuser implies vertical
         flow through the ceiling or floor of the compartment. A vertical diffuser
         implies horizontal flow through a wall of the compartment.
-        Default value: ["VERTICAL", "VERTICAL"].
+        Default value: ("VERTICAL", "VERTICAL").
     flow : float
         Constant flow rate of the fan. Default units: m³/s, default value: 0 m³/s.
-    cutoffs : list[float]
-        Pressure control values: [Begin Drop Off Pressure, Zero Flow Pressure].
+    cutoffs : tuple[float, float]
+        Pressure control values: (Begin Drop Off Pressure, Zero Flow Pressure).
         Above Begin Drop Off Pressure, the flow begins a drop-off to zero. The
         pressure above which the flow is zero is the Zero Flow Pressure.
-        Default units: Pa, default values: [200, 300] Pa.
-    offsets : list[float]
+        Default units: Pa, default values: (200, 300) Pa.
+    offsets : tuple[float, float]
         For visualization only, the horizontal distances between the center of the
         vent and the origin of the X and Y axes in the first compartment. Format:
-        [x_offset, y_offset]. Default units: m, default value: [0, 0] m.
+        (x_offset, y_offset). Default units: m, default value: (0, 0) m.
     filter_time : float
         Time during the simulation at which the mechanical vent filtering begins.
         Default units: s, default value: 0 s.
@@ -141,19 +141,23 @@ class MechanicalVent(CFASTComponent):
     ... )
     """
 
+    _TUPLE_FIELDS = frozenset(
+        {"comps_ids", "area", "heights", "orientations", "cutoffs", "offsets"}
+    )
+
     def __init__(
         self,
         id: str,
-        comps_ids: list[str],  # [compartment_from, compartment_to] or "OUTSIDE"
-        area: list[float] | None = None,  # [area_from, area_to] in m²
-        heights: list[float] | None = None,  # [height_from, height_to] in m
-        orientations: list[str]
-        | None = None,  # ["HORIZONTAL" or "VERTICAL", "HORIZONTAL" or "VERTICAL"]
+        comps_ids: tuple[str, str],  # (compartment_from, compartment_to) or "OUTSIDE"
+        area: tuple[float, float] | None = None,  # (area_from, area_to) in m²
+        heights: tuple[float, float] | None = None,  # (height_from, height_to) in m
+        orientations: tuple[str, str]
+        | None = None,  # ("HORIZONTAL" or "VERTICAL", "HORIZONTAL" or "VERTICAL")
         flow: float = 0,
-        cutoffs: list[float]
-        | None = None,  # [begin_drop_off_pressure, zero_flow_pressure] in Pa
-        offsets: list[float]
-        | None = None,  # [x_offset, y_offset] in m for visualization
+        cutoffs: tuple[float, float]
+        | None = None,  # (begin_drop_off_pressure, zero_flow_pressure) in Pa
+        offsets: tuple[float, float]
+        | None = None,  # (x_offset, y_offset) in m for visualization
         filter_time: float = 0,
         filter_efficiency: float = 0,
         open_close_criterion: str | None = None,
@@ -165,15 +169,15 @@ class MechanicalVent(CFASTComponent):
         post_fraction: float | None = 1,
     ):
         if area is None:
-            area = [0, 0]
+            area = (0, 0)
         if heights is None:
-            heights = [0, 0]
+            heights = (0, 0)
         if orientations is None:
-            orientations = ["VERTICAL", "VERTICAL"]
+            orientations = ("VERTICAL", "VERTICAL")
         if cutoffs is None:
-            cutoffs = [200, 300]
+            cutoffs = (200, 300)
         if offsets is None:
-            offsets = [0, 0]
+            offsets = (0, 0)
 
         self.id = id
         self.comps_ids = comps_ids

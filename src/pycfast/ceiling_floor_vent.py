@@ -31,8 +31,8 @@ class CeilingFloorVent(CFASTComponent):
     id : str
         The selected name must be unique (i.e., not the same as another vent in the same
         simulation).
-    comps_ids : list[str]
-        List containing [top_compartment, bottom_compartment] IDs. Top compartment is where
+    comps_ids : tuple[str, str]
+        Pair of (top_compartment, bottom_compartment) IDs. Top compartment is where
         the vent is in the floor, bottom compartment is the adjacent compartment where the
         vent is in the ceiling.
     area : float
@@ -42,9 +42,9 @@ class CeilingFloorVent(CFASTComponent):
     shape : str, optional
         The shape factor changes the calculation of the effective diameter of the vent and
         flow coefficients for flow through the vent. Options: "ROUND" or "SQUARE".
-    offsets : list[float], optional
+    offsets : tuple[float, float], optional
         For visualization only, the horizontal distances between the center of the vent and
-        the origin of the X and Y axes in the upper compartment. Format: [x_offset, y_offset].
+        the origin of the X and Y axes in the upper compartment. Format: (x_offset, y_offset).
         Default units: m, default value: 0 m.
     open_close_criterion : str, optional
         The opening/closing can be controlled by a user-specified time, or by a user-specified
@@ -103,14 +103,16 @@ class CeilingFloorVent(CFASTComponent):
     ... )
     """
 
+    _TUPLE_FIELDS = frozenset({"comps_ids", "offsets"})
+
     def __init__(
         self,
         id: str,
-        comps_ids: list[str],  # [top_compartment, bottom_compartment]
+        comps_ids: tuple[str, str],  # (top_compartment, bottom_compartment)
         area: float = 0,
         type: str = "FLOOR",  # "FLOOR" or "CEILING" this doesn't seem to change final results
         shape: str = "ROUND",  # "ROUND" or "SQUARE"
-        offsets: list[float] | None = None,  # [x, y] position in meters
+        offsets: tuple[float, float] | None = None,  # (x, y) position in meters
         open_close_criterion: str | None = None,  # can be "TIME","FLUX","TEMPERATURE"
         time: list[float] | None = None,  # Time series for opening changes
         fraction: list[float] | None = None,  # Opening fraction (0=closed, 1=open)
@@ -121,7 +123,7 @@ class CeilingFloorVent(CFASTComponent):
         post_fraction: float | None = 1,  # Post-activation fraction (default: 1)
     ):
         if offsets is None:
-            offsets = [0, 0]
+            offsets = (0, 0)
 
         self.id = id
         self.type = type
@@ -146,7 +148,7 @@ class CeilingFloorVent(CFASTComponent):
         Raises
         ------
         TypeError
-            If list parameters (comps_ids, offsets, time, fraction) are not lists.
+            If comps_ids/offsets are not sequences, or time/fraction are not lists.
         ValueError
             If any attribute violates the constraints.
 
@@ -155,13 +157,14 @@ class CeilingFloorVent(CFASTComponent):
         UserWarning
             If area is 0 (no flow will occur through this vent).
         """
-        for param, list_val in (
+        for param, seq_val in (
             ("comps_ids", self.comps_ids),
             ("offsets", self.offsets),
         ):
-            if not isinstance(list_val, list):
+            if not isinstance(seq_val, tuple):
                 raise TypeError(
-                    f"CeilingFloorVent '{self.id}': {param} must be a list, got {type(list_val).__name__}."
+                    f"CeilingFloorVent '{self.id}': {param} must be a sequence of "
+                    f"two values, got {type(seq_val).__name__}."
                 )
         for param, opt_list_val in (
             ("time", self.time),
@@ -205,7 +208,8 @@ class CeilingFloorVent(CFASTComponent):
 
         if self.offsets is not None and len(self.offsets) != 2:
             raise ValueError(
-                f"CeilingFloorVent '{self.id}': offsets must be a list of two values [x_offset, y_offset], got {self.offsets}."
+                f"CeilingFloorVent '{self.id}': offsets must be a sequence of two "
+                f"values (x_offset, y_offset), got {self.offsets}."
             )
 
         if self.type not in {"FLOOR", "CEILING"}:
