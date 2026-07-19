@@ -209,11 +209,8 @@ class TestDevice:
         assert Device.VALID_SURFACE_ORIENTATIONS == expected
 
     def test_init_invalid_location_type(self):
-        """Test that initialization fails with non-numeric location values."""
-        with pytest.raises(
-            ValueError, match="location must be a sequence of 3 numbers"
-        ):
-            # This should fail validation even though it passes type checking temporarily
+        """Test that non-numeric location values raise TypeError."""
+        with pytest.raises(TypeError, match="location coordinates must be numbers"):
             invalid_location = [1.0, "invalid", 1.5]  # type: ignore
             Device(
                 id="DEV1",
@@ -280,7 +277,7 @@ class TestDevice:
             )
 
     def test_init_target_invalid_normal(self):
-        """Test that target initialization fails with invalid normal vector."""
+        """Test that target initialization fails with invalid vector length."""
         with pytest.raises(ValueError, match="normal must be a sequence of 3 numbers"):
             Device(
                 id="TARGET1",
@@ -289,6 +286,19 @@ class TestDevice:
                 type="PLATE",
                 material_id="STEEL",
                 normal=[0, 0],  # Only 2 components
+                temperature_depth=0.0005,
+            )
+
+    def test_init_target_non_numeric_normal(self):
+        """Test that a non-numeric normal component raises TypeError."""
+        with pytest.raises(TypeError, match="normal components must be numbers"):
+            Device(
+                id="TARGET1",
+                comp_id="ROOM1",
+                location=[1.0, 2.0, 1.5],
+                type="PLATE",
+                material_id="STEEL",
+                normal=[0, "x", -1],  # type: ignore[list-item]
                 temperature_depth=0.0005,
             )
 
@@ -820,11 +830,10 @@ class TestDeviceSetattrValidation:
         [
             pytest.param([1.0, 2.0], id="too-few"),
             pytest.param([1.0, 2.0, 3.0, 4.0], id="too-many"),
-            pytest.param([1.0, "a", 3.0], id="non-numeric"),
         ],
     )
-    def test_setattr_invalid_location(self, invalid_location):
-        """Setting an invalid location value raises."""
+    def test_setattr_invalid_location_length(self, invalid_location):
+        """Setting a location with the wrong length raises ValueError."""
         device = Device(
             id="T1",
             comp_id="ROOM1",
@@ -837,6 +846,19 @@ class TestDeviceSetattrValidation:
             ValueError, match="location must be a sequence of 3 numbers"
         ):
             device.location = invalid_location
+
+    def test_setattr_non_numeric_location(self):
+        """Setting a location with non-numeric values raises TypeError."""
+        device = Device(
+            id="T1",
+            comp_id="ROOM1",
+            location=[1.0, 2.0, 3.0],
+            type="PLATE",
+            material_id="CONCRETE",
+            surface_orientation="CEILING",
+        )
+        with pytest.raises(TypeError, match="location coordinates must be numbers"):
+            device.location = [1.0, "a", 3.0]
 
     def test_setattr_target_empty_material_id(self):
         """Setting an empty material_id on a target type raises."""

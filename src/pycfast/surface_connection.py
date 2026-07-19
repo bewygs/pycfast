@@ -159,9 +159,17 @@ class SurfaceConnection(CFASTComponent):
             raise TypeError(
                 f"SurfaceConnection: conn_type must be a str, got {type(self.conn_type).__name__}."
             )
-        if not isinstance(self.comp_id, str) or not self.comp_id:
+        if not isinstance(self.comp_id, str):
+            raise TypeError(
+                f"SurfaceConnection: comp_id must be a str, got {type(self.comp_id).__name__}."
+            )
+        if not self.comp_id:
             raise ValueError("SurfaceConnection: comp_id must be a non-empty string.")
-        if not isinstance(self.comp_ids, str) or not self.comp_ids:
+        if not isinstance(self.comp_ids, str):
+            raise TypeError(
+                f"SurfaceConnection: comp_ids must be a str, got {type(self.comp_ids).__name__}."
+            )
+        if not self.comp_ids:
             raise ValueError("SurfaceConnection: comp_ids must be a non-empty string.")
         if self.comp_id == self.comp_ids:
             raise ValueError(

@@ -1112,10 +1112,10 @@ class CFASTModel:
 
         Raises
         ------
-        IOError:
-            If file cannot be written
-        PermissionError:
-            If write permission is denied
+        OSError
+            If the file cannot be written. The concrete subclass is preserved,
+            so a PermissionError (write permission denied), IsADirectoryError,
+            etc. is re-raised as itself with added context.
 
         Notes
         -----
@@ -1166,7 +1166,7 @@ class CFASTModel:
             self._written_content = full_content
 
         except OSError as e:
-            raise OSError(
+            raise type(e)(
                 f"Failed to write CFAST input file to {abs_input_file_path}: {e}"
             ) from e
 

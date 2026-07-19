@@ -113,17 +113,27 @@ class TestSurfaceConnection:
         with pytest.raises(TypeError, match="conn_type must be a str"):
             SurfaceConnection(conn_type=123, comp_id="ROOM1", comp_ids="ROOM2")  # type: ignore[arg-type]
 
-    @pytest.mark.parametrize("bad_id", ["", 42, None])
-    def test_init_invalid_comp_id(self, bad_id: object):
-        """Test that initialization fails with an invalid comp_id."""
-        with pytest.raises((TypeError, ValueError)):
+    @pytest.mark.parametrize("bad_id", [42, None])
+    def test_init_comp_id_not_str(self, bad_id: object):
+        """Test that a non-string comp_id raises TypeError."""
+        with pytest.raises(TypeError, match="comp_id must be a str"):
             SurfaceConnection(conn_type="FLOOR", comp_id=bad_id, comp_ids="ROOM2")  # type: ignore[arg-type]
 
-    @pytest.mark.parametrize("bad_id", ["", 42, None])
-    def test_init_invalid_comp_ids(self, bad_id: object):
-        """Test that initialization fails with an invalid comp_ids."""
-        with pytest.raises((TypeError, ValueError)):
+    def test_init_empty_comp_id(self):
+        """Test that an empty comp_id raises ValueError."""
+        with pytest.raises(ValueError, match="comp_id must be a non-empty string"):
+            SurfaceConnection(conn_type="FLOOR", comp_id="", comp_ids="ROOM2")
+
+    @pytest.mark.parametrize("bad_id", [42, None])
+    def test_init_comp_ids_not_str(self, bad_id: object):
+        """Test that a non-string comp_ids raises TypeError."""
+        with pytest.raises(TypeError, match="comp_ids must be a str"):
             SurfaceConnection(conn_type="FLOOR", comp_id="ROOM1", comp_ids=bad_id)  # type: ignore[arg-type]
+
+    def test_init_empty_comp_ids(self):
+        """Test that an empty comp_ids raises ValueError."""
+        with pytest.raises(ValueError, match="comp_ids must be a non-empty string"):
+            SurfaceConnection(conn_type="FLOOR", comp_id="ROOM1", comp_ids="")
 
     def test_init_same_comp_id_and_comp_ids(self):
         """Test that initialization fails when comp_id and comp_ids are identical."""
