@@ -269,6 +269,18 @@ class TestCFASTModel:
                 assert "&HEAD VERSION = 7700" in content
                 assert "&COMP ID = 'ROOM1'" in content
 
+    def test_write_input_preserves_oserror_subclass(self):
+        """A write failure re-raises the concrete OSError subclass with context."""
+        model = self.create_minimal_model()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            model.file_name = os.path.join(temp_dir, "test_input.in")
+            with patch("builtins.open", side_effect=PermissionError("denied")):
+                with pytest.raises(
+                    PermissionError, match="Failed to write CFAST input file"
+                ):
+                    model._write_input()
+
     @patch("subprocess.run")
     @patch("pandas.read_csv")
     @patch("os.path.exists")
