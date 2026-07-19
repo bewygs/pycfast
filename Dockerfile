@@ -42,6 +42,10 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # fetch-depth: 0, or the version will fail to resolve.
 FROM base AS sdist-builder
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /src
 
 COPY . .
