@@ -5,8 +5,8 @@ PyCFAST requires **Python 3.10 or later** *and* a working installation of `CFAST
 itself. It is tested against CFAST **7.7.0** through **7.7.7**. Versions below **7.7.0** might work but are not
 guaranteed to be fully compatible.
 
-CFAST Installation
-------------------
+1. Install CFAST
+----------------
 
 CFAST is developed and distributed by NIST, independently of PyCFAST. Install it for your platform below,
 then make sure ``cfast`` is available in your PATH.
@@ -83,15 +83,19 @@ then make sure ``cfast`` is available in your PATH.
       flags for each platform target are defined in ``Build/CFAST/makefile``. Adjust them there to
       match your machine.
 
-PyCFAST Installation
---------------------
+2. Set up a Python environment
+------------------------------
 
-It is recommended to install PyCFAST inside a virtual environment. Create one with ``venv`` or ``conda`` before installing:
+It is recommended to install PyCFAST inside a virtual environment. Create one with ``venv`` or ``conda``:
 
 .. tab-set::
 
    .. tab-item:: venv (Linux/macOS)
       :sync: venv-unix
+
+      Python 3 is usually installed by default on Linux. On macOS install it with
+      ``brew install python`` or from the
+      `official website <https://www.python.org/downloads/macos/>`__.
 
       .. code-block:: bash
 
@@ -101,6 +105,9 @@ It is recommended to install PyCFAST inside a virtual environment. Create one wi
    .. tab-item:: venv (Windows)
       :sync: venv-win
 
+      Install the 64-bit version of Python 3 from the
+      `official website <https://www.python.org/downloads/windows/>`__.
+
       .. code-block:: bat
 
          python -m venv .venv
@@ -109,42 +116,52 @@ It is recommended to install PyCFAST inside a virtual environment. Create one wi
    .. tab-item:: conda
       :sync: conda
 
+      `Miniforge <https://conda-forge.org/download/>`_ is the recommended way to install
+      ``conda``.
+
       .. code-block:: bash
 
          conda create -n pycfast python=3.14
          conda activate pycfast
 
-Pip
-~~~
+3. Install PyCFAST
+------------------
 
-PyCFAST can be installed from `PyPI <https://pypi.org/project/pycfast>`_:
+With the environment activated, install PyCFAST from PyPI or conda-forge:
 
-.. code-block:: bash
+.. tab-set::
 
-    pip install pycfast
+   .. tab-item:: pip
+      :sync: pip
 
-Conda
-~~~~~
+      PyCFAST is available on `PyPI <https://pypi.org/project/pycfast>`_:
 
-PyCFAST can also be installed from the `conda-forge <https://anaconda.org/conda-forge/pycfast>`_ channel:
+      .. code-block:: bash
 
-.. code-block:: bash
+         pip install pycfast
 
-    conda install -c conda-forge pycfast
+   .. tab-item:: conda
+      :sync: conda
 
-Source
-~~~~~~
+      PyCFAST is available on the `conda-forge <https://anaconda.org/conda-forge/pycfast>`_ channel:
 
-To install the latest development version of PyCFAST, clone the repository and install the required dependencies:
+      .. code-block:: bash
 
-.. code-block:: bash
+         conda install -c conda-forge pycfast
 
-    git clone https://github.com/bewygs/pycfast.git
-    cd pycfast
-    python -m pip install .
+   .. tab-item:: source
+      :sync: source
 
-Configuring the CFAST Executable
----------------------------------
+      To install the latest development version, clone the repository and install it:
+
+      .. code-block:: bash
+
+         git clone https://github.com/bewygs/pycfast.git
+         cd pycfast
+         python -m pip install .
+
+4. Configure the CFAST executable
+----------------------------------
 
 If CFAST is installed in a non-standard location, you can specify its path in three ways:
 
