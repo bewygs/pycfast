@@ -52,8 +52,7 @@ then make sure ``cfast`` is available in your PATH.
          sudo cp cfast7_linux /usr/local/bin/cfast
          sudo chmod +x /usr/local/bin/cfast
 
-      Note that CFAST versions below 7.7.5 do not reliably build on Linux with modern ``gfortran``
-      (see `#32 <https://github.com/bewygs/pycfast/issues/32>`_). If the build fails, the compiler and
+      Note that CFAST 7.7.5 or later is required on Linux. If the build fails, the compiler and
       flags for each platform target are defined in ``Build/CFAST/makefile``. Adjust them there to
       match your machine.
 
@@ -80,8 +79,7 @@ then make sure ``cfast`` is available in your PATH.
          sudo cp cfast7_osx /usr/local/bin/cfast
          sudo chmod +x /usr/local/bin/cfast
 
-      Note that CFAST versions below 7.7.5 do not reliably build on macOS with modern ``gfortran``
-      (see `#32 <https://github.com/bewygs/pycfast/issues/32>`_). If the build fails, the compiler and
+      Note that CFAST 7.7.6 or later is required on macOS. If the build fails, the compiler and
       flags for each platform target are defined in ``Build/CFAST/makefile``. Adjust them there to
       match your machine.
 

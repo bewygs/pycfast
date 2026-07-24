@@ -162,7 +162,7 @@ CFAST is developed and distributed by NIST, independently of PyCFAST. Install it
     ```
 
     Notes:
-    - CFAST versions below 7.7.5 do not reliably build on Linux or macOS with modern `gfortran` (see [#32](https://github.com/bewygs/pycfast/issues/32)).
+    - CFAST 7.7.5 or later is required on Linux, 7.7.6 or later on macOS.
     - If the build fails, the compiler and flags for each platform target are defined in `Build/CFAST/makefile`. Adjust them there to match your machine.
 
 ### Pip or Conda

@@ -46,6 +46,8 @@ jobs:
   python-compat:
     name: python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    # a CFAST run that does not converge hangs forever, fail fast instead
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -98,15 +100,18 @@ jobs:
   cfast-compat:
     name: CFAST ${{ matrix.cfast-version }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    # a CFAST run that does not converge hangs forever, fail fast instead
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         cfast-version: ["7.7.0", "7.7.1", "7.7.2", "7.7.3", "7.7.4", "7.7.5", "7.7.6", "7.7.7", "latest"]
         exclude:
-          # Linux and macOS have no pre-built binaries and versions older than
-          # 7.7.5 do not build with current gcc, so they are only tested from
-          # 7.7.5.
+          # Linux and macOS have no pre-built binaries: they are compiled with
+          # current gcc, which restricts the versions that can be tested.
+          # Linux is tested from 7.7.5 (older versions do not build), macOS from
+          # 7.7.6 (7.7.5 builds but the dassl solver fails to converge).
           - os: ubuntu-latest
             cfast-version: "7.7.0"
           - os: ubuntu-latest
@@ -127,6 +132,8 @@ jobs:
             cfast-version: "7.7.3"
           - os: macos-latest
             cfast-version: "7.7.4"
+          - os: macos-latest
+            cfast-version: "7.7.5"
 
     # latest commit may include breaking changes so we allow failures for that configuration
     continue-on-error: ${{ matrix.cfast-version == 'latest' }}
