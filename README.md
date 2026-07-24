@@ -136,9 +136,9 @@ PyCFAST requires **Python 3.10 or later** *and* a working installation of **[CFA
 
 ### CFAST Installation
 
-CFAST is developed and distributed by NIST, independently of PyCFAST. Download and install it from the [NIST CFAST website](https://pages.nist.gov/cfast/) or the [CFAST GitHub repository](https://github.com/firemodels/cfast), then ensure `cfast` is available in your PATH.
+CFAST is developed and distributed by NIST, independently of PyCFAST. Install it for your platform below, then make sure `cfast` is available in your PATH.
 
-- **Windows**: download and run the official installer for the version you want from the [CFAST releases page](https://github.com/firemodels/cfast/releases) (look for the `.exe` asset, e.g. `CFAST-X.Y.Z_SMV-A.B.C.exe`), which installs the `cfast` executable for you.
+- **Windows**: download and run the official installer from the [NIST CFAST downloads page](https://pages.nist.gov/cfast/downloads.html) — older versions are available as `.exe` assets on the [CFAST releases page](https://github.com/firemodels/cfast/releases).
 
 - **Linux / macOS**: NIST does not publish pre-built binaries for these platforms, so CFAST must be compiled from source with a Fortran compiler (`gfortran`). See the [Compiling CFAST wiki page](https://github.com/firemodels/cfast/wiki/Compiling-CFAST) for full details:
 
@@ -162,8 +162,7 @@ CFAST is developed and distributed by NIST, independently of PyCFAST. Download a
     ```
 
     Notes:
-    - CFAST versions below 7.7.5 do not reliably build on Linux with modern `gfortran` (see [#32](https://github.com/bewygs/pycfast/issues/32)).
-    - The macOS build was manually verified to work but is not covered by PyCFAST's CI.
+    - CFAST versions below 7.7.5 do not reliably build on Linux or macOS with modern `gfortran` (see [#32](https://github.com/bewygs/pycfast/issues/32)).
     - If the build fails, the compiler and flags for each platform target are defined in `Build/CFAST/makefile`. Adjust them there to match your machine.
 
 ### Pip or Conda

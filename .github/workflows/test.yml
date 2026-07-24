@@ -1,10 +1,13 @@
-# This workflow runs tests across multiple Python versions with CFAST integration on linux and windows platforms.
+# This workflow runs the test suite against CFAST on linux, windows and macos.
 #
-# Strategy:
-#   - Linux: compile CFAST from source with gcc (versions 7.7.5, 7.7.6, 7.7.7 and latest commit)
-#   - Windows: extract pre-built binary from official CFAST installer (versions 7.7.0 to 7.7.7) compile from source with gcc for latest commit
+# The matrix is split in two independent jobs :
+#   - python-compat: all supported Python versions, one OS, one CFAST version
+#   - cfast-compat : all (os, cfast-version) combinations, one Python version
 #
-# Latest commit is included for both Windows and Linux in the test matrix but allowed to fail since it may include breaking changes
+# This lowers the total number of jobs.
+#
+# Latest commit is included in the cfast matrix but allowed to fail since it may
+# include breaking changes.
 #
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
@@ -20,6 +23,7 @@ on:
       - 'pyproject.toml'
       - 'uv.lock'
       - '.github/workflows/test.yml'
+      - '.github/actions/setup-cfast/**'
 
   pull_request:
     branches: [ "main" ]
@@ -29,94 +33,23 @@ on:
       - 'pyproject.toml'
       - 'uv.lock'
       - '.github/workflows/test.yml'
+      - '.github/actions/setup-cfast/**'
+
+env:
+  # Python version used by the cfast-compat job
+  DEFAULT_PYTHON_VERSION: "3.14"
+  # CFAST version used by the python-compat job
+  DEFAULT_CFAST_VERSION: "7.7.7"
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
+  # Python testing
+  python-compat:
+    name: python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # For pull requests we only test Python 3.10 and 3.14 to speed up the worfklow, for pushes to main we test all supported versions
-        python-version: ${{ github.event_name == 'pull_request' && fromJSON('["3.10", "3.14"]') || fromJSON('["3.10", "3.11", "3.12", "3.13", "3.14"]') }}
-        os: [ubuntu-latest, windows-latest]
-        cfast-version: ["7.7.0", "7.7.1", "7.7.2", "7.7.3", "7.7.4", "7.7.5", "7.7.6", "7.7.7", "latest"]
-        exclude:
-          # Linux: only tested on version 7.7.5, 7.7.6 and 7.7.7 and latest commit due to issue with gcc issue with CFAST older version
-          # binary with older versions of CFAST are not available for Linux
-          - os: ubuntu-latest
-            cfast-version: "7.7.0"
-          - os: ubuntu-latest
-            cfast-version: "7.7.1"
-          - os: ubuntu-latest
-            cfast-version: "7.7.2"
-          - os: ubuntu-latest
-            cfast-version: "7.7.3"
-          - os: ubuntu-latest
-            cfast-version: "7.7.4"
-        include:
-          # Linux: compile from source with gcc
-          - os: ubuntu-latest
-            cfast-version: "7.7.7"
-            cfast-tag: "CFAST-7.7.7"
-            build-dir: gnu_linux
-            build-script: make_cfast.sh
-            binary-name: cfast7_linux
-          - os: ubuntu-latest
-            cfast-version: "7.7.6"
-            cfast-tag: "CFAST-7.7.6"
-            build-dir: gnu_linux
-            build-script: make_cfast.sh
-            binary-name: cfast7_linux
-          - os: ubuntu-latest
-            cfast-version: "7.7.5"
-            cfast-tag: "CFAST-7.7.5"
-            build-dir: gnu_linux_64
-            build-script: make_cfast.sh
-            binary-name: cfast7_linux_64
-          - os: ubuntu-latest
-            cfast-version: "latest"
-            cfast-tag: ""
-            build-dir: gnu_linux
-            build-script: make_cfast.sh
-            binary-name: cfast7_linux
-          - os: windows-latest
-            cfast-version: "latest"
-            cfast-tag: ""
-            build-dir: gnu_win
-            build-script: make_cfast.bat
-            binary-name: cfast7_win.exe
-          # Windows: versions 7.7.0 to 7.7.7 use official pre-built installer,
-          # latest commit is compiled from source with gcc (issue #16 fixed upstream)
-          - os: windows-latest
-            cfast-version: "7.7.7"
-            installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST-7.7.7/CFAST-7.7.7_SMV-6.11.1.exe"
-          - os: windows-latest
-            cfast-version: "7.7.6"
-            installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST-7.7.6/CFAST-7.7.6-0_SMV-6.10.7-0_win.exe"
-          - os: windows-latest
-            cfast-version: "7.7.5"
-            installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST-7.7.5/CFAST-7.7.5_SMV-6.10.1.exe"
-          - os: windows-latest
-            cfast-version: "7.7.4"
-            installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST7.7.4/cfast7.7.4_SMV6.7.21.exe"
-          - os: windows-latest
-            cfast-version: "7.7.3"
-            installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST7.7.3/cfast_7.7.3_SMV_6.7.17.exe"
-          - os: windows-latest
-            cfast-version: "7.7.2"
-            installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST7.7.2/cfast_7.7.2_SMV_6.7.17.exe"
-          - os: windows-latest
-            cfast-version: "7.7.1"
-            installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST7.7.1/CFAST_7.7.1_SMV_6.7.17.exe"
-          - os: windows-latest
-            cfast-version: "7.7.0"
-            installer-url: "https://github.com/firemodels/cfast/releases/download/CFAST7.7.0/CFAST_7.7.0_SMV_6.7.17.exe"
-
-    # latest commit may include breaking changes so we allow failures for that configuration
-    continue-on-error: ${{ matrix.cfast-version == 'latest' }}
-
-    env:
-      CFAST_VERSION: ${{ matrix.cfast-version }}
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
     - uses: actions/checkout@v7
@@ -133,119 +66,93 @@ jobs:
     - name: Install python dependencies
       run: uv sync --extra dev
 
-    - name: Cache CFAST binary (Linux)
-      if: runner.os == 'Linux' && matrix.cfast-version != 'latest'
-      id: cache-cfast-linux
+    - name: Setup CFAST
+      uses: ./.github/actions/setup-cfast
+      with:
+        cfast-version: ${{ env.DEFAULT_CFAST_VERSION }}
+
+    - name: Cache verification data
+      id: cache-verif
       uses: actions/cache@v6
       with:
-        path: ~/cfast-cache/cfast-${{ matrix.cfast-version }}-linux-gcc
-        key: cfast-${{ matrix.cfast-version }}-linux-gcc-${{ hashFiles('.github/workflows/test.yml') }}
+        path: tests/verification_tests/verification_data_local
+        key: verif-${{ env.DEFAULT_CFAST_VERSION }}-${{ runner.os }}-${{ hashFiles('tests/verification_tests/Verification/**/*.in', 'tests/generate_reference_data.py') }}
 
-    - name: Install gfortran
-      if: (runner.os == 'Linux' && steps.cache-cfast-linux.outputs.cache-hit != 'true') || (runner.os == 'Windows' && matrix.cfast-version == 'latest')
-      uses: fortran-lang/setup-fortran@v1
+    - name: Generate verification data
+      if: steps.cache-verif.outputs.cache-hit != 'true'
+      run: uv run python tests/generate_reference_data.py --suite verification
+
+    - name: Run tests
+      env:
+        CFAST_VERSION: ${{ env.DEFAULT_CFAST_VERSION }}
+      run: uv run pytest --ignore=tests/validation_tests --cov=src/pycfast --cov-report=xml --cov-report=term-missing
+
+    - name: Upload results to Codecov
+      uses: codecov/codecov-action@v7
       with:
-        compiler: gcc
+        token: ${{ secrets.CODECOV_TOKEN }}
+        flags: python-${{ matrix.python-version }}
+        fail_ci_if_error: false
 
-    - name: Build CFAST from source (Linux - release)
-      if: runner.os == 'Linux' && matrix.cfast-version != 'latest' && steps.cache-cfast-linux.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
-        git clone --depth 1 --branch ${{ matrix.cfast-tag }} https://github.com/firemodels/cfast.git cfast-src
-        cd cfast-src/Build/CFAST/${{ matrix.build-dir }}
-        chmod +x ${{ matrix.build-script }}
-        ./${{ matrix.build-script }}
-        mkdir -p ~/cfast-cache
-        cp ${{ matrix.binary-name }} ~/cfast-cache/cfast-${{ matrix.cfast-version }}-linux-gcc
-        chmod +x ~/cfast-cache/cfast-${{ matrix.cfast-version }}-linux-gcc
+  # CFAST/OS testing
+  cfast-compat:
+    name: CFAST ${{ matrix.cfast-version }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        cfast-version: ["7.7.0", "7.7.1", "7.7.2", "7.7.3", "7.7.4", "7.7.5", "7.7.6", "7.7.7", "latest"]
+        exclude:
+          # Linux and macOS have no pre-built binaries and versions older than
+          # 7.7.5 do not build with current gcc, so they are only tested from
+          # 7.7.5.
+          - os: ubuntu-latest
+            cfast-version: "7.7.0"
+          - os: ubuntu-latest
+            cfast-version: "7.7.1"
+          - os: ubuntu-latest
+            cfast-version: "7.7.2"
+          - os: ubuntu-latest
+            cfast-version: "7.7.3"
+          - os: ubuntu-latest
+            cfast-version: "7.7.4"
+          - os: macos-latest
+            cfast-version: "7.7.0"
+          - os: macos-latest
+            cfast-version: "7.7.1"
+          - os: macos-latest
+            cfast-version: "7.7.2"
+          - os: macos-latest
+            cfast-version: "7.7.3"
+          - os: macos-latest
+            cfast-version: "7.7.4"
 
-    - name: Build CFAST from source (Linux - latest)
-      if: runner.os == 'Linux' && matrix.cfast-version == 'latest'
-      shell: bash
-      run: |
-        git clone --depth 1 https://github.com/firemodels/cfast.git cfast-src
-        cd cfast-src/Build/CFAST/${{ matrix.build-dir }}
-        chmod +x ${{ matrix.build-script }}
-        ./${{ matrix.build-script }}
-        mkdir -p ~/cfast-cache
-        cp ${{ matrix.binary-name }} ~/cfast-cache/cfast-latest-linux-gcc
-        chmod +x ~/cfast-cache/cfast-latest-linux-gcc
+    # latest commit may include breaking changes so we allow failures for that configuration
+    continue-on-error: ${{ matrix.cfast-version == 'latest' }}
 
-    - name: Build CFAST from source (Windows - latest)
-      if: runner.os == 'Windows' && matrix.cfast-version == 'latest'
-      shell: pwsh
-      run: |
-        git clone --depth 1 https://github.com/firemodels/cfast.git cfast-src
-        cd cfast-src\Build\CFAST\${{ matrix.build-dir }}
-        cmd /c ${{ matrix.build-script }}
-        $cacheDir = "$env:USERPROFILE\cfast-cache"
-        if (-not (Test-Path $cacheDir)) { New-Item -ItemType Directory -Path $cacheDir }
-        Copy-Item ${{ matrix.binary-name }} "$cacheDir\cfast-latest-windows"
+    env:
+      CFAST_VERSION: ${{ matrix.cfast-version }}
 
-    - name: Install CFAST to system path (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        sudo cp ~/cfast-cache/cfast-${{ matrix.cfast-version }}-linux-gcc /usr/bin/cfast
-        sudo chmod +x /usr/bin/cfast
+    steps:
+    - uses: actions/checkout@v7
 
-    - name: Cache CFAST binary (Windows)
-      if: runner.os == 'Windows' && matrix.cfast-version != 'latest'
-      id: cache-cfast-windows
-      uses: actions/cache@v6
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
       with:
-        path: ~/cfast-cache/cfast-${{ matrix.cfast-version }}-windows
-        key: cfast-installer-${{ matrix.cfast-version }}-windows-${{ hashFiles('.github/workflows/test.yml') }}
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
-    - name: Download and extract CFAST installer (Windows)
-      if: runner.os == 'Windows' && matrix.cfast-version != 'latest' && steps.cache-cfast-windows.outputs.cache-hit != 'true'
-      shell: pwsh
-      run: |
-        # Download the installer
-        $installerUrl = "${{ matrix.installer-url }}"
-        $installerPath = "$env:TEMP\cfast-installer.exe"
-        Write-Host "Downloading CFAST installer from $installerUrl"
-        Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath
+    - name: Set up Python ${{ env.DEFAULT_PYTHON_VERSION }}
+      run: uv python install ${{ env.DEFAULT_PYTHON_VERSION }}
 
-        # Extract with 7-Zip (pre-installed on GitHub runners)
-        $extractDir = "$env:TEMP\cfast-extracted"
-        7z x $installerPath -o"$extractDir" -y
+    - name: Install python dependencies
+      run: uv sync --extra dev
 
-        # Display extracted contents for debugging
-        Write-Host "--- Extracted contents ---"
-        Get-ChildItem -Recurse $extractDir | ForEach-Object { Write-Host $_.FullName }
-        Write-Host "--- End contents ---"
-
-        # Find the CFAST executable (exclude smokeview, uninstaller, cdata)
-        $cfastExe = Get-ChildItem -Recurse -Path $extractDir -Filter "cfast*.exe" |
-          Where-Object { $_.Name -notmatch "uninstall|setup|smokeview|smv|cdata" } |
-          Select-Object -First 1
-
-        if (-not $cfastExe) {
-          Write-Error "Could not find cfast executable in extracted installer"
-          exit 1
-        }
-
-        Write-Host "Found CFAST executable: $($cfastExe.FullName)"
-
-        # Copy to cache
-        $cacheDir = "$env:USERPROFILE\cfast-cache"
-        if (-not (Test-Path $cacheDir)) { New-Item -ItemType Directory -Path $cacheDir }
-        Copy-Item $cfastExe.FullName "$cacheDir\cfast-${{ matrix.cfast-version }}-windows"
-
-    - name: Install CFAST to system path (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        copy "$env:USERPROFILE\cfast-cache\cfast-${{ matrix.cfast-version }}-windows" "C:\Windows\System32\cfast.exe"
-
-    - name: Verify CFAST installation
-      shell: bash
-      run: |
-        if [ "${{ runner.os }}" = "Windows" ]; then
-          where cfast
-        else
-          which cfast
-        fi
-        cfast
+    - name: Setup CFAST
+      uses: ./.github/actions/setup-cfast
+      with:
+        cfast-version: ${{ matrix.cfast-version }}
 
     - name: Cache verification data
       if: matrix.cfast-version != 'latest'
@@ -255,24 +162,18 @@ jobs:
         path: tests/verification_tests/verification_data_local
         key: verif-${{ matrix.cfast-version }}-${{ runner.os }}-${{ hashFiles('tests/verification_tests/Verification/**/*.in', 'tests/generate_reference_data.py') }}
 
-    - name: Run verification data
-      shell: bash
+    - name: Generate verification data
       # Due to small numerical differences between compilers/platforms we generate
       # the verification data on each platform with the same binary used for tests
       if: matrix.cfast-version == 'latest' || steps.cache-verif.outputs.cache-hit != 'true'
-      run: |
-        cd tests
-        python generate_reference_data.py --suite verification
+      run: uv run python tests/generate_reference_data.py --suite verification
 
     - name: Run tests
-      env:
-        CFAST_VERSION: ${{ matrix.cfast-version }}
       run: uv run pytest --ignore=tests/validation_tests --cov=src/pycfast --cov-report=xml --cov-report=term-missing
 
     - name: Upload results to Codecov
       uses: codecov/codecov-action@v7
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        flags: cfast-${{ matrix.cfast-version }}-py${{ matrix.python-version }}-${{ matrix.os }}
+        flags: cfast-${{ matrix.cfast-version }}-${{ matrix.os }}
         fail_ci_if_error: false
-
