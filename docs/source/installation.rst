@@ -8,20 +8,20 @@ guaranteed to be fully compatible.
 CFAST Installation
 ------------------
 
-CFAST is developed and distributed by NIST, independently of PyCFAST. Download and install it from the
-`NIST CFAST downloads page <https://pages.nist.gov/cfast/downloads.html>`_ or the
-`CFAST GitHub repository <https://github.com/firemodels/cfast/releases>`_, then ensure ``cfast`` is available
-in your PATH.
+CFAST is developed and distributed by NIST, independently of PyCFAST. Install it for your platform below,
+then make sure ``cfast`` is available in your PATH.
 
 .. tab-set::
 
    .. tab-item:: Windows
       :sync: windows
 
-      Download and run the official installer for the version you want from the
-      `CFAST releases page <https://github.com/firemodels/cfast/releases>`_ (look for the ``.exe`` asset, e.g.
-      ``CFAST-X.Y.Z_SMV-A.B.C.exe``), which installs the ``cfast`` executable for you. Open a command prompt
-      and run ``cfast`` to verify that it is on your PATH. You should see the CFAST version information.
+      Download and run the official installer from the
+      `NIST CFAST downloads page <https://pages.nist.gov/cfast/downloads.html>`_ — older
+      versions are available as ``.exe`` assets on the
+      `CFAST releases page <https://github.com/firemodels/cfast/releases>`_.
+      Open a command prompt and run ``cfast`` to verify that it is on your PATH.
+      You should see the CFAST version information.
 
       .. image:: _static/images/cfast-cmd-win.png
          :alt: CFAST command prompt on Windows
@@ -40,7 +40,7 @@ in your PATH.
          sudo apt-get install gfortran        # Debian/Ubuntu
          # sudo dnf install gcc-gfortran      # Fedora/RHEL
 
-         # 2. Clone the CFAST source, pinned to the release tag you want (see the releases page above)
+         # 2. Clone the CFAST source, pinned to the release tag you want (e.g. CFAST-7.7.7)
          git clone --depth 1 --branch <CFAST_TAG> https://github.com/firemodels/cfast.git
          cd cfast/Build/CFAST/gnu_linux
 
@@ -52,8 +52,7 @@ in your PATH.
          sudo cp cfast7_linux /usr/local/bin/cfast
          sudo chmod +x /usr/local/bin/cfast
 
-      Note that CFAST versions below 7.7.5 do not reliably build on Linux with modern ``gfortran``
-      (see `#32 <https://github.com/bewygs/pycfast/issues/32>`_). If the build fails, the compiler and
+      Note that CFAST 7.7.5 or later is required on Linux. If the build fails, the compiler and
       flags for each platform target are defined in ``Build/CFAST/makefile``. Adjust them there to
       match your machine.
 
@@ -65,10 +64,10 @@ in your PATH.
 
       .. code-block:: bash
 
-         # 1. Install a gfortran compiler
+         # 1. Install a Fortran compiler
          brew install gcc
 
-         # 2. Clone the CFAST source, pinned to the release tag you want (see the releases page above)
+         # 2. Clone the CFAST source, pinned to the release tag you want (e.g. CFAST-7.7.7)
          git clone --depth 1 --branch <CFAST_TAG> https://github.com/firemodels/cfast.git
          cd cfast/Build/CFAST/gnu_osx
 
@@ -80,9 +79,9 @@ in your PATH.
          sudo cp cfast7_osx /usr/local/bin/cfast
          sudo chmod +x /usr/local/bin/cfast
 
-      Note that this build was manually verified to work but is not covered by PyCFAST's CI. If the
-      build fails, the compiler and flags for each platform target are defined in
-      ``Build/CFAST/makefile`` — adjust them there to match your machine.
+      Note that CFAST 7.7.6 or later is required on macOS. If the build fails, the compiler and
+      flags for each platform target are defined in ``Build/CFAST/makefile``. Adjust them there to
+      match your machine.
 
 PyCFAST Installation
 --------------------

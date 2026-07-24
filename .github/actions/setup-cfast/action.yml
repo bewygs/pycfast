@@ -1,0 +1,150 @@
+name: 'Setup CFAST'
+description: 'Build or download a CFAST binary, cache it and install it on the system PATH'
+
+# Strategy:
+#   - Linux / macOS: compile from source with gcc (gfortran)
+#   - Windows: extract the pre-built binary from the official installer,
+#     except for "latest" which is compiled from source with gcc
+#
+
+inputs:
+  cfast-version:
+    description: 'CFAST version ("7.7.0" to "7.7.7") or "latest" for the latest upstream commit'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    # "latest" is never cached since the upstream default branch moves on every commit
+    - name: Cache CFAST binary
+      if: inputs.cfast-version != 'latest'
+      id: cache-cfast
+      uses: actions/cache@v6
+      with:
+        path: ~/cfast-cache/cfast-${{ inputs.cfast-version }}-${{ runner.os }}
+        key: cfast-${{ inputs.cfast-version }}-${{ runner.os }}
+
+    # On macOS gfortran is also needed on cache hits: the binary links against
+    # the Homebrew libgfortran dylib, which is not part of the cached artefact
+    - name: Install gfortran
+      if: runner.os == 'macOS' || (steps.cache-cfast.outputs.cache-hit != 'true' && (runner.os == 'Linux' || inputs.cfast-version == 'latest'))
+      uses: fortran-lang/setup-fortran@v1
+      with:
+        compiler: gcc
+
+    - name: Build CFAST from source (Linux / macOS)
+      if: runner.os != 'Windows' && steps.cache-cfast.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        version="${{ inputs.cfast-version }}"
+
+        # The makefile target is the build directory name and the binary is
+        # named after it; the "_64" suffix was dropped upstream after 7.7.5
+        target="gnu_$([ "${{ runner.os }}" = "macOS" ] && echo osx || echo linux)"
+        if [ "$version" = "7.7.5" ]; then target="${target}_64"; fi
+
+        if [ "$version" = "latest" ]; then
+          git clone --depth 1 https://github.com/firemodels/cfast.git cfast-src
+        else
+          git clone --depth 1 --branch "CFAST-$version" https://github.com/firemodels/cfast.git cfast-src
+        fi
+
+        cd "cfast-src/Build/CFAST/$target"
+        chmod +x make_cfast.sh
+        ./make_cfast.sh
+
+        mkdir -p ~/cfast-cache
+        cp "cfast7_${target#gnu_}" ~/cfast-cache/cfast-"$version"-${{ runner.os }}
+        chmod +x ~/cfast-cache/cfast-"$version"-${{ runner.os }}
+
+    - name: Build CFAST from source (Windows - latest)
+      if: runner.os == 'Windows' && inputs.cfast-version == 'latest'
+      shell: pwsh
+      run: |
+        git clone --depth 1 https://github.com/firemodels/cfast.git cfast-src
+        cd cfast-src\Build\CFAST\gnu_win
+        cmd /c make_cfast.bat
+
+        $cacheDir = "$env:USERPROFILE\cfast-cache"
+        if (-not (Test-Path $cacheDir)) { New-Item -ItemType Directory -Path $cacheDir }
+        Copy-Item cfast7_win.exe "$cacheDir\cfast-latest-Windows"
+
+    - name: Download and extract CFAST installer (Windows)
+      if: runner.os == 'Windows' && inputs.cfast-version != 'latest' && steps.cache-cfast.outputs.cache-hit != 'true'
+      shell: pwsh
+      run: |
+        # Official installers, published for Windows only
+        $installers = @{
+          "7.7.7" = "https://github.com/firemodels/cfast/releases/download/CFAST-7.7.7/CFAST-7.7.7_SMV-6.11.1.exe"
+          "7.7.6" = "https://github.com/firemodels/cfast/releases/download/CFAST-7.7.6/CFAST-7.7.6-0_SMV-6.10.7-0_win.exe"
+          "7.7.5" = "https://github.com/firemodels/cfast/releases/download/CFAST-7.7.5/CFAST-7.7.5_SMV-6.10.1.exe"
+          "7.7.4" = "https://github.com/firemodels/cfast/releases/download/CFAST7.7.4/cfast7.7.4_SMV6.7.21.exe"
+          "7.7.3" = "https://github.com/firemodels/cfast/releases/download/CFAST7.7.3/cfast_7.7.3_SMV_6.7.17.exe"
+          "7.7.2" = "https://github.com/firemodels/cfast/releases/download/CFAST7.7.2/cfast_7.7.2_SMV_6.7.17.exe"
+          "7.7.1" = "https://github.com/firemodels/cfast/releases/download/CFAST7.7.1/CFAST_7.7.1_SMV_6.7.17.exe"
+          "7.7.0" = "https://github.com/firemodels/cfast/releases/download/CFAST7.7.0/CFAST_7.7.0_SMV_6.7.17.exe"
+        }
+        $installerUrl = $installers["${{ inputs.cfast-version }}"]
+        if (-not $installerUrl) {
+          Write-Error "No installer known for CFAST version ${{ inputs.cfast-version }}"
+          exit 1
+        }
+
+        # Download the installer
+        $installerPath = "$env:TEMP\cfast-installer.exe"
+        Write-Host "Downloading CFAST installer from $installerUrl"
+        Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath
+
+        # Extract with 7-Zip (pre-installed on GitHub runners)
+        $extractDir = "$env:TEMP\cfast-extracted"
+        7z x $installerPath -o"$extractDir" -y
+
+        # Find the CFAST executable (exclude smokeview, uninstaller, cdata)
+        $cfastExe = Get-ChildItem -Recurse -Path $extractDir -Filter "cfast*.exe" |
+          Where-Object { $_.Name -notmatch "uninstall|setup|smokeview|smv|cdata" } |
+          Select-Object -First 1
+
+        if (-not $cfastExe) {
+          Write-Error "Could not find cfast executable in extracted installer"
+          exit 1
+        }
+
+        Write-Host "Found CFAST executable: $($cfastExe.FullName)"
+
+        # Copy to cache
+        $cacheDir = "$env:USERPROFILE\cfast-cache"
+        if (-not (Test-Path $cacheDir)) { New-Item -ItemType Directory -Path $cacheDir }
+        Copy-Item $cfastExe.FullName "$cacheDir\cfast-${{ inputs.cfast-version }}-Windows"
+
+    - name: Install CFAST to system path (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo cp ~/cfast-cache/cfast-${{ inputs.cfast-version }}-Linux /usr/bin/cfast
+        sudo chmod +x /usr/bin/cfast
+
+    # /usr/bin is protected by SIP on macOS, /usr/local/bin is on the default PATH
+    - name: Install CFAST to system path (macOS)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        sudo mkdir -p /usr/local/bin
+        sudo cp ~/cfast-cache/cfast-${{ inputs.cfast-version }}-macOS /usr/local/bin/cfast
+        sudo chmod +x /usr/local/bin/cfast
+
+    - name: Install CFAST to system path (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Copy-Item "$env:USERPROFILE\cfast-cache\cfast-${{ inputs.cfast-version }}-Windows" "C:\Windows\System32\cfast.exe"
+
+    - name: Verify CFAST installation
+      shell: bash
+      run: |
+        if [ "${{ runner.os }}" = "Windows" ]; then
+          where cfast
+        else
+          which cfast
+        fi
+        cfast
