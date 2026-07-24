@@ -148,7 +148,7 @@ CFAST is developed and distributed by NIST, independently of PyCFAST. Install it
     # sudo dnf install gcc-gfortran      # Fedora/RHEL
     # brew install gcc                   # macOS
 
-    # 2. Clone the CFAST source, pinned to the release tag you want (see the releases page above)
+    # 2. Clone the CFAST source, pinned to the release tag you want (e.g. CFAST-7.7.7)
     git clone --depth 1 --branch <CFAST_TAG> https://github.com/firemodels/cfast.git
     cd cfast/Build/CFAST/gnu_linux       # macOS: cd cfast/Build/CFAST/gnu_osx
 
