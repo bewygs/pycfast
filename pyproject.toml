@@ -53,6 +53,7 @@ docs = [
     "sphinx-autodoc-typehints>=3.0.1",
     "sphinx-sitemap>=2.9.0",
     "sphinx-design>=0.6.1",
+    "sphinxext-opengraph>=0.9.1",
 ]
 dev = [
     "ruff>=0.15.1",

@@ -3,6 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. meta::
+   :description: PyCFAST is a Python interface for building, running, and analyzing CFAST fire simulation models.
+
+
 Welcome to the PyCFAST documentation
 ====================================
 
