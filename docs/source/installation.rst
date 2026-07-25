@@ -95,7 +95,8 @@ It is recommended to install PyCFAST inside a virtual environment. Create one wi
 
       Python 3 is usually installed by default on Linux. On macOS install it with
       ``brew install python`` or from the
-      `official website <https://www.python.org/downloads/macos/>`__.
+      `official website <https://www.python.org/downloads/macos/>`__. Then create a
+      virtual environment from the terminal and activate it:
 
       .. code-block:: bash
 
@@ -106,7 +107,8 @@ It is recommended to install PyCFAST inside a virtual environment. Create one wi
       :sync: venv-win
 
       Install the 64-bit version of Python 3 from the
-      `official website <https://www.python.org/downloads/windows/>`__.
+      `official website <https://www.python.org/downloads/windows/>`__. Then create a
+      virtual environment from the command prompt and activate it:
 
       .. code-block:: bat
 
@@ -117,7 +119,7 @@ It is recommended to install PyCFAST inside a virtual environment. Create one wi
       :sync: conda
 
       `Miniforge <https://conda-forge.org/download/>`_ is the recommended way to install
-      ``conda``.
+      ``conda``. Then open the terminal and create a new environment and activate it:
 
       .. code-block:: bash
 
