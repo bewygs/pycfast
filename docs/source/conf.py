@@ -32,6 +32,7 @@ extensions = [
     "sphinx_gallery.gen_gallery",
     "sphinx_sitemap",
     "sphinx_design",
+    "sphinxext.opengraph",
 ]
 autosummary_generate = True
 autodoc_default_options = {"members": False, "undoc-members": False, "inherited-members": True}
@@ -77,6 +78,7 @@ add_function_parentheses = False
 html_title = "PyCFAST"
 html_baseurl = "https://pycfast.org/"
 sitemap_url_scheme = "{link}"
+html_extra_path = ["robots.txt"]
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 templates_path = ["_templates"]
@@ -110,6 +112,12 @@ html_sidebars = {
     "licence": [],
     "citation": [],
 }
+
+# -- OpenGraph metadata (social previews, meta descriptions) -----------------
+ogp_site_url = "https://pycfast.org/"
+ogp_site_name = "PyCFAST"
+ogp_enable_meta_description = True
+ogp_social_cards = {"enable": False}
 
 # -- Intersphinx (with cross-links) ------------------------------------------
 intersphinx_mapping = {
