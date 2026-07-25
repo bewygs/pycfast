@@ -117,7 +117,7 @@ html_sidebars = {
 ogp_site_url = "https://pycfast.org/"
 ogp_site_name = "PyCFAST"
 ogp_enable_meta_description = True
-ogp_social_cards = {"enable": False}
+ogp_social_cards = {"enable": True}
 
 # -- Intersphinx (with cross-links) ------------------------------------------
 intersphinx_mapping = {
