@@ -34,25 +34,27 @@ Example from [@WORRELL2019128] thesis below:
 ```python
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
+
 class CFASTinterface(CodeInterfaceBase):
-    def generateCommand(self,inputFiles,executable,clargs=None, fargs=None):
-        todo = ''
-        todo += clargs['pre']+' '
+    def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
+        todo = ""
+        todo += clargs["pre"] + " "
         todo += executable
-        todo+=' RAVEN_CFAST'
-        outfile = 'RAVEN_CFAST_zone'
-        returnCommand = [('parallel',todo)],outfile
-        print('Execution Command: '+str(returnCommand[0]))
+        todo += " RAVEN_CFAST"
+        outfile = "RAVEN_CFAST_zone"
+        returnCommand = [("parallel", todo)], outfile
+        print("Execution Command: " + str(returnCommand[0]))
+
     return returnCommand
 
-    def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
-        modDict = Kwargs['SampledVars']
-        outfile=currentInputFiles[0]
-        outfile.open('w')
-        outfile.write('VERSN,6,RAVEN_CFAST\n')
-        outfile.write('!!\n')
-        outfile.write('!!Environmental Keywords\n')
-        outfile.write('!!\n')
-        outfile.write('TIMES,3600,50,10,10,0\n')
+    def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
+        modDict = Kwargs["SampledVars"]
+        outfile = currentInputFiles[0]
+        outfile.open("w")
+        outfile.write("VERSN,6,RAVEN_CFAST\n")
+        outfile.write("!!\n")
+        outfile.write("!!Environmental Keywords\n")
+        outfile.write("!!\n")
+        outfile.write("TIMES,3600,50,10,10,0\n")
         ...
 ```
