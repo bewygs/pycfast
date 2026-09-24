@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="PyCFAST">
+<defs><clipPath id="cb"><rect width="48" height="48" rx="10"/></clipPath>
+<mask id="mb"><rect width="48" height="48" fill="#fff"/><path d="M 26.88 16.00 C 32.65 22.73 35.06 28.50 35.06 33.31 C 35.06 37.63 30.25 41.00 24.00 41.00 C 17.75 41.00 12.94 37.63 12.94 33.31 C 12.94 29.46 13.90 26.58 15.83 24.17 C 16.79 25.62 18.23 29.46 20.63 29.46 C 23.04 29.46 23.52 22.73 26.88 16.00 Z " fill="#000"/></mask></defs>
+<g mask="url(#mb)" clip-path="url(#cb)"><rect width="48" height="48" fill="#222832"/><path d="M0 0 H48 V19.5 C38 13.5 30 25.5 20 19.5 S6 14 0 19.5 Z" fill="#EA580C"/></g>
+</svg>
