@@ -40,7 +40,6 @@ room = Compartment(
     wall_mat_id="Gypboard",
     floor_mat_id="Gypboard",
 )
-
 ```
 
 </td>
@@ -123,8 +122,8 @@ results["devices"].head()
 You can also inspect the model using text-based methods:
 
 ```python
-print(model.summary())   # text summary to stdout
-model.save()      # writes the CFAST input file to disk
+print(model.summary())  # text summary to stdout
+model.save()  # writes the CFAST input file to disk
 model.view_cfast_input_file()  # view the generated input file
 ```
 
@@ -206,13 +205,11 @@ If CFAST is installed in a non-standard location, you can manually specify the p
 
     # set custom CFAST executable path via environment variable
     import os
-    os.environ['CFAST'] = "/path/to/your/cfast/executable"
+
+    os.environ["CFAST"] = "/path/to/your/cfast/executable"
 
     # Or directly when defining CFASTModel
-    model = CFASTModel(
-            ...,
-            cfast_exe="/path/to/your/cfast/executable"
-        )
+    model = CFASTModel(..., cfast_exe="/path/to/your/cfast/executable")
     ```
 
 ## Documentation
