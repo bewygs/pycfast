@@ -5,3 +5,25 @@
 .sphx-glr-footer.sphx-glr-footer-example {
     display: none;
 }
+
+/* Accent colours aligned with the PyCFAST logo (orange #EA580C, ink #222832).
+   Primary drives links, active nav item and buttons; secondary is the link hover;
+   link-higher-contrast colours inline code links (pydata-sphinx-theme >= 0.16).
+   Light uses a darker orange so body links stay AA on white. */
+html[data-theme="light"] {
+    --pst-color-primary: #c2410c;
+    --pst-color-primary-highlight: #9a3412;
+    --pst-color-primary-bg: #fde8d8;
+    --pst-color-secondary: #222832;
+    --pst-color-secondary-highlight: #14181e;
+    --pst-color-link-higher-contrast: #9a3412;
+}
+
+html[data-theme="dark"] {
+    --pst-color-primary: #fb923c;
+    --pst-color-primary-highlight: #fdba74;
+    --pst-color-primary-bg: #3b1d0b;
+    --pst-color-secondary: #e6e9ef;
+    --pst-color-secondary-highlight: #ffffff;
+    --pst-color-link-higher-contrast: #fb923c;
+}

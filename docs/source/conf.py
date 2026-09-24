@@ -87,7 +87,14 @@ templates_path = ["_templates"]
 # a list of builtin themes.
 html_theme = "pydata_sphinx_theme"
 
+html_favicon = "_static/logo/pycfast-icon-b.svg"
+
 html_theme_options = {
+    "logo": {
+        "image_light": "_static/logo/pycfast-logo-b.svg",
+        "image_dark": "_static/logo/pycfast-logo-b-dark.svg",
+        "alt_text": "PyCFAST",
+    },
     "icon_links": [
         {"name": "GitHub", "url": "https://github.com/bewygs/pycfast", "icon": "fa-brands fa-github"}
         ],
@@ -117,7 +124,7 @@ html_sidebars = {
 ogp_site_url = "https://pycfast.org/"
 ogp_site_name = "PyCFAST"
 ogp_enable_meta_description = True
-ogp_social_cards = {"enable": True}
+ogp_social_cards = {"enable": True, "line_color": "#EA580C"}
 
 # -- Intersphinx (with cross-links) ------------------------------------------
 intersphinx_mapping = {
