@@ -55,54 +55,69 @@ runs:
         cp "cfast7_${target#gnu_}" ~/cfast-cache/cfast-"$version"-${{ runner.os }}
         chmod +x ~/cfast-cache/cfast-"$version"-${{ runner.os }}
 
-    # The bundles ship their own runtime libraries next to the binary
-    # (bin/ + lib/ on Linux and macOS, DLLs in bin\ on Windows), so the
-    # binary is run in place instead of being copied to a system directory
-    - name: Install CFAST nightly bundle (latest)
-      if: inputs.cfast-version == 'latest'
+    # The nightly bundles ship their own runtime libraries next to the binary,
+    # so it is run in place instead of being copied alone to a system directory.
+    # Asset names change on every build, hence the download by pattern.
+    - name: Install CFAST nightly bundle (Linux - latest)
+      if: runner.os == 'Linux' && inputs.cfast-version == 'latest'
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
         set -euo pipefail
-        case "${{ runner.os }}" in
-          Linux) pattern="*-linux.tar.gz" ;;
-          macOS) pattern="*-macos.dmg" ;;
-          Windows) pattern="*-windows.exe" ;;
-        esac
-
-        download_dir="$RUNNER_TEMP/cfast-bundle"
-        install_dir="$HOME/cfast8"
         gh release download CFAST_TEST --repo firemodels/test_bundles \
-          --pattern "$pattern" --dir "$download_dir" --clobber
-        bundle=$(ls "$download_dir"/$pattern)
+          --pattern "*-linux.tar.gz" --dir "$RUNNER_TEMP" --clobber
+        bundle=$(ls "$RUNNER_TEMP"/*-linux.tar.gz)
         echo "Installing $(basename "$bundle")"
 
-        case "${{ runner.os }}" in
-          Linux)
-            mkdir -p "$install_dir"
-            tar -xzf "$bundle" -C "$install_dir" --strip-components=2 \
-              CFAST/CFAST8/bin CFAST/CFAST8/lib
-            # The Intel-compiled binary needs the bundled libimf/libintlc
-            printf '#!/bin/sh\nLD_LIBRARY_PATH="%s/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" exec "%s/bin/cfast8_linux" "$@"\n' \
-              "$install_dir" "$install_dir" | sudo tee /usr/bin/cfast > /dev/null
-            sudo chmod +x /usr/bin/cfast
-            ;;
-          macOS)
-            mount_dir="$RUNNER_TEMP/cfast-dmg"
-            hdiutil attach -nobrowse -readonly -mountpoint "$mount_dir" "$bundle"
-            mkdir -p "$install_dir"
-            cp -R "$mount_dir/CFAST8/bin" "$mount_dir/CFAST8/lib" "$install_dir/"
-            hdiutil detach "$mount_dir"
-            # The binary finds its dylibs through @loader_path/../lib
-            sudo mkdir -p /usr/local/bin
-            sudo ln -sf "$install_dir/bin/cfast8_macos" /usr/local/bin/cfast
-            ;;
-          Windows)
-            "$bundle" --silent --overwrite --install-dir "$(cygpath -w "$install_dir")"
-            cygpath -w "$install_dir/bin" >> "$GITHUB_PATH"
-            ;;
-        esac
+        mkdir -p ~/cfast8
+        tar -xzf "$bundle" -C ~/cfast8 --strip-components=2 CFAST/CFAST8/bin CFAST/CFAST8/lib
+
+        # The Intel-compiled binary needs the bundled libimf/libintlc
+        printf '#!/bin/sh\nLD_LIBRARY_PATH="%s/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" exec "%s/bin/cfast8_linux" "$@"\n' \
+          ~/cfast8 ~/cfast8 | sudo tee /usr/bin/cfast > /dev/null
+        sudo chmod +x /usr/bin/cfast
+
+    - name: Install CFAST nightly bundle (macOS - latest)
+      if: runner.os == 'macOS' && inputs.cfast-version == 'latest'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        gh release download CFAST_TEST --repo firemodels/test_bundles \
+          --pattern "*-macos.dmg" --dir "$RUNNER_TEMP" --clobber
+        bundle=$(ls "$RUNNER_TEMP"/*-macos.dmg)
+        echo "Installing $(basename "$bundle")"
+
+        mount_dir="$RUNNER_TEMP/cfast-dmg"
+        hdiutil attach -nobrowse -readonly -mountpoint "$mount_dir" "$bundle"
+        mkdir -p ~/cfast8
+        cp -R "$mount_dir/CFAST8/bin" "$mount_dir/CFAST8/lib" ~/cfast8/
+        hdiutil detach "$mount_dir"
+
+        # The binary finds its dylibs through @loader_path/../lib
+        sudo mkdir -p /usr/local/bin
+        sudo ln -sf ~/cfast8/bin/cfast8_macos /usr/local/bin/cfast
+
+    # The CFAST 8 installer is a PyInstaller executable, not a 7-Zip archive
+    # like the 7.x installers, so it is run in silent mode instead of extracted.
+    # bin\ holds cfast.exe and the Intel runtime DLLs it needs.
+    - name: Install CFAST nightly bundle (Windows - latest)
+      if: runner.os == 'Windows' && inputs.cfast-version == 'latest'
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release download CFAST_TEST --repo firemodels/test_bundles `
+          --pattern "*-windows.exe" --dir "$env:RUNNER_TEMP" --clobber
+        $bundle = Get-ChildItem "$env:RUNNER_TEMP\*-windows.exe" | Select-Object -First 1
+        Write-Host "Installing $($bundle.Name)"
+
+        $installDir = "$env:USERPROFILE\cfast8"
+        & $bundle.FullName --silent --overwrite --install-dir $installDir
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        "$installDir\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
     - name: Download and extract CFAST installer (Windows)
       if: runner.os == 'Windows' && inputs.cfast-version != 'latest' && steps.cache-cfast.outputs.cache-hit != 'true'
