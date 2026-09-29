@@ -106,30 +106,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        cfast-version: ["7.7.0", "7.7.1", "7.7.2", "7.7.3", "7.7.4", "7.7.5", "7.7.6", "7.7.7", "latest"]
+        cfast-version: ["7.7.4", "7.7.5", "7.7.6", "7.7.7", "latest"]
         exclude:
           # Linux and macOS have no pre-built binaries: they are compiled with
           # current gcc, which restricts the versions that can be tested.
           # Linux is tested from 7.7.5 (older versions do not build), macOS from
           # 7.7.6 (7.7.5 builds but the dassl solver fails to converge).
           - os: ubuntu-latest
-            cfast-version: "7.7.0"
-          - os: ubuntu-latest
-            cfast-version: "7.7.1"
-          - os: ubuntu-latest
-            cfast-version: "7.7.2"
-          - os: ubuntu-latest
-            cfast-version: "7.7.3"
-          - os: ubuntu-latest
             cfast-version: "7.7.4"
-          - os: macos-latest
-            cfast-version: "7.7.0"
-          - os: macos-latest
-            cfast-version: "7.7.1"
-          - os: macos-latest
-            cfast-version: "7.7.2"
-          - os: macos-latest
-            cfast-version: "7.7.3"
           - os: macos-latest
             cfast-version: "7.7.4"
           - os: macos-latest

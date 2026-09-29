@@ -52,8 +52,4 @@ CFAST_VERSION = [
     "7.7.6",
     "7.7.5",
     "7.7.4",
-    "7.7.3",
-    "7.7.2",
-    "7.7.1",
-    "7.7.0",
 ]  # CFAST versions that pycfast is compatible with

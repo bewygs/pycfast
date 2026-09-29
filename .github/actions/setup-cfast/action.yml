@@ -9,7 +9,7 @@ description: 'Build or download a CFAST binary, cache it and install it on the s
 
 inputs:
   cfast-version:
-    description: 'CFAST version ("7.7.0" to "7.7.7") or "latest" for the latest upstream commit'
+    description: 'CFAST version ("7.7.4" to "7.7.7") or "latest" for the latest upstream commit'
     required: true
 
 runs:
@@ -40,8 +40,16 @@ runs:
         version="${{ inputs.cfast-version }}"
 
         # The makefile target is the build directory name and the binary is
-        # named after it; the "_64" suffix was dropped upstream after 7.7.5
-        target="gnu_$([ "${{ runner.os }}" = "macOS" ] && echo osx || echo linux)"
+        # named after it; the "_64" suffix was dropped upstream after 7.7.5.
+        # On the upstream default branch (CFAST 8) "osx" became "macos" and
+        # the binary prefix changed from cfast7_ to cfast8_
+        if [ "$version" = "latest" ]; then
+          target="gnu_$([ "${{ runner.os }}" = "macOS" ] && echo macos || echo linux)"
+          prefix="cfast8"
+        else
+          target="gnu_$([ "${{ runner.os }}" = "macOS" ] && echo osx || echo linux)"
+          prefix="cfast7"
+        fi
         if [ "$version" = "7.7.5" ]; then target="${target}_64"; fi
 
         if [ "$version" = "latest" ]; then
@@ -55,7 +63,7 @@ runs:
         ./make_cfast.sh
 
         mkdir -p ~/cfast-cache
-        cp "cfast7_${target#gnu_}" ~/cfast-cache/cfast-"$version"-${{ runner.os }}
+        cp "${prefix}_${target#gnu_}" ~/cfast-cache/cfast-"$version"-${{ runner.os }}
         chmod +x ~/cfast-cache/cfast-"$version"-${{ runner.os }}
 
     - name: Build CFAST from source (Windows - latest)
@@ -68,7 +76,7 @@ runs:
 
         $cacheDir = "$env:USERPROFILE\cfast-cache"
         if (-not (Test-Path $cacheDir)) { New-Item -ItemType Directory -Path $cacheDir }
-        Copy-Item cfast7_win.exe "$cacheDir\cfast-latest-Windows"
+        Copy-Item cfast8_win.exe "$cacheDir\cfast-latest-Windows"
 
     - name: Download and extract CFAST installer (Windows)
       if: runner.os == 'Windows' && inputs.cfast-version != 'latest' && steps.cache-cfast.outputs.cache-hit != 'true'
@@ -80,10 +88,6 @@ runs:
           "7.7.6" = "https://github.com/firemodels/cfast/releases/download/CFAST-7.7.6/CFAST-7.7.6-0_SMV-6.10.7-0_win.exe"
           "7.7.5" = "https://github.com/firemodels/cfast/releases/download/CFAST-7.7.5/CFAST-7.7.5_SMV-6.10.1.exe"
           "7.7.4" = "https://github.com/firemodels/cfast/releases/download/CFAST7.7.4/cfast7.7.4_SMV6.7.21.exe"
-          "7.7.3" = "https://github.com/firemodels/cfast/releases/download/CFAST7.7.3/cfast_7.7.3_SMV_6.7.17.exe"
-          "7.7.2" = "https://github.com/firemodels/cfast/releases/download/CFAST7.7.2/cfast_7.7.2_SMV_6.7.17.exe"
-          "7.7.1" = "https://github.com/firemodels/cfast/releases/download/CFAST7.7.1/CFAST_7.7.1_SMV_6.7.17.exe"
-          "7.7.0" = "https://github.com/firemodels/cfast/releases/download/CFAST7.7.0/CFAST_7.7.0_SMV_6.7.17.exe"
         }
         $installerUrl = $installers["${{ inputs.cfast-version }}"]
         if (-not $installerUrl) {
