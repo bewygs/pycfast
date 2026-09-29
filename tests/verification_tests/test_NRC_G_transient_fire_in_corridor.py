@@ -30,8 +30,8 @@ verification_data_dir = get_reference_data_dir(
 
 
 def test_transient_fire_in_corridor_simulation(tmp_path):
-    """Test construction of CFASTModel for the Transient in Corridor.in file."""
-    prefix = "Transient in Corridor"
+    """Test construction of CFASTModel for the Transient_in_Corridor.in file."""
+    prefix = "Transient_in_Corridor"
 
     simulation_env = SimulationEnvironment(
         title="MCC Fire Corridor",
