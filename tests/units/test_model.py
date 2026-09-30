@@ -17,7 +17,6 @@ from pycfast.material import Material
 from pycfast.mechanical_vent import MechanicalVent
 from pycfast.model import CFASTModel, _resolve_cfast_exe
 from pycfast.simulation_environment import SimulationEnvironment
-from pycfast.surface_connection import SurfaceConnection
 from pycfast.visualization import Visualization
 from pycfast.wall_vent import WallVent
 
@@ -93,12 +92,6 @@ class TestCFASTModel:
             rti=50.0,
         )
 
-        surface_conn = SurfaceConnection.wall_connection(
-            comp_id="ROOM1",
-            comp_ids="ROOM2",
-            fraction=0.5,
-        )
-
         visualization = Visualization.slice_2d(
             plane="X",
             position=1.5,
@@ -114,7 +107,6 @@ class TestCFASTModel:
             mechanical_vents=[mechanical_vent],
             fires=[fire],
             devices=[device],
-            surface_connections=[surface_conn],
             visualizations=[visualization],
             file_name="full_test.in",
         )
@@ -132,7 +124,6 @@ class TestCFASTModel:
         assert model.mechanical_vents == []
         assert model.fires == []
         assert model.devices == []
-        assert model.surface_connections == []
         assert model.visualizations == []
         assert model.file_name == "test.in"
         assert model.extra_arguments == []
@@ -149,7 +140,6 @@ class TestCFASTModel:
         assert len(model.mechanical_vents) == 1
         assert len(model.fires) == 1
         assert len(model.devices) == 1
-        assert len(model.surface_connections) == 1
         assert len(model.visualizations) == 1
         assert model.file_name == "full_test.in"
 
@@ -224,7 +214,6 @@ class TestCFASTModel:
                 assert "&VENT TYPE = 'MECHANICAL' ID = 'FAN1'" in content
                 assert "&FIRE ID = 'FIRE1'" in content
                 assert "&DEVC ID = 'TEMP1'" in content
-                assert "&CONN TYPE = 'WALL'" in content
                 assert "&SLCF COMP_ID = 'ROOM1' DOMAIN = '2-D'" in content
                 assert "&TAIL /" in content
 
@@ -574,7 +563,6 @@ class TestCFASTModel:
             mechanical_vents=None,
             fires=None,
             devices=None,
-            surface_connections=None,
             extra_arguments=None,
         )
 
@@ -584,7 +572,6 @@ class TestCFASTModel:
         assert model.mechanical_vents == []
         assert model.fires == []
         assert model.devices == []
-        assert model.surface_connections == []
         assert model.extra_arguments == []
 
     @patch.dict(os.environ, {"CFAST": "/env/path/to/cfast"})
@@ -1060,22 +1047,6 @@ class TestCFASTModel:
         # Check that new model has updated values
         assert updated_model.devices[0].setpoint == 80.0
 
-    def test_update_surface_connection_params(self) -> None:
-        """Test update_surface_connection_params method."""
-        model = self.create_full_model()
-        original_fraction = model.surface_connections[0].fraction
-
-        # Test updating surface connection parameters (only supports index)
-        updated_model = model.update_surface_connection_params(
-            connection=0, fraction=0.8
-        )
-
-        # Check that original model is unchanged
-        assert model.surface_connections[0].fraction == original_fraction
-
-        # Check that new model has updated values
-        assert updated_model.surface_connections[0].fraction == 0.8
-
     def test_update_visualization_params(self) -> None:
         """Test update_visualization_params method."""
         model = self.create_full_model()
@@ -1285,26 +1256,6 @@ class TestCFASTModel:
         assert updated_model.devices[-1].comp_id == "ROOM1"
         assert updated_model.devices[-1].location == (2.0, 2.0, 2.4)
 
-    def test_add_surface_connection(self) -> None:
-        """Test adding a surface connection to the model."""
-        model = self.create_full_model()
-        original_conn_count = len(model.surface_connections)
-
-        wall_conn = SurfaceConnection.wall_connection(
-            comp_id="ROOM1", comp_ids="ROOM2", fraction=0.5
-        )
-        updated_model = model.add(wall_conn)
-
-        # Check that original model is unchanged
-        assert len(model.surface_connections) == original_conn_count
-
-        # Check that new model has additional surface connection
-        assert len(updated_model.surface_connections) == original_conn_count + 1
-        # Note: comp_ids is stored as a string in SurfaceConnection, not a list
-        assert updated_model.surface_connections[-1].comp_id == "ROOM1"
-        assert updated_model.surface_connections[-1].comp_ids == "ROOM2"
-        assert updated_model.surface_connections[-1].fraction == 0.5
-
     def test_add_visualization(self) -> None:
         """Test adding a visualization to the model."""
         model = self.create_full_model()
@@ -1386,7 +1337,6 @@ class TestCFASTModel:
             fires=None,
             devices=None,
             material_properties=None,
-            surface_connections=None,
             visualizations=None,
         )
 
@@ -1509,11 +1459,6 @@ class TestCFASTModel:
         with pytest.raises(ValueError, match="Model has no Device to update"):
             model.update_device_params(setpoint=70.0)
 
-        with pytest.raises(
-            ValueError, match="Model has no Surface connection to update"
-        ):
-            model.update_surface_connection_params(fraction=0.5)
-
     def test_update_methods_invalid_parameters(self) -> None:
         """Test update methods with invalid parameter names."""
         model = self.create_full_model()
@@ -1548,11 +1493,6 @@ class TestCFASTModel:
             ValueError, match="Device has no parameter 'invalid_attribute'"
         ):
             model.update_device_params(invalid_attribute=123)
-
-        with pytest.raises(
-            ValueError, match="Surface connection has no parameter 'invalid_attribute'"
-        ):
-            model.update_surface_connection_params(invalid_attribute=123)
 
     def test_identifier_resolution(self) -> None:
         """Test identifier resolution (int index and string id) via public methods."""
@@ -1836,18 +1776,6 @@ class TestCFASTModelValidateDependencies:
         """Test that ceiling/floor and mechanical vents with undefined compartment raise ValueError."""
         with pytest.raises(ValueError, match="does not match any defined compartment"):
             self._make(sim_env, [room1], **{vent_type: [vent]})
-
-    def test_surface_connection_undefined_comp_id(self, sim_env, room1):
-        """Test that SurfaceConnection with undefined comp_id raises ValueError."""
-        sc = SurfaceConnection.wall_connection("UNKNOWN", "ROOM1", fraction=0.5)
-        with pytest.raises(ValueError, match="comp_id='UNKNOWN' does not match"):
-            self._make(sim_env, [room1], surface_connections=[sc])
-
-    def test_surface_connection_undefined_comp_ids(self, sim_env, room1):
-        """Test that SurfaceConnection with undefined comp_ids raises ValueError."""
-        sc = SurfaceConnection.wall_connection("ROOM1", "UNKNOWN", fraction=0.5)
-        with pytest.raises(ValueError, match="comp_ids='UNKNOWN' does not match"):
-            self._make(sim_env, [room1], surface_connections=[sc])
 
     def test_device_undefined_material_id(self, sim_env, room1):
         """Test that a device referencing an undefined material raises ValueError."""

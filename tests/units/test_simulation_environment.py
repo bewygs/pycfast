@@ -44,7 +44,7 @@ class TestSimulationEnvironment:
             adiabatic=True,
             max_time_step=1.0,
             lower_oxygen_limit=12.0,
-            extra_custom="&DIAG CFAST = 1 /",
+            extra_custom="&DIAG RADIATIVE_INCIDENT_FLUX = 1 /",
         )
         assert sim_env.title == "Complete Simulation"
         assert sim_env.time_simulation == 1800
@@ -58,7 +58,7 @@ class TestSimulationEnvironment:
         assert sim_env.adiabatic is True
         assert sim_env.max_time_step == 1.0
         assert sim_env.lower_oxygen_limit == 12.0
-        assert sim_env.extra_custom == "&DIAG CFAST = 1 /"
+        assert sim_env.extra_custom == "&DIAG RADIATIVE_INCIDENT_FLUX = 1 /"
 
     def test_to_input_string_basic(self):
         """Test basic input string generation."""
@@ -195,10 +195,10 @@ class TestSimulationEnvironment:
         sim_env = SimulationEnvironment(
             title="Custom Extra",
             time_simulation=300,
-            extra_custom="&DIAG CFAST = 1 /\n&DUMP MASS_BUDGET = .TRUE. /",
+            extra_custom="&DIAG RADIATIVE_INCIDENT_FLUX = 1 /\n&DIAG ADIABATIC_TARGET_VERIFICATION = 'ON' /",
         )
         assert (
-            "&DIAG CFAST = 1 /\n&DUMP MASS_BUDGET = .TRUE. /"
+            "&DIAG RADIATIVE_INCIDENT_FLUX = 1 /\n&DIAG ADIABATIC_TARGET_VERIFICATION = 'ON' /"
             in sim_env.to_input_string()
         )
 
@@ -364,5 +364,5 @@ class TestSimulationEnvironment:
         assert sim_env.max_time_step == 0.5
         sim_env.lower_oxygen_limit = 16.0
         assert sim_env.lower_oxygen_limit == 16.0
-        sim_env.extra_custom = "&DIAG RESIDUE = 1 /"
-        assert sim_env.extra_custom == "&DIAG RESIDUE = 1 /"
+        sim_env.extra_custom = "&DIAG ADIABATIC_TARGET_VERIFICATION = 'ON' /"
+        assert sim_env.extra_custom == "&DIAG ADIABATIC_TARGET_VERIFICATION = 'ON' /"

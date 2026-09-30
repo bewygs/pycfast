@@ -21,7 +21,6 @@ from pycfast import (
     Material,
     MechanicalVent,
     SimulationEnvironment,
-    SurfaceConnection,
     WallVent,
 )
 
@@ -265,30 +264,7 @@ target = Device.create_target(
 )
 
 # %%
-# Step 8: Configure Surface Connections
-# -------------------------------------
-# Surface connections define thermal connections between compartments through shared
-# surfaces. The :class:`~pycfast.SurfaceConnection` class is the equivalent of the
-# CEdit surface connections tab but programmatically defined.
-#
-# .. figure:: /_static/images/cedit-surface-connections-tab.png
-#    :alt: CEdit Surface Connections
-#    :width: 800px
-#
-#
-# The :class:`~pycfast.SurfaceConnection` class has 2 classmethods to help create
-# common connection types :meth:`~pycfast.SurfaceConnection.ceiling_floor_connection`,
-# and :meth:`~pycfast.SurfaceConnection.wall_connection`. Here we create a
-# ceiling/floor connection between the two compartments to allow heat transfer and air
-# flow between them.
-
-ceiling_floor_connection = SurfaceConnection.ceiling_floor_connection(
-    comp_id="Comp 1",
-    comp_ids="Comp 2",
-)
-
-# %%
-# Step 9: Create and Run the CFAST Model
+# Step 8: Create and Run the CFAST Model
 # --------------------------------------
 # Now we'll create a complete :class:`~pycfast.CFASTModel` with all our components and
 # run the simulation. After running, we'll explore how to access and analyze the
@@ -303,7 +279,6 @@ model = CFASTModel(
     mechanical_vents=[mechanical_vents],
     fires=[propane_fire],
     devices=[target],
-    surface_connections=[ceiling_floor_connection],
     file_name="example_simulation.in",
     cfast_exe="cfast",
     extra_arguments=["-f"],
@@ -363,8 +338,8 @@ results = model.run(
 #      - Species mass tracking over time
 
 # %%
-# Step 10: Analyzing Simulation Results
-# -------------------------------------
+# Step 9: Analyzing Simulation Results
+# ------------------------------------
 #
 # Below is a small example of comparing the Expected HRR and the Actual HRR using
 # matplotlib and pandas, though you're free to use any Python data analysis tools in
@@ -395,8 +370,8 @@ plt.tight_layout()
 plt.show()
 
 # %%
-# Step 11: Updating the model
-# ---------------------------
+# Step 10: Updating the model
+# ----------------------------
 # You can update any part of the model after its creation with the ``update_*`` methods
 # (e.g., :meth:`~pycfast.CFASTModel.update_fire_params`). For example, to change the
 # fire's radiative fraction, you can do:

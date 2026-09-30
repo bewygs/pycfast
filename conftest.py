@@ -12,9 +12,14 @@ from pycfast.material import Material
 from pycfast.mechanical_vent import MechanicalVent
 from pycfast.model import CFASTModel
 from pycfast.simulation_environment import SimulationEnvironment
-from pycfast.surface_connection import SurfaceConnection
 from pycfast.visualization import Visualization
 from pycfast.wall_vent import WallVent
+
+
+@pytest.fixture(autouse=True)
+def fixed_terminal_width(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Fix the terminal width so pandas doctest output is the same in any terminal."""
+    monkeypatch.setenv("COLUMNS", "80")
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -73,11 +78,6 @@ def add_doctest_namespace(doctest_namespace: dict) -> dict:
         setpoint=70.0,
         rti=50.0,
     )
-    surface_conn = SurfaceConnection.wall_connection(
-        comp_id="ROOM1",
-        comp_ids="ROOM2",
-        fraction=0.5,
-    )
     visualization = Visualization.slice_2d(
         plane="X",
         position=2.5,
@@ -92,7 +92,6 @@ def add_doctest_namespace(doctest_namespace: dict) -> dict:
         mechanical_vents=[mech_vent],
         fires=[fire1],
         devices=[temp_sensor],
-        surface_connections=[surface_conn],
         visualizations=[visualization],
     )
 
@@ -106,7 +105,6 @@ def add_doctest_namespace(doctest_namespace: dict) -> dict:
     doctest_namespace["MechanicalVent"] = MechanicalVent
     doctest_namespace["Fire"] = Fire
     doctest_namespace["Device"] = Device
-    doctest_namespace["SurfaceConnection"] = SurfaceConnection
     doctest_namespace["Visualization"] = Visualization
     doctest_namespace["np"] = np
     doctest_namespace["pd"] = pd
