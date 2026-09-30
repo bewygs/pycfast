@@ -87,12 +87,12 @@ templates_path = ["_templates"]
 # a list of builtin themes.
 html_theme = "pydata_sphinx_theme"
 
-html_favicon = "_static/logo/pycfast-icon-b.svg"
+html_favicon = "_static/logo/pycfast-icon.svg"
 
 html_theme_options = {
     "logo": {
-        "image_light": "_static/logo/pycfast-logo-b.svg",
-        "image_dark": "_static/logo/pycfast-logo-b-dark.svg",
+        "image_light": "_static/logo/pycfast-logo.svg",
+        "image_dark": "_static/logo/pycfast-logo-dark.svg",
         "alt_text": "PyCFAST",
     },
     "icon_links": [
