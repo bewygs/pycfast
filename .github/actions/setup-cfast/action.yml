@@ -3,19 +3,20 @@ description: 'Build or download a CFAST binary, cache it and install it on the s
 
 # Strategy:
 #   - Linux / macOS: compile from source with gcc (gfortran)
-#   - Windows: extract the pre-built binary from the official installer,
-#     except for "latest" which is compiled from source with gcc
+#   - Windows: extract the pre-built binary from the official installer
+#   - "latest": install the CFAST 8 nightly bundle published by NIST on the
+#     CFAST_TEST release of firemodels/test_bundles, on every OS
 #
 
 inputs:
   cfast-version:
-    description: 'CFAST version ("7.7.4" to "7.7.7") or "latest" for the latest upstream commit'
+    description: 'CFAST version ("7.7.4" to "7.7.7") or "latest" for the CFAST 8 nightly bundle'
     required: true
 
 runs:
   using: 'composite'
   steps:
-    # "latest" is never cached since the upstream default branch moves on every commit
+    # "latest" is never cached since the nightly bundle is rebuilt every day
     - name: Cache CFAST binary
       if: inputs.cfast-version != 'latest'
       id: cache-cfast
@@ -27,56 +28,96 @@ runs:
     # On macOS gfortran is also needed on cache hits: the binary links against
     # the Homebrew libgfortran dylib, which is not part of the cached artefact
     - name: Install gfortran
-      if: runner.os == 'macOS' || (steps.cache-cfast.outputs.cache-hit != 'true' && (runner.os == 'Linux' || inputs.cfast-version == 'latest'))
+      if: inputs.cfast-version != 'latest' && (runner.os == 'macOS' || (steps.cache-cfast.outputs.cache-hit != 'true' && runner.os == 'Linux'))
       uses: fortran-lang/setup-fortran@v1
       with:
         compiler: gcc
 
     - name: Build CFAST from source (Linux / macOS)
-      if: runner.os != 'Windows' && steps.cache-cfast.outputs.cache-hit != 'true'
+      if: runner.os != 'Windows' && inputs.cfast-version != 'latest' && steps.cache-cfast.outputs.cache-hit != 'true'
       shell: bash
       run: |
         set -euo pipefail
         version="${{ inputs.cfast-version }}"
 
         # The makefile target is the build directory name and the binary is
-        # named after it; the "_64" suffix was dropped upstream after 7.7.5.
-        # On the upstream default branch (CFAST 8) "osx" became "macos" and
-        # the binary prefix changed from cfast7_ to cfast8_
-        if [ "$version" = "latest" ]; then
-          target="gnu_$([ "${{ runner.os }}" = "macOS" ] && echo macos || echo linux)"
-          prefix="cfast8"
-        else
-          target="gnu_$([ "${{ runner.os }}" = "macOS" ] && echo osx || echo linux)"
-          prefix="cfast7"
-        fi
+        # named after it; the "_64" suffix was dropped upstream after 7.7.5
+        target="gnu_$([ "${{ runner.os }}" = "macOS" ] && echo osx || echo linux)"
         if [ "$version" = "7.7.5" ]; then target="${target}_64"; fi
 
-        if [ "$version" = "latest" ]; then
-          git clone --depth 1 https://github.com/firemodels/cfast.git cfast-src
-        else
-          git clone --depth 1 --branch "CFAST-$version" https://github.com/firemodels/cfast.git cfast-src
-        fi
+        git clone --depth 1 --branch "CFAST-$version" https://github.com/firemodels/cfast.git cfast-src
 
         cd "cfast-src/Build/CFAST/$target"
         chmod +x make_cfast.sh
         ./make_cfast.sh
 
         mkdir -p ~/cfast-cache
-        cp "${prefix}_${target#gnu_}" ~/cfast-cache/cfast-"$version"-${{ runner.os }}
+        cp "cfast7_${target#gnu_}" ~/cfast-cache/cfast-"$version"-${{ runner.os }}
         chmod +x ~/cfast-cache/cfast-"$version"-${{ runner.os }}
 
-    - name: Build CFAST from source (Windows - latest)
+    # The nightly bundles ship their own runtime libraries next to the binary,
+    # so it is run in place instead of being copied alone to a system directory.
+    # Asset names change on every build, hence the download by pattern.
+    - name: Install CFAST nightly bundle (Linux - latest)
+      if: runner.os == 'Linux' && inputs.cfast-version == 'latest'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        gh release download CFAST_TEST --repo firemodels/test_bundles \
+          --pattern "*-linux.tar.gz" --dir "$RUNNER_TEMP" --clobber
+        bundle=$(ls "$RUNNER_TEMP"/*-linux.tar.gz)
+        echo "Installing $(basename "$bundle")"
+
+        mkdir -p ~/cfast8
+        tar -xzf "$bundle" -C ~/cfast8 --strip-components=2 CFAST/CFAST8/bin CFAST/CFAST8/lib
+
+        # The Intel-compiled binary needs the bundled libimf/libintlc
+        printf '#!/bin/sh\nLD_LIBRARY_PATH="%s/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" exec "%s/bin/cfast8_linux" "$@"\n' \
+          ~/cfast8 ~/cfast8 | sudo tee /usr/bin/cfast > /dev/null
+        sudo chmod +x /usr/bin/cfast
+
+    - name: Install CFAST nightly bundle (macOS - latest)
+      if: runner.os == 'macOS' && inputs.cfast-version == 'latest'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        gh release download CFAST_TEST --repo firemodels/test_bundles \
+          --pattern "*-macos.dmg" --dir "$RUNNER_TEMP" --clobber
+        bundle=$(ls "$RUNNER_TEMP"/*-macos.dmg)
+        echo "Installing $(basename "$bundle")"
+
+        mount_dir="$RUNNER_TEMP/cfast-dmg"
+        hdiutil attach -nobrowse -readonly -mountpoint "$mount_dir" "$bundle"
+        mkdir -p ~/cfast8
+        cp -R "$mount_dir/CFAST8/bin" "$mount_dir/CFAST8/lib" ~/cfast8/
+        hdiutil detach "$mount_dir"
+
+        # The binary finds its dylibs through @loader_path/../lib
+        sudo mkdir -p /usr/local/bin
+        sudo ln -sf ~/cfast8/bin/cfast8_macos /usr/local/bin/cfast
+
+    # The CFAST 8 installer is a PyInstaller executable, not a 7-Zip archive
+    # like the 7.x installers, so it is run in silent mode instead of extracted.
+    # bin\ holds cfast.exe and the Intel runtime DLLs it needs.
+    - name: Install CFAST nightly bundle (Windows - latest)
       if: runner.os == 'Windows' && inputs.cfast-version == 'latest'
       shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
-        git clone --depth 1 https://github.com/firemodels/cfast.git cfast-src
-        cd cfast-src\Build\CFAST\gnu_win
-        cmd /c make_cfast.bat
+        gh release download CFAST_TEST --repo firemodels/test_bundles `
+          --pattern "*-windows.exe" --dir "$env:RUNNER_TEMP" --clobber
+        $bundle = Get-ChildItem "$env:RUNNER_TEMP\*-windows.exe" | Select-Object -First 1
+        Write-Host "Installing $($bundle.Name)"
 
-        $cacheDir = "$env:USERPROFILE\cfast-cache"
-        if (-not (Test-Path $cacheDir)) { New-Item -ItemType Directory -Path $cacheDir }
-        Copy-Item cfast8_win.exe "$cacheDir\cfast-latest-Windows"
+        $installDir = "$env:USERPROFILE\cfast8"
+        & $bundle.FullName --silent --overwrite --install-dir $installDir
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        "$installDir\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
     - name: Download and extract CFAST installer (Windows)
       if: runner.os == 'Windows' && inputs.cfast-version != 'latest' && steps.cache-cfast.outputs.cache-hit != 'true'
@@ -122,7 +163,7 @@ runs:
         Copy-Item $cfastExe.FullName "$cacheDir\cfast-${{ inputs.cfast-version }}-Windows"
 
     - name: Install CFAST to system path (Linux)
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && inputs.cfast-version != 'latest'
       shell: bash
       run: |
         sudo cp ~/cfast-cache/cfast-${{ inputs.cfast-version }}-Linux /usr/bin/cfast
@@ -130,7 +171,7 @@ runs:
 
     # /usr/bin is protected by SIP on macOS, /usr/local/bin is on the default PATH
     - name: Install CFAST to system path (macOS)
-      if: runner.os == 'macOS'
+      if: runner.os == 'macOS' && inputs.cfast-version != 'latest'
       shell: bash
       run: |
         sudo mkdir -p /usr/local/bin
@@ -138,7 +179,7 @@ runs:
         sudo chmod +x /usr/local/bin/cfast
 
     - name: Install CFAST to system path (Windows)
-      if: runner.os == 'Windows'
+      if: runner.os == 'Windows' && inputs.cfast-version != 'latest'
       shell: pwsh
       run: |
         Copy-Item "$env:USERPROFILE\cfast-cache\cfast-${{ inputs.cfast-version }}-Windows" "C:\Windows\System32\cfast.exe"
