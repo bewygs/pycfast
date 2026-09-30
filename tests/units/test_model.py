@@ -355,6 +355,34 @@ class TestCFASTModel:
                 model.run()
 
     @patch("subprocess.run")
+    def test_run_cfast_error_without_log(self, mock_subprocess):
+        """Test CFAST error is raised even when no log file was written."""
+        model = self.create_minimal_model()
+        mock_subprocess.side_effect = subprocess.CalledProcessError(
+            1, ["cfast"], stderr="CFAST error occurred"
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            model.file_name = os.path.join(temp_dir, "test.in")
+
+            with pytest.raises(subprocess.CalledProcessError) as exc_info:
+                model.run()
+
+            assert "CFAST error occurred" in exc_info.value.stderr
+
+    @pytest.mark.filterwarnings("ignore::RuntimeWarning")
+    @patch("subprocess.run")
+    def test_run_passes_input_file_with_extension(self, mock_subprocess):
+        """Test CFAST is called with the input file name including '.in'."""
+        model = self.create_minimal_model()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            model.file_name = os.path.join(temp_dir, "test.in")
+            model.run()
+
+        assert mock_subprocess.call_args.args[0][1] == "test.in"
+
+    @patch("subprocess.run")
     @patch("pandas.read_csv")
     @patch("os.path.exists")
     def test_run_verbose_true(
