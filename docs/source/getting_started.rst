@@ -147,7 +147,7 @@ Then we can create the model with all the components and save it to a file:
     )
     model.save()
 
-Other components (:class:`~pycfast.CeilingFloorVent`, :class:`~pycfast.Device`, :class:`~pycfast.Material`, :class:`~pycfast.MechanicalVent`, :class:`~pycfast.SurfaceConnection`) follow the same pattern and are documented in the :doc:`API reference <api/index>`.
+Other components (:class:`~pycfast.CeilingFloorVent`, :class:`~pycfast.Device`, :class:`~pycfast.Material`, :class:`~pycfast.MechanicalVent`) follow the same pattern and are documented in the :doc:`API reference <api/index>`.
 
 Importing Existing Models
 ~~~~~~~~~~~~~~~~~~~~~~~~~

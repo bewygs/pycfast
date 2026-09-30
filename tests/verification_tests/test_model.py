@@ -11,7 +11,6 @@ from pycfast import (
     Material,
     MechanicalVent,
     SimulationEnvironment,
-    SurfaceConnection,
     WallVent,
 )
 
@@ -145,13 +144,6 @@ def test_run_returns_results(tmp_path):
         )
     ]
 
-    surface_connections = [
-        SurfaceConnection.ceiling_floor_connection(
-            comp_id="Comp 1",
-            comp_ids="Comp 2",
-        )
-    ]
-
     file_name = tmp_path / "test.in"
     cfast_exe = "cfast"
     extra_arguments = ["-f"]
@@ -165,7 +157,6 @@ def test_run_returns_results(tmp_path):
         mechanical_vents=mechanical_vents,
         fires=fires,
         devices=devices,
-        surface_connections=surface_connections,
         file_name=str(file_name),
         cfast_exe=cfast_exe,
         extra_arguments=extra_arguments,
