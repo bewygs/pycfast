@@ -348,7 +348,8 @@ class CFASTModel:
                 result = subprocess.run(
                     [
                         cfast_exe,
-                        Path(input_file_path).stem,
+                        # CFAST 8 no longer appends ".in" at the end of the input file name
+                        Path(input_file_path).name,
                         *self.extra_arguments,
                     ],
                     check=True,
@@ -362,7 +363,11 @@ class CFASTModel:
                     logger.debug("CFAST stderr:\n%s", result.stderr)
             except subprocess.CalledProcessError as e:
                 error_msg = f"CFAST execution failed with return code {e.returncode}"
-                log_content = self._get_log()
+                # CFAST may exit before creating its log file
+                try:
+                    log_content = self._get_log()
+                except OSError:
+                    log_content = ""
                 if log_content:
                     error_msg += f"\n\nCFAST log output:\n{log_content}"
                 if e.stderr:
