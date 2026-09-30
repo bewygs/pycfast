@@ -348,7 +348,7 @@ class CFASTModel:
                 result = subprocess.run(
                     [
                         cfast_exe,
-                        # with CFAST 8 no longer appends ".in"
+                        # CFAST 8 no longer appends ".in" at the end of the input file name
                         Path(input_file_path).name,
                         *self.extra_arguments,
                     ],
