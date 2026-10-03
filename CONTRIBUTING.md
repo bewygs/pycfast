@@ -178,6 +178,15 @@ We use [Sphinx](https://www.sphinx-doc.org/) with [MyST](https://myst-parser.rea
 for documentation. Use [Numpy-style docstrings](https://numpydoc.readthedocs.io/en/latest/format.html) and add or modify docs in `docs/source` or as docstrings. The documentation
 for PyCFAST API reference is auto-generated from docstrings.
 
+Component docstrings are adapted from the CFAST User's Guide, vendored as LaTeX in `docs/cfast-reference`
+(CFAST `master` at the commit recorded in `.cfast_version`, refreshed by `docs/update_cfast_ref.sh`).
+The `cfast-docstrings` skill in `.claude/skills/` describes the writing rules and compares a component
+with the guide:
+
+```bash
+uv run python .claude/skills/cfast-docstrings/scripts/review_packet.py Compartment
+```
+
 To build documentation locally:
 
 - **With uv:**
