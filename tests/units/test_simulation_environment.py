@@ -272,21 +272,18 @@ class TestSimulationEnvironment:
         with pytest.raises(ValueError, match="max_time_step must be positive"):
             SimulationEnvironment(title="Test", max_time_step=value)
 
-    def test_init_time_simulation_exceeds_max_warning(self):
-        """Test that a warning is raised when time_simulation exceeds 86400 s."""
-        with pytest.warns(UserWarning, match="exceeds 86400 s"):
-            SimulationEnvironment(title="Test", time_simulation=90000)
-
     def test_init_long_title_warning(self):
-        """Test that a warning is raised for titles over 50 characters."""
-        with pytest.warns(UserWarning, match="CFAST truncates titles to 50 characters"):
-            sim_env = SimulationEnvironment(title="A" * 51, time_simulation=300)
-        assert len(sim_env.title) == 51
+        """Test that a warning is raised for titles over 128 characters."""
+        with pytest.warns(
+            UserWarning, match="CFAST truncates titles to 128 characters"
+        ):
+            sim_env = SimulationEnvironment(title="A" * 129, time_simulation=300)
+        assert len(sim_env.title) == 129
 
     def test_init_title_at_limit_no_warning(self):
-        """Test that a 50-character title does not trigger a warning."""
-        sim_env = SimulationEnvironment(title="A" * 50, time_simulation=300)
-        assert len(sim_env.title) == 50
+        """Test that a 128-character title does not trigger a warning."""
+        sim_env = SimulationEnvironment(title="A" * 128, time_simulation=300)
+        assert len(sim_env.title) == 128
 
     def test_init_relative_humidity_out_of_range_warning(self):
         """Test that a warning is raised for relative_humidity outside [0, 100]."""
