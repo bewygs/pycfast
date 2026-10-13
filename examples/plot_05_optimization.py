@@ -45,7 +45,7 @@ model = parse_cfast_file("data/SP_AST_Diesel_1p1.in")
 # %%
 # The parsed model is displayed below.
 
-print(model.summary())
+model.summary()
 
 # %%
 # Step 3: Define the Optimization Problem

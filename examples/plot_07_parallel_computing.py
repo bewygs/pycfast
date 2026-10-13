@@ -74,7 +74,7 @@ model = parse_cfast_file("data/USN_Hawaii_Test_03.in")
 # %%
 # The parsed model is displayed below.
 
-print(model.summary())
+model.summary()
 
 # %%
 # Step 4: Generate Parameter Combinations

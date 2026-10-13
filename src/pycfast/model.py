@@ -221,7 +221,55 @@ class CFASTModel:
 
     def __str__(self) -> str:
         """Return a detailed string representation of the CFASTModel."""
-        return self.summary()
+        lines: list[str] = []
+
+        lines.append(f"\nModel: {self.file_name}")
+        lines.append(
+            f"Simulation: '{self.simulation_environment.title}' ({self.simulation_environment.time_simulation}s)"
+        )
+        lines.append("\nComponents:")
+
+        if self.material_properties:
+            lines.append(f"  Material Properties ({len(self.material_properties)}):")
+            for mat in self.material_properties:
+                lines.append(f"    {mat}")
+
+        if self.compartments:
+            lines.append(f"  Compartment ({len(self.compartments)}):")
+            for comp in self.compartments:
+                lines.append(f"    {comp}")
+
+        if self.wall_vents:
+            lines.append(f"  Wall Vents ({len(self.wall_vents)}):")
+            for wall_vent in self.wall_vents:
+                lines.append(f"    {wall_vent}")
+
+        if self.ceiling_floor_vents:
+            lines.append(f"  Ceiling/Floor Vents ({len(self.ceiling_floor_vents)}):")
+            for ceiling_floor_vent in self.ceiling_floor_vents:
+                lines.append(f"    {ceiling_floor_vent}")
+
+        if self.mechanical_vents:
+            lines.append(f"  Mechanical Vents ({len(self.mechanical_vents)}):")
+            for mechanical_vent in self.mechanical_vents:
+                lines.append(f"    {mechanical_vent}")
+
+        if self.fires:
+            lines.append(f"  Fire ({len(self.fires)}):")
+            for fire in self.fires:
+                lines.append(f"    {fire}")
+
+        if self.devices:
+            lines.append(f"  Device ({len(self.devices)}):")
+            for device in self.devices:
+                lines.append(f"    {device}")
+
+        if self.visualizations:
+            lines.append(f"  Visualizations ({len(self.visualizations)}):")
+            for viz in self.visualizations:
+                lines.append(f"    {viz}")
+
+        return "\n".join(lines)
 
     def __iter__(self) -> Generator[tuple[str, Any], None, None]:
         """Iterate over all components in the model."""
@@ -900,101 +948,42 @@ class CFASTModel:
             if file_name is not None:
                 self.file_name = original_file_name
 
-    def summary(self) -> str:
+    def summary(self) -> None:
         """
-        Return a clear summary of the CFAST model configuration as a string.
+        Print a summary of the CFAST model configuration.
 
         Shows the model info and all components with their current parameter values
         using each component's string representation.
 
-        Returns
-        -------
-        str
-            Formatted summary of the model configuration.
-
         Examples
         --------
-        >>> print(model.summary())  # doctest: +SKIP
+        >>> from pycfast import CFASTModel, Compartment, SimulationEnvironment
+        >>> model = CFASTModel(
+        ...     simulation_environment=SimulationEnvironment(title="My Simulation"),
+        ...     compartments=[Compartment(id="ROOM1")],
+        ...     file_name="my_simulation.in",
+        ... )
+        >>> model.summary()
+        <BLANKLINE>
         Model: my_simulation.in
-        Simulation: 'Building Fire Test' (3600s)
-
-        Material Properties (2):
-            Material(material='GYPSUM', conductivity=0.17, density=800...)
-
-        Compartment (2):
-            Compartment(id='ROOM1', width=4.0, depth=3.0, height=2.5...)
+        Simulation: 'My Simulation' (900s)
+        <BLANKLINE>
+        Components:
+          Compartment (1):
+            Compartment 'ROOM1': 3.6x2.4x2.4 m, volume: 20.74 m³
         """
-        lines: list[str] = []
+        print(self)
 
-        lines.append(f"\nModel: {self.file_name}")
-        lines.append(
-            f"Simulation: '{self.simulation_environment.title}' ({self.simulation_environment.time_simulation}s)"
-        )
-        lines.append("\nComponents:")
-
-        if self.material_properties:
-            lines.append(f"  Material Properties ({len(self.material_properties)}):")
-            for mat in self.material_properties:
-                lines.append(f"    {mat}")
-
-        if self.compartments:
-            lines.append(f"  Compartment ({len(self.compartments)}):")
-            for comp in self.compartments:
-                lines.append(f"    {comp}")
-
-        if self.wall_vents:
-            lines.append(f"  Wall Vents ({len(self.wall_vents)}):")
-            for wall_vent in self.wall_vents:
-                lines.append(f"    {wall_vent}")
-
-        if self.ceiling_floor_vents:
-            lines.append(f"  Ceiling/Floor Vents ({len(self.ceiling_floor_vents)}):")
-            for ceiling_floor_vent in self.ceiling_floor_vents:
-                lines.append(f"    {ceiling_floor_vent}")
-
-        if self.mechanical_vents:
-            lines.append(f"  Mechanical Vents ({len(self.mechanical_vents)}):")
-            for mechanical_vent in self.mechanical_vents:
-                lines.append(f"    {mechanical_vent}")
-
-        if self.fires:
-            lines.append(f"  Fire ({len(self.fires)}):")
-            for fire in self.fires:
-                lines.append(f"    {fire}")
-
-        if self.devices:
-            lines.append(f"  Device ({len(self.devices)}):")
-            for device in self.devices:
-                lines.append(f"    {device}")
-
-        if self.visualizations:
-            lines.append(f"  Visualizations ({len(self.visualizations)}):")
-            for viz in self.visualizations:
-                lines.append(f"    {viz}")
-
-        return "\n".join(lines)
-
-    def view_cfast_input_file(self, pretty_print: bool = True) -> str:
+    def view_cfast_input_file(self, pretty_print: bool = True) -> None:
         """
-        View the contents of the CFAST input file as a string, with optional pretty formatting.
+        Print the contents of the CFAST input file written by :meth:`save` or :meth:`run`.
 
         Parameters
         ----------
         pretty_print: bool, optional
-            If True (default), returns a formatted
-            string with line numbers and bold section headers for improved
-            readability in the terminal. If False, returns the raw input file
-            contents as a plain string.
-
-        Notes
-        -----
-        Use print() to display the formatted content properly:
-        print(model.view_cfast_input_file())
-
-        Returns
-        -------
-        str
-            Contents of the input file
+            If True (default), prints line numbers and bold section headers for
+            improved readability in the terminal. If False, prints the raw input
+            file contents.
 
         Raises
         ------
@@ -1004,9 +993,9 @@ class CFASTModel:
 
         Examples
         --------
-        >>> print(model.view_cfast_input_file())  # doctest: +SKIP
-        >>> content = model.view_cfast_input_file(pretty_print=False)  # doctest: +SKIP
-        >>> print(content)  # doctest: +SKIP
+        >>> model.save()  # doctest: +SKIP
+        >>> model.view_cfast_input_file()  # doctest: +SKIP
+        >>> model.view_cfast_input_file(pretty_print=False)  # doctest: +SKIP
         """
         if self._written_content is None:
             raise RuntimeError(
@@ -1014,19 +1003,17 @@ class CFASTModel:
                 "Call save() or run() before viewing the input file."
             )
 
-        if pretty_print:
-            lines = self._written_content.splitlines()
-            pretty_lines = []
-            for idx, line in enumerate(lines, 1):
-                if line.strip().startswith("!!") or line.strip().startswith("&"):
-                    pretty_line = f"\033[1m{idx:4d}: {line}\033[0m"  # bold
-                else:
-                    pretty_line = f"{idx:4d}: {line}"
-                pretty_lines.append(pretty_line)
-            pretty_content = "\n".join(pretty_lines)
-            return pretty_content
-        else:
-            return self._written_content
+        if not pretty_print:
+            print(self._written_content)
+            return
+
+        pretty_lines = []
+        for idx, line in enumerate(self._written_content.splitlines(), 1):
+            if line.strip().startswith("!!") or line.strip().startswith("&"):
+                pretty_lines.append(f"\033[1m{idx:4d}: {line}\033[0m")  # bold
+            else:
+                pretty_lines.append(f"{idx:4d}: {line}")
+        print("\n".join(pretty_lines))
 
     def _get_log(self) -> str:
         """

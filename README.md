@@ -123,7 +123,7 @@ results["devices"].head()
 You can also inspect the model using text-based methods:
 
 ```python
-print(model.summary())   # text summary to stdout
+model.summary()   # prints a text summary
 model.save()      # writes the CFAST input file to disk
 model.view_cfast_input_file()  # view the generated input file
 ```
