@@ -29,12 +29,11 @@ class SimulationEnvironment(CFASTComponent):
     title : str
         The first thing to do when setting up an input file is to give the simulation
         a title. The title is optional and may consist of letters, numbers, and/or
-        symbols and may be up to 50 characters. All output files will be tagged with
+        symbols and may be up to 128 characters. All output files will be tagged with
         this character string.
     time_simulation : int, optional
-        The length of time over which the simulation takes place. Values above
-        86400 s (1 day) are allowed but will trigger a warning, as this exceeds
-        the documented CFAST maximum. Default units: s, default value: 900 s.
+        The length of time over which the simulation takes place.
+        Default units: s, default value: 900 s.
     print : int, optional
         The time interval between each printing of the output data. If equal to zero,
         no output values will appear. Default units: s, default value: 60 s.
@@ -149,8 +148,7 @@ class SimulationEnvironment(CFASTComponent):
         Warns
         -----
         UserWarning
-            If title exceeds 50 characters (will be truncated by CFAST),
-            time_simulation exceeds 86400 s (CFAST documented maximum),
+            If title exceeds 128 characters (will be truncated by CFAST),
             relative_humidity or lower_oxygen_limit is outside [0, 100] %,
             or an ambient temperature is below 0 °C.
         """
@@ -182,9 +180,9 @@ class SimulationEnvironment(CFASTComponent):
                 f"adiabatic must be a bool, got {type(self.adiabatic).__name__}."
             )
 
-        if len(self.title) > 50:
+        if len(self.title) > 128:
             warnings.warn(
-                f"title has {len(self.title)} characters; CFAST truncates titles to 50 characters.",
+                f"title has {len(self.title)} characters; CFAST truncates titles to 128 characters.",
                 UserWarning,
                 stacklevel=2,
             )
@@ -193,13 +191,6 @@ class SimulationEnvironment(CFASTComponent):
             if self.time_simulation <= 0:
                 raise ValueError(
                     f"time_simulation must be positive, got {self.time_simulation}."
-                )
-            if self.time_simulation > 86400:
-                warnings.warn(
-                    f"time_simulation={self.time_simulation} s exceeds 86400 s (1 day), "
-                    "which is the documented CFAST maximum. The simulation may fail.",
-                    UserWarning,
-                    stacklevel=2,
                 )
 
         for param, val in (

@@ -26,9 +26,8 @@ class Material(CFASTComponent):
     Parameters
     ----------
     id : str
-        A one-word (no more than 8 characters) unique identifier for the material. This
-        identifier should not contain any spaces and is used in other CFAST inputs to
-        identify the particular material referenced.
+        A unique identifier for the material, up to 64 characters. It is used in
+        other CFAST inputs to identify the particular material referenced.
     material : str
         A descriptive name for the material.
     conductivity : float
@@ -97,27 +96,19 @@ class Material(CFASTComponent):
         TypeError
             If id or material is not a string.
         ValueError
-            If id is longer than 16 characters, or if conductivity, density,
+            If id is longer than 64 characters, or if conductivity, density,
             specific_heat, or thickness is not positive.
 
         Warns
         -----
         UserWarning
-            If id is longer than 8 characters (exceeds the CFAST documented limit).
             If emissivity is outside [0, 1].
         """
         if not isinstance(self.id, str):
             raise TypeError("id must be a string.")
-        if len(self.id) > 16:
+        if len(self.id) > 64:
             raise ValueError(
-                f"Material '{self.id}': id must be no more than 16 characters long."
-            )
-        if len(self.id) > 8:
-            warnings.warn(
-                f"Material '{self.id}': id exceeds the 8-character limit documented "
-                "by CFAST. This may cause issues with some CFAST versions.",
-                UserWarning,
-                stacklevel=2,
+                f"Material '{self.id}': id must be no more than 64 characters long."
             )
         if not isinstance(self.material, str):
             raise TypeError(f"Material '{self.id}': material must be a string.")

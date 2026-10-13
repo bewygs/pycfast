@@ -59,20 +59,19 @@ class TestMaterial:
     def test_init_invalid_id_length(self):
         """Test that initialization fails with ID too long."""
         with pytest.raises(
-            ValueError, match="id must be no more than 16 characters long"
+            ValueError, match="id must be no more than 64 characters long"
         ):
             Material(
-                id="THIS_ID_IS_TOO_LONG_FOR_CFAST",
+                id="A" * 65,
                 **{k: v for k, v in _BASE_KWARGS.items() if k != "id"},
             )
 
-    def test_id_length_warning(self):
-        """Test that id between 9 and 16 characters warns about CFAST documented limit."""
-        with pytest.warns(UserWarning, match="8-character limit"):
-            Material(
-                id="EXACTLY_16_CHARS",
-                **{k: v for k, v in _BASE_KWARGS.items() if k != "id"},
-            )
+    def test_id_at_limit(self):
+        """Test that a 64-character id is accepted."""
+        mat = Material(
+            id="A" * 64, **{k: v for k, v in _BASE_KWARGS.items() if k != "id"}
+        )
+        assert len(mat.id) == 64
 
     def test_init_invalid_material_type(self):
         """Test that initialization fails with non-string material."""
@@ -225,9 +224,9 @@ class TestMaterialSetattrValidation:
         "invalid_id, expected_exc, expected_match",
         [
             pytest.param(
-                "A" * 17,
+                "A" * 65,
                 ValueError,
-                "id must be no more than 16 characters long",
+                "id must be no more than 64 characters long",
                 id="too-long",
             ),
             pytest.param(123, TypeError, "id must be a string", id="not-a-string"),
