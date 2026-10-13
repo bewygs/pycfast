@@ -987,9 +987,8 @@ class CFASTModel:
 
         Raises
         ------
-        RuntimeError:
-            If the input file has not been generated yet (call save() or
-            run() first).
+        RuntimeError
+            If the input file has not been written yet by save() or run().
 
         Examples
         --------
