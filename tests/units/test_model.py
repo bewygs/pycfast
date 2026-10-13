@@ -629,13 +629,16 @@ class TestCFASTModel:
                 content = f.read()
                 assert "&HEAD VERSION = 7700" in content
 
-    def test_view_cfast_input_file_pretty_print(self):
-        """Test view_cfast_input_file returns pretty-printed content with line numbers and bold headers."""
+    def test_view_cfast_input_file_pretty_print(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Test view_cfast_input_file prints content with line numbers and bold headers."""
         model = self.create_minimal_model()
         with tempfile.TemporaryDirectory() as temp_dir:
             model.file_name = os.path.join(temp_dir, "test_view.in")
             model.save()
-            output = model.view_cfast_input_file(pretty_print=True)
+            assert model.view_cfast_input_file(pretty_print=True) is None
+            output = capsys.readouterr().out
             # Should contain line numbers and ANSI bold codes for headers
             assert "1:" in output
             assert "\033[1m" in output  # ANSI bold
@@ -643,19 +646,21 @@ class TestCFASTModel:
             assert "&COMP" in output
             assert "&TAIL" in output
 
-    def test_view_cfast_input_file_raw(self):
-        """Test view_cfast_input_file returns raw file content when pretty_print is False."""
+    def test_view_cfast_input_file_raw(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Test view_cfast_input_file prints raw file content when pretty_print is False."""
         model = self.create_minimal_model()
         with tempfile.TemporaryDirectory() as temp_dir:
             model.file_name = os.path.join(temp_dir, "test_view_raw.in")
             model.save()
-            output = model.view_cfast_input_file(pretty_print=False)
-            # Should not contain line numbers or ANSI codes
+            model.view_cfast_input_file(pretty_print=False)
+            output = capsys.readouterr().out
             assert "&HEAD" in output
             assert "&COMP" in output
             assert "&TAIL" in output
             assert "\033[1m" not in output
-            assert output == model._written_content
+            assert output == model._written_content + "\n"
 
     def test_view_cfast_input_file_raises_if_not_written(self):
         """Test view_cfast_input_file raises RuntimeError if input file not generated yet."""
@@ -692,7 +697,7 @@ class TestCFASTModel:
         assert "visualizations=1" in repr_str
 
     def test_str(self):
-        """Test __str__ method delegates to summary()."""
+        """Test __str__ method returns the model summary text."""
         model = self.create_full_model()
 
         str_repr = str(model)
@@ -735,11 +740,12 @@ class TestCFASTModel:
         assert len(components) == 1
         assert components[0][0] == "compartments"
 
-    def test_summary(self) -> None:
-        """Test summary method output."""
+    def test_summary(self, capsys: pytest.CaptureFixture[str]) -> None:
+        """Test summary method prints the model overview."""
         model = self.create_minimal_model()
 
-        result = model.summary()
+        assert model.summary() is None
+        result = capsys.readouterr().out
 
         # Check that key information is in the output
         assert "Model: test.in" in result
@@ -748,10 +754,10 @@ class TestCFASTModel:
         assert "28.80 m³" in result  # Volume calculation: 3.0 * 4.0 * 2.4
 
     def test_summary_with_full_model(self) -> None:
-        """Test summary method with a full model containing all components."""
+        """Test the summary text of a full model containing all components."""
         model = self.create_full_model()
 
-        result = model.summary()
+        result = str(model)
 
         # Check that all component types are shown
         assert "Compartment (2):" in result

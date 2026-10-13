@@ -288,7 +288,7 @@ model = CFASTModel(
 # Use the :meth:`~pycfast.CFASTModel.summary` method to print a summary of the model
 # configuration.
 
-print(model.summary())
+model.summary()
 
 # %%
 # You can also save to the disk the CFAST model input file with the
@@ -299,8 +299,7 @@ print(model.summary())
 
 model.save()
 
-input_file_contents = model.view_cfast_input_file(pretty_print=True)
-print(input_file_contents)
+model.view_cfast_input_file()
 
 # %%
 # The :meth:`~pycfast.CFASTModel.run` method returns a dictionary containing

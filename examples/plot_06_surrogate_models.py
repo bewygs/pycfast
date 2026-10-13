@@ -48,7 +48,7 @@ model = parse_cfast_file("data/SP_AST_Diesel_1p1.in")
 
 # %%
 # The parsed model is displayed below.
-print(model.summary())
+model.summary()
 
 # %%
 # We use :meth:`~pycfast.CFASTModel.run` to get baseline results

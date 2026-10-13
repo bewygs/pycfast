@@ -34,7 +34,7 @@ model.save()
 
 # %%
 # View of the input file parsed
-print(model.view_cfast_input_file())
+model.view_cfast_input_file()
 
 # %%
 # .. note::
@@ -53,7 +53,7 @@ print(model.view_cfast_input_file())
 # Once parsed, you can easily inspect all model components using
 # the :meth:`~pycfast.CFASTModel.summary` method.
 
-print(model.summary())
+model.summary()
 
 # %%
 # Step 4: Modify Parsed Model
@@ -92,7 +92,7 @@ updated_model.save(file_name="modified_PRS_D1.in")
 
 # %%
 # View the contents of the modified file
-print(updated_model.view_cfast_input_file())
+updated_model.view_cfast_input_file()
 
 # %%
 # Cleanup

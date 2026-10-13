@@ -172,7 +172,7 @@ Once your model is ready, you can inspect the model with the :meth:`~pycfast.CFA
 
 .. code-block:: python
 
-    print(model.summary())
+    model.summary()
 
 
 Then you can run the simulation with the :meth:`~pycfast.CFASTModel.run` method, which
