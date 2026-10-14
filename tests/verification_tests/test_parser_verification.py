@@ -17,7 +17,7 @@ from pycfast.parsers import parse_cfast_file
 # must then be removed.
 KNOWN_PARSER_FAILURES = {
     "units_basic": "SLCF COMP_ID = 'NULL' is rejected (#220)",
-    "units_fire": "8-column TABL without HCL_YIELD is rejected (#220)",
+    "units_fire": "SLCF COMP_ID = 'NULL' is rejected (#220)",
 }
 
 

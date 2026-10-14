@@ -111,6 +111,7 @@ class CFASTParser:
         self._pending_fires: list[dict[str, Any]] = []
         self._fire_chem: dict[str, dict[str, Any]] = {}
         self._fire_data_rows: dict[str, list[list[float]]] = {}
+        self._fire_labels: dict[str, list[str]] = {}
 
     def parse_file(
         self, file_path: str | Path, output_path: str | Path | None = None
@@ -271,6 +272,28 @@ class CFASTParser:
             # No DIAG block found
             pass
 
+    def _remap_data_rows(
+        self, fire_id: str, rows: list[list[float]]
+    ) -> list[list[float]]:
+        """Remap data rows from label order to the 9-column layout."""
+        labels = self._fire_labels.get(fire_id)
+        if labels is None:
+            return rows
+
+        # Unknown labels are ignored and absent columns get 0.0, the &CHEM default
+        canonical = FireDefinition.LABELS
+        label_to_src = {label: i for i, label in enumerate(labels)}
+
+        remapped = []
+        for row in rows:
+            new_row = [0.0] * len(canonical)
+            for canon_i, canon_label in enumerate(canonical):
+                src_i = label_to_src.get(canon_label)
+                if src_i is not None and src_i < len(row):
+                    new_row[canon_i] = row[src_i]
+            remapped.append(new_row)
+        return remapped
+
     def _finalize_fire_parsing(self) -> None:
         """
         Join &FIRE instances with their &CHEM / &TABL definitions.
@@ -285,6 +308,8 @@ class CFASTParser:
             if fire_id not in definitions:
                 chem = self._fire_chem.get(fire_id, {})
                 rows = self._fire_data_rows.get(fire_id) or None
+                if rows is not None:
+                    rows = self._remap_data_rows(fire_id, rows)
                 definitions[fire_id] = FireDefinition(
                     fire_id=fire_id, data_table=rows, **chem
                 )
@@ -744,6 +769,14 @@ class CFASTParser:
     def _parse_table_block(self, params: dict[str, Any]) -> None:
         """Parse TABL namelist block for fire data tables."""
         if "LABELS" in params:
+            fire_id = self._get_param(params, "ID", required=True, param_type=str)
+            labels = params["LABELS"]
+            if isinstance(labels, str):
+                labels = [labels]
+            labels = [label.upper() for label in labels]
+            if "TIME" not in labels:
+                raise ValueError(f"TABL '{fire_id}': LABELS must include 'TIME'.")
+            self._fire_labels[fire_id] = labels
             return
 
         if "DATA" in params:

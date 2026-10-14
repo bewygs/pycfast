@@ -36,6 +36,7 @@ class TestCFASTParser:
         assert parser._pending_fires == []
         assert parser._fire_chem == {}
         assert parser._fire_data_rows == {}
+        assert parser._fire_labels == {}
 
     def test_reset(self):
         """Test parser reset functionality."""
@@ -45,6 +46,7 @@ class TestCFASTParser:
         parser.material_properties.append(Mock())
         parser._pending_fires.append({"fire_id": "test"})
         parser._fire_chem["test"] = {"carbon": 1}
+        parser._fire_labels["test"] = ["TIME", "HRR"]
 
         # Reset should clear everything
         parser.reset()
@@ -60,6 +62,7 @@ class TestCFASTParser:
         assert parser._pending_fires == []
         assert parser._fire_chem == {}
         assert parser._fire_data_rows == {}
+        assert parser._fire_labels == {}
 
     def test_parse_file_not_found(self):
         """Test parsing a non-existent file."""
@@ -758,12 +761,21 @@ class TestCFASTParser:
         assert chem["heat_of_combustion"] == 50000
 
     def test_parse_table_block_labels(self):
-        """Test TABL block parsing with LABELS (should be skipped)."""
+        """Test TABL block parsing with LABELS stores them keyed by fire_id."""
         parser = CFASTParser()
-        params = {"LABELS": ["TIME", "HRR"]}
+        params = {"ID": "TestFire", "LABELS": ["time", "HRR"]}
 
-        # Should not raise any errors and should not modify anything
         parser._parse_table_block(params)
+
+        assert parser._fire_labels["TestFire"] == ["TIME", "HRR"]
+
+    def test_parse_table_block_labels_without_time(self):
+        """Test TABL LABELS without a TIME column raise, as in CFAST."""
+        parser = CFASTParser()
+        params = {"ID": "TestFire", "LABELS": ["HRR", "AREA"]}
+
+        with pytest.raises(ValueError, match="TIME"):
+            parser._parse_table_block(params)
 
     def test_parse_table_block_data(self):
         """Test TABL block parsing with DATA stores rows keyed by fire_id."""
@@ -1103,3 +1115,76 @@ class TestSharedFireDefinitionRegression:
         assert saved.count("&FIRE ") == 2
         assert saved.count("&CHEM ") == 1
         assert saved.count("DATA =") == 2
+
+
+class TestLabelDrivenTableParsing:
+    """&TABL columns are matched by their LABELS, as CFAST does."""
+
+    @staticmethod
+    def _parser_with_fire(fire_id: str) -> CFASTParser:
+        parser = CFASTParser()
+        parser._parse_fire_block(
+            {"ID": "f1", "COMP_ID": "R", "FIRE_ID": fire_id, "LOCATION": [1, 1]}
+        )
+        parser._parse_chemistry_block(
+            {
+                "ID": fire_id,
+                "CARBON": 1,
+                "HYDROGEN": 4,
+                "OXYGEN": 0,
+                "NITROGEN": 0,
+                "CHLORINE": 0,
+                "HEAT_OF_COMBUSTION": 50000,
+                "RADIATIVE_FRACTION": 0.35,
+            }
+        )
+        return parser
+
+    def test_8_column_table_without_hcl_yield(self, tmp_path):
+        """8-column tables without HCL_YIELD parse into the 9-column layout."""
+        content = """\
+&HEAD TITLE = '8-column table test' /
+&TIME SIMULATION = 300 /
+&COMP ID = 'Room', DEPTH = 5, HEIGHT = 3, WIDTH = 4, ORIGIN = 0, 0, 0 /
+&FIRE ID = 'f1', COMP_ID = 'Room', FIRE_ID = 'fuel', LOCATION = 1, 1 /
+&CHEM ID = 'fuel' CARBON = 1 HYDROGEN = 4 OXYGEN = 0 NITROGEN = 0 CHLORINE = 0
+    HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.35 /
+&TABL ID = 'fuel' LABELS = 'TIME', 'HRR', 'HEIGHT', 'AREA', 'CO_YIELD',
+    'SOOT_YIELD', 'HCN_YIELD', 'TRACE_YIELD' /
+&TABL ID = 'fuel' DATA = 0, 0, 0.5, 0.1, 0.01, 0.02, 0, 0 /
+&TABL ID = 'fuel' DATA = 60, 100, 0.5, 0.5, 0.01, 0.02, 0, 0.003 /
+&TAIL /"""
+        in_file = tmp_path / "eight_columns.in"
+        in_file.write_text(content)
+
+        model = parse_cfast_file(in_file)
+
+        assert model.fires[0].data_table == [
+            [0, 0, 0.5, 0.1, 0.01, 0.02, 0, 0, 0],
+            [60, 100, 0.5, 0.5, 0.01, 0.02, 0, 0, 0.003],
+        ]
+
+    def test_reordered_labels(self):
+        """Reordered, partial and unknown labels are mapped by name."""
+        parser = self._parser_with_fire("x")
+        parser._parse_table_block(
+            {
+                "ID": "x",
+                "LABELS": ["AREA", "HRR", "UNKNOWN", "TIME", "CO_YIELD", "SOOT_YIELD"],
+            }
+        )
+        parser._parse_table_block({"ID": "x", "DATA": [0.1, 500, 7, 10, 0.01, 0.02]})
+        parser._finalize_fire_parsing()
+
+        # Missing HEIGHT, HCN_YIELD, HCL_YIELD and TRACE_YIELD are filled with 0.0
+        assert parser.fires[0].data_table == [[10, 500, 0, 0.1, 0.01, 0.02, 0, 0, 0]]
+
+    def test_no_labels_row_backward_compat(self):
+        """Without a LABELS row, DATA columns are read in the 9-column order."""
+        parser = self._parser_with_fire("z")
+        parser._parse_table_block(
+            {"ID": "z", "DATA": [0, 100, 0.5, 0.36, 0, 0, 0, 0, 0]}
+        )
+        parser._finalize_fire_parsing()
+
+        assert parser.fires[0].data_table == [[0, 100, 0.5, 0.36, 0, 0, 0, 0, 0]]
