@@ -43,6 +43,8 @@ Follow these steps to set up your development environment:
    python generate_reference_data.py                       # for both (default)
    ```
 
+   CFAST cases run one at a time by default. Add `--jobs auto` to run one CFAST process per CPU, or `--jobs N` to run N in parallel.
+
    > **Note:** Because CFAST uses a Fortran compiler, which can produce small numerical differences between systems and compilers, always generate reference data locally for your tests.
    You also need to have CFAST installed and accessible in your PATH. You can download it from the [NIST CFAST page](https://pages.nist.gov/cfast/index.html).
    Validation data generation can take over an hour depending on your system.
@@ -159,6 +161,14 @@ We use [pytest](https://docs.pytest.org/en/stable/) for testing. Tests are locat
   ```bash
   make test
   ```
+
+`make test`, `make test-verif`, `make test-valid` and `make cov` run the tests in parallel with [pytest-xdist](https://pytest-xdist.readthedocs.io/), one worker per CPU. Set `JOBS` to change the number of workers, or `JOBS=0` to run them one at a time (e.g. to debug with `pdb`):
+
+```bash
+make test-valid JOBS=4
+```
+
+With `pytest` directly, add `-n auto` or `-n N` to any of the commands above.
 
 ## Code Style
 
