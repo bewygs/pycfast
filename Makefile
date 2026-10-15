@@ -1,5 +1,8 @@
 .PHONY: help
 
+# pytest-xdist workers of the long test targets: auto (one per CPU), N, or 0 to disable
+JOBS ?= auto
+
 help:
 	@echo "Usage:"
 	@echo "  make install            Install the package for personnal use"
@@ -22,6 +25,9 @@ help:
 	@echo "  make publish            Publish package to PyPI"
 	@echo "  make pre-commit         Run pre-commit hooks"
 	@echo "  make allci              Run all CI steps (check, format, type, test, coverage)"
+	@echo ""
+	@echo "Options:"
+	@echo "  JOBS=auto               Parallel workers of test, test-verif, test-valid and cov (N, or 0 to disable)"
 
 install:
 	uv sync --no-dev
@@ -39,7 +45,7 @@ install-all:
 	uv sync --extra all
 
 test:
-	uv run pytest --ignore=tests/validation_tests 
+	uv run pytest -n $(JOBS) --ignore=tests/validation_tests
 
 test-units:
 	uv run pytest tests/units/
@@ -48,13 +54,13 @@ test-doctest:
 	uv run pytest --doctest-modules src/pycfast/
 
 test-verif:
-	uv run pytest tests/verification_tests/
+	uv run pytest -n $(JOBS) tests/verification_tests/
 
 test-valid:
-	uv run pytest tests/validation_tests/
+	uv run pytest -n $(JOBS) tests/validation_tests/
 	
 cov:
-	uv run pytest --ignore=tests/validation_tests --cov=src/pycfast src/pycfast tests/  --cov-report=term-missing --cov-report=html
+	uv run pytest -n $(JOBS) --ignore=tests/validation_tests --cov=src/pycfast src/pycfast tests/  --cov-report=term-missing --cov-report=html
 
 check:
 	uv run ruff check .

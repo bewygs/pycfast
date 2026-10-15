@@ -15,6 +15,10 @@ on:
       - 'paper/paper.md'
       - 'paper/paper.bib'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   paper:
     runs-on: ubuntu-latest
