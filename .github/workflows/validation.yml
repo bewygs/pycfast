@@ -49,7 +49,7 @@ jobs:
 
     - name: Generate validation reference data
       if: steps.cache-validation-data.outputs.cache-hit != 'true'
-      run: uv run python tests/generate_reference_data.py --suite validation
+      run: uv run python tests/generate_reference_data.py --suite validation --jobs auto
 
     - name: Run validation tests
-      run: uv run pytest tests/validation_tests/ -v --tb=short
+      run: uv run pytest -n auto tests/validation_tests/ -v --tb=short

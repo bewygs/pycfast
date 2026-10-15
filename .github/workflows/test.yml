@@ -82,12 +82,12 @@ jobs:
 
     - name: Generate verification data
       if: steps.cache-verif.outputs.cache-hit != 'true'
-      run: uv run python tests/generate_reference_data.py --suite verification
+      run: uv run python tests/generate_reference_data.py --suite verification --jobs auto
 
     - name: Run tests
       env:
         CFAST_VERSION: ${{ env.DEFAULT_CFAST_VERSION }}
-      run: uv run pytest --ignore=tests/validation_tests --cov=src/pycfast --cov-report=xml --cov-report=term-missing
+      run: uv run pytest -n auto --ignore=tests/validation_tests --cov=src/pycfast --cov-report=xml --cov-report=term-missing
 
     - name: Upload results to Codecov
       uses: codecov/codecov-action@v7
@@ -157,10 +157,10 @@ jobs:
       # Due to small numerical differences between compilers/platforms we generate
       # the verification data on each platform with the same binary used for tests
       if: matrix.cfast-version == 'latest' || steps.cache-verif.outputs.cache-hit != 'true'
-      run: uv run python tests/generate_reference_data.py --suite verification
+      run: uv run python tests/generate_reference_data.py --suite verification --jobs auto
 
     - name: Run tests
-      run: uv run pytest --ignore=tests/validation_tests --cov=src/pycfast --cov-report=xml --cov-report=term-missing
+      run: uv run pytest -n auto --ignore=tests/validation_tests --cov=src/pycfast --cov-report=xml --cov-report=term-missing
 
     - name: Upload results to Codecov
       uses: codecov/codecov-action@v7
