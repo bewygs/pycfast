@@ -837,12 +837,23 @@ class CFASTParser:
                 "comp_id": {"source": "COMP_ID", "required": True, "type": str},
                 "location": {"source": "LOCATION", "required": True, "type": list},
                 "obscuration": {
-                    "source": "OBSCURATION",
+                    "source": "SETPOINT",
                     "default": 23.9334605082804,
                     "type": float,
                 },
             }
             device_params = self._extract_params(params, param_map)
+            if "SETPOINT" not in params and "SETPOINTS" in params:
+                smoldering, flaming = (float(v) for v in params["SETPOINTS"])
+                if smoldering != flaming:
+                    warnings.warn(
+                        f"SMOKE_DETECTOR '{device_params['id']}': separate smoldering "
+                        f"and flaming SETPOINTS are not supported, using the flaming "
+                        f"value {flaming} %/m.",
+                        UserWarning,
+                        stacklevel=2,
+                    )
+                device_params["obscuration"] = flaming
             device = Device.create_smoke_detector(**device_params)
 
         elif device_type == "SPRINKLER":

@@ -833,12 +833,29 @@ class TestCFASTParser:
             "ID": "SD1",
             "COMP_ID": "Room1",
             "LOCATION": [2.0, 2.0, 2.5],
-            "OBSCURATION": 0.1,
+            "SETPOINT": 10.0,
         }
 
         parser._parse_device_block(params)
 
         assert len(parser.devices) == 1
+        assert parser.devices[0].obscuration == 10.0
+
+    def test_parse_device_block_smoke_detector_dual_setpoints(self):
+        """Test that separate smoldering and flaming SETPOINTS warn and keep the flaming value."""
+        parser = CFASTParser()
+        params = {
+            "TYPE": "SMOKE_DETECTOR",
+            "ID": "SD1",
+            "COMP_ID": "Room1",
+            "LOCATION": [2.0, 2.0, 2.5],
+            "SETPOINTS": [5.0, 12.0],
+        }
+
+        with pytest.warns(UserWarning, match="SETPOINTS are not supported"):
+            parser._parse_device_block(params)
+
+        assert parser.devices[0].obscuration == 12.0
 
     def test_parse_device_block_sprinkler(self):
         """Test DEVC block parsing for SPRINKLER."""

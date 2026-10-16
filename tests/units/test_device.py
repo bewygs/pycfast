@@ -550,7 +550,7 @@ class TestDevice:
         )
         result = device.to_input_string()
         assert "TYPE = 'SMOKE_DETECTOR'" in result
-        assert "SETPOINTS = 25.0, 25.0" in result
+        assert "SETPOINT = 25.0" in result
 
     def test_to_input_string_sprinkler(self):
         """Test input string generation for sprinkler."""
