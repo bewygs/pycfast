@@ -22,6 +22,7 @@ distributed computing for CFAST simulations.
 # - **dask.distributed**: For parallel computing
 # - **NumPy**: Numerical operations
 
+# sphinx_gallery_parallel = False
 import os
 import shutil
 import time

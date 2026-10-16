@@ -143,6 +143,10 @@ sphinx_gallery_conf = {
     # "subsection_order": "alphabetical",
     "within_subsection_order": "FileNameSortKey",
     'download_all_examples': False,
+    # run the examples with as many processes as `sphinx-build -j`
+    "parallel": True,
+    # hide the per-example `# sphinx_gallery_*` settings from the rendered code
+    "remove_config_comments": True,
 }
 
 def linkcode_resolve(domain, info):
