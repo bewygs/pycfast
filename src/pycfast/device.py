@@ -462,7 +462,7 @@ class Device(CFASTComponent):
             rec.add_field("RTI", self.rti)
 
         elif self.type == "SMOKE_DETECTOR":
-            rec.add_list_field("SETPOINTS", [self.obscuration, self.obscuration])
+            rec.add_field("SETPOINT", self.obscuration)
 
         elif self.type == "SPRINKLER":
             rec.add_field("SETPOINT", self.setpoint)
