@@ -196,6 +196,8 @@ make install-docs
 make doc
 ```
 
+`make doc` runs the gallery examples one at a time. Set `JOBS` to run them in parallel with `make doc JOBS=auto`.
+
 - **Or with pip:**
 ```bash
 python -m venv .venv
