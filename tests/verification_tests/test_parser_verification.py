@@ -12,14 +12,6 @@ from csv_comparison import (
 
 from pycfast.parsers import parse_cfast_file
 
-# Not supported yet (see #220).
-# strict=True makes the test fail once the parser is fixed, so the entry
-# must then be removed.
-KNOWN_PARSER_FAILURES = {
-    "units_basic": "SLCF COMP_ID = 'NULL' is rejected (#220)",
-    "units_fire": "SLCF COMP_ID = 'NULL' is rejected (#220)",
-}
-
 
 def get_all_verification_input_files():
     """Get all .in files from the verification test directories."""
@@ -44,17 +36,7 @@ def get_test_parameters():
             # parent_dir should be NRC_Users_Guide/<subdir>
             parent_dir = os.path.join("NRC_Users_Guide", file_path.parts[nrc_idx + 1])
 
-        marks = []
-        if file_prefix in KNOWN_PARSER_FAILURES:
-            marks.append(
-                pytest.mark.xfail(
-                    reason=KNOWN_PARSER_FAILURES[file_prefix], strict=True
-                )
-            )
-
-        test_params.append(
-            pytest.param(input_file, parent_dir, file_prefix, marks=marks)
-        )
+        test_params.append((input_file, parent_dir, file_prefix))
 
     return test_params
 
