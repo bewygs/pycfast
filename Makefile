@@ -1,6 +1,6 @@
 .PHONY: help
 
-# pytest-xdist workers of the long test targets: 0 to disable, N, or auto (one per CPU)
+# parallel workers of the long test targets (pytest-xdist) and of doc (sphinx-build): 0 to disable, N, or auto (one per CPU)
 JOBS ?= 0
 
 help:
@@ -27,7 +27,7 @@ help:
 	@echo "  make allci              Run all CI steps (check, format, type, test, coverage)"
 	@echo ""
 	@echo "Options:"
-	@echo "  JOBS=0                  Parallel workers of test, test-verif, test-valid and cov (N, or auto for one per CPU)"
+	@echo "  JOBS=0                  Parallel workers of test, test-verif, test-valid, cov and doc (N, or auto for one per CPU)"
 
 install:
 	uv sync --no-dev
@@ -85,7 +85,7 @@ clean:
 	find . -type f -name "*.pyc" -delete
 
 doc:
-	cd docs && uv run sphinx-build -b html source build/html
+	cd docs && uv run sphinx-build -b html source build/html $(if $(filter-out 0,$(JOBS)),-j $(JOBS))
 	@echo "Documentation built! Open $(PWD)/docs/build/html/index.html in your browser"
 
 build:

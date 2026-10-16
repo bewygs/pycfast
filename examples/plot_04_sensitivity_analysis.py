@@ -36,7 +36,7 @@ from pycfast.parsers import parse_cfast_file
 # :func:`~pycfast.parsers.parse_cfast_file` to load the
 # `USN_Hawaii_Test_03.in <https://github.com/firemodels/cfast/blob/master/Validation/High_Bay/USN_Hawaii_Test_03.in>`_ input file.
 
-model = parse_cfast_file("data/USN_Hawaii_Test_03.in")
+model = parse_cfast_file("data/USN_Hawaii_Test_03.in", "sensitivity_analysis.in")
 
 # %%
 # The parsed model is displayed below.
@@ -272,7 +272,7 @@ for i, param_name in enumerate(names):
 import glob
 import os
 
-files_to_remove = glob.glob("USN_Hawaii_Test_03*")
+files_to_remove = glob.glob("sensitivity_analysis*")
 
 for file in files_to_remove:
     if os.path.exists(file):
