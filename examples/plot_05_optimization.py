@@ -156,7 +156,7 @@ def objective_function(x):
 # but for 2D or 3D problems it provides valuable insights.
 
 # %%
-grid_resolution = 15
+grid_resolution = 10
 
 soot_yield_grid = np.linspace(
     bounds["soot_yield"][0], bounds["soot_yield"][1], grid_resolution
