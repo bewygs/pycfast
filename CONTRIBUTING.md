@@ -162,7 +162,7 @@ We use [pytest](https://docs.pytest.org/en/stable/) for testing. Tests are locat
   make test
   ```
 
-`make test`, `make test-verif`, `make test-valid` and `make cov` run the tests in parallel with [pytest-xdist](https://pytest-xdist.readthedocs.io/), one worker per CPU. Set `JOBS` to change the number of workers, or `JOBS=0` to run them one at a time (e.g. to debug with `pdb`):
+`make test`, `make test-verif`, `make test-valid` and `make cov` run the tests one at a time. Set `JOBS` to run them in parallel with [pytest-xdist](https://pytest-xdist.readthedocs.io/): `JOBS=N` for N workers, or `JOBS=auto` for one worker per CPU:
 
 ```bash
 make test-valid JOBS=4

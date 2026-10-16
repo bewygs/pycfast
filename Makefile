@@ -1,7 +1,7 @@
 .PHONY: help
 
-# pytest-xdist workers of the long test targets: auto (one per CPU), N, or 0 to disable
-JOBS ?= auto
+# pytest-xdist workers of the long test targets: 0 to disable, N, or auto (one per CPU)
+JOBS ?= 0
 
 help:
 	@echo "Usage:"
@@ -27,7 +27,7 @@ help:
 	@echo "  make allci              Run all CI steps (check, format, type, test, coverage)"
 	@echo ""
 	@echo "Options:"
-	@echo "  JOBS=auto               Parallel workers of test, test-verif, test-valid and cov (N, or 0 to disable)"
+	@echo "  JOBS=0                  Parallel workers of test, test-verif, test-valid and cov (N, or auto for one per CPU)"
 
 install:
 	uv sync --no-dev
