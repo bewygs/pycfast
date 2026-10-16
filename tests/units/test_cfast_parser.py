@@ -243,6 +243,19 @@ class TestCFASTParser:
         with pytest.raises(ValueError, match="Unknown SLCF domain"):
             parser._parse_slcf_block({"DOMAIN": "4-D"})
 
+    @pytest.mark.parametrize(
+        "block,params",
+        [
+            ("slcf", {"DOMAIN": "3-D", "COMP_ID": "NULL"}),
+            ("isof", {"VALUE": 305, "COMP_ID": "NULL"}),
+        ],
+    )
+    def test_parse_visualization_null_comp_id(self, block, params):
+        """Test that COMP_ID = 'NULL' is read as all compartments."""
+        parser = CFASTParser()
+        getattr(parser, f"_parse_{block}_block")(params)
+        assert parser.visualizations[0].comp_id is None
+
     def test_parse_isof_block_missing_value(self):
         """Test that an ISOF block without VALUE raises a ValueError."""
         parser = CFASTParser()

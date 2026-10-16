@@ -447,6 +447,11 @@ class CFASTParser:
             return list(comp_ids)
         return comp_ids
 
+    @staticmethod
+    def _visualization_comp_id(comp_id: str | None) -> str | None:
+        """Map ``COMP_ID = 'NULL'``, which CFAST reads as all compartments, to None."""
+        return None if comp_id == "NULL" else comp_id
+
     def _extract_params(
         self, params: dict, param_map: dict[str, dict[str, Any]]
     ) -> dict[str, Any]:
@@ -881,7 +886,11 @@ class CFASTParser:
         """Parse an ISOF (isosurface visualization) namelist block."""
         param_map = {
             "value": {"source": "VALUE", "required": True, "type": float},
-            "comp_id": {"source": "COMP_ID", "type": str},
+            "comp_id": {
+                "source": "COMP_ID",
+                "type": str,
+                "transform": self._visualization_comp_id,
+            },
         }
         isof_params = self._extract_params(params, param_map)
         self.visualizations.append(Visualization.isosurface(**isof_params))
@@ -894,14 +903,20 @@ class CFASTParser:
             param_map = {
                 "plane": {"source": "PLANE", "required": True, "type": str},
                 "position": {"source": "POSITION", "default": 0.0, "type": float},
-                "comp_id": {"source": "COMP_ID", "type": str},
+                "comp_id": {
+                    "source": "COMP_ID",
+                    "type": str,
+                    "transform": self._visualization_comp_id,
+                },
             }
             slcf_params = self._extract_params(params, param_map)
             visualization = Visualization.slice_2d(**slcf_params)
 
         elif domain == "3-D":
             comp_id = self._get_param(params, "COMP_ID", param_type=str)
-            visualization = Visualization.slice_3d(comp_id=comp_id)
+            visualization = Visualization.slice_3d(
+                comp_id=self._visualization_comp_id(comp_id)
+            )
 
         else:
             raise ValueError(f"Unknown SLCF domain: {domain}")
