@@ -69,7 +69,7 @@ client
 # `USN_Hawaii_Test_03.in <https://github.com/firemodels/cfast/blob/master/Validation/High_Bay/USN_Hawaii_Test_03.in>`_
 # model. This model serves as the foundation that we'll modify systematically to generate our dataset.
 
-model = parse_cfast_file("data/USN_Hawaii_Test_03.in")
+model = parse_cfast_file("data/USN_Hawaii_Test_03.in", "parallel_computing.in")
 
 # %%
 # The parsed model is displayed below.
@@ -251,7 +251,7 @@ print(
 
 files_removed = 0
 for fname in os.listdir("."):
-    if fname.startswith("USN_Hawaii_Test_03_"):
+    if fname.startswith("parallel_computing"):
         try:
             os.remove(fname)
             files_removed += 1

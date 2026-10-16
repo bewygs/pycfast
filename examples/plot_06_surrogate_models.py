@@ -44,7 +44,7 @@ plt.style.use("seaborn-v0_8-whitegrid")
 # ----------------------------------------
 # We use :func:`~pycfast.parsers.parse_cfast_file` to load the base model.
 
-model = parse_cfast_file("data/SP_AST_Diesel_1p1.in")
+model = parse_cfast_file("data/SP_AST_Diesel_1p1.in", "surrogate_models.in")
 
 # %%
 # The parsed model is displayed below.
@@ -501,7 +501,7 @@ print(f"Speedup: {speedup:.0f}x faster")
 import glob
 import os
 
-files_to_remove = glob.glob("SP_AST_Diesel_1p1*")
+files_to_remove = glob.glob("surrogate_models*")
 for file in files_to_remove:
     if os.path.exists(file):
         os.remove(file)

@@ -40,7 +40,7 @@ from pycfast.parsers import parse_cfast_file
 # `SP_AST_Diesel_1p1.in <https://github.com/firemodels/cfast/blob/master/Validation/SP_AST/SP_AST_Diesel_1p1.in>`_
 # model which is fast to compute, making it suitable for optimization studies.
 
-model = parse_cfast_file("data/SP_AST_Diesel_1p1.in")
+model = parse_cfast_file("data/SP_AST_Diesel_1p1.in", "optimization.in")
 
 # %%
 # The parsed model is displayed below.
@@ -458,7 +458,7 @@ print(f"Final distance from global optimum: {distances[-1]:.4f}")
 import glob
 import os
 
-files_to_remove = glob.glob("SP_AST_Diesel_1p1*")
+files_to_remove = glob.glob("optimization*")
 
 for file in files_to_remove:
     if os.path.exists(file):
