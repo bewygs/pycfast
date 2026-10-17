@@ -22,107 +22,122 @@ class Compartment(CFASTComponent):
     """
     Defines the size, position, materials of construction, and flow characteristics for compartments.
 
-    The Compartment page defines the size, position, materials of construction, and flow
-    characteristics for the compartments in the simulation. In order to model a fire scenario,
-    the size and position of each compartment relevant to the scenario must be specified. For a
-    compartment, the width, depth, compartment height and height of the floor of the compartment
-    provide this specification. The maximum number of compartments for version 7 is 100. The usual
-    assumption is that compartments are rectangular parallelepipeds. However, the CFAST model can
-    accommodate odd shapes as equivalent floor area parallelepipeds or with a cross-sectional area
-    that varies with height.
+    Compartments are defined by their geometry and lining materials, which at a minimum
+    require a width, depth, and height. The maximum number of compartments is 100. The
+    usual assumption is that compartments are rectangular parallelepipeds, but other shapes
+    can be modeled via equivalent floor area and perimeter. If desired, compartments can be
+    prescribed by the cross-sectional area of the compartment as a function of height from
+    floor to ceiling for other shapes. The absolute position of the compartment with respect
+    to a single structure reference point can be defined to ease visualization or to allow
+    exact placement of vents and surfaces relative to other compartments in a detailed
+    calculation.
 
     Parameters
     ----------
-    id : str
-        Compartments are identified by a unique alphanumeric name. This may be as simple as
-        a single character or number, or a description of the compartment.
+    id : str, optional
+        Compartments are identified by a unique name, for which spaces are allowed.
+        Default value: ``'Comp 1'``.
     width : float, optional
-        Specifies the width of the compartment as measured on the X axis from the origin
-        (0,0,0) of the compartment. Default units: m, default value: 3.6 m.
+        Compartment width as measured on the x axis from the origin of the compartment.
+        Default units: m, default value: 3.6 m.
     depth : float, optional
-        Specifies the depth of the compartment as measured on the Y axis from the origin
-        (0,0,0) of the compartment. Default units: m, default value: 2.4 m.
+        Compartment depth as measured on the y axis from the origin of the compartment.
+        Default units: m, default value: 2.4 m.
     height : float, optional
-        Specifies the height of the compartment as measured on the Z axis from the origin
-        (0,0,0) of the compartment. Default units: m, default value: 2.4 m.
-    origin_x : float, optional
-        Specifies the absolute x coordinate of the lower, left, front corner of the room.
-        All absolute positions for all compartments must be greater than or equal to zero,
-        i.e., negative numbers are not allowed for these inputs. Important in positioning
-        the compartments for visualization in Smokeview. Default units: m, default value: 0.0 m.
-    origin_y : float, optional
-        Specifies the absolute y coordinate of the lower, left, front corner of the room.
-        All absolute positions for all compartments must be greater than or equal to zero,
-        i.e., negative numbers are not allowed for these inputs. Important in positioning
-        the compartments for visualization in Smokeview. Default units: m, default value: 0.0 m.
-    origin_z : float, optional
-        Specifies the height of the floor of each compartment with respect to station elevation
-        specified by the internal ambient conditions reference height parameter. The reference
-        point must be the same for all elevations in the input data. All absolute positions
-        for all compartments must be greater than or equal to zero, i.e., negative numbers are
-        not allowed for these inputs. Default units: m, default value: 0.0 m.
+        Compartment height as measured on the z axis from the origin of the compartment.
+        Default units: m, default value: 2.4 m.
     ceiling_mat_id : str or list[str], optional
-        Material ID(s) from the thermal properties from the Materials tab to define the ceiling
-        surface of the compartment. Up to three materials can be used to define the layer(s)
-        of the ceiling surface. The innermost layer is specified first. Default value: Off.
+        Material ID(s) of the ceiling, referring to the ``id`` of a :class:`Material`.
+        As many as three layers of materials can make up the ceiling, with the surface
+        layer specified first. Default value: off.
     ceiling_thickness : float or list[float], optional
-        Thickness of each of the layers of the ceiling surface. Must match the number of
-        materials in ``ceiling_mat_id``. Default units: m, default value: thickness of
-        material specified on the Materials tab.
+        Thickness of each of the layers of the ceiling. Must match the number of
+        materials in ``ceiling_mat_id``. Default units: m, default value: the
+        ``thickness`` of each material.
     wall_mat_id : str or list[str], optional
-        Material ID(s) from the thermal properties from the Materials tab to define the wall
-        surface of the compartment. Up to three materials can be used to define the layer(s)
-        of the wall surface. The innermost layer is specified first. Default value: Off.
+        Material ID(s) of the walls, referring to the ``id`` of a :class:`Material`.
+        As many as three layers of materials can make up the walls, with the surface
+        layer specified first. Default value: off.
     wall_thickness : float or list[float], optional
-        Thickness of each of the layers of the wall surface. Must match the number of
-        materials in ``wall_mat_id``. Default units: m, default value: thickness of
-        material specified on the Materials tab.
+        Thickness of each of the layers of the walls. Must match the number of
+        materials in ``wall_mat_id``. Default units: m, default value: the
+        ``thickness`` of each material.
     floor_mat_id : str or list[str], optional
-        Material ID(s) from the thermal properties from the Materials tab to define the floor
-        surface of the compartment. Up to three materials can be used to define the layer(s)
-        of the floor surface. The innermost layer is specified first. Default value: Off.
+        Material ID(s) of the floor, referring to the ``id`` of a :class:`Material`.
+        As many as three layers of materials can make up the floor, with the surface
+        layer specified first. Default value: off.
     floor_thickness : float or list[float], optional
-        Thickness of each of the layers of the floor surface. Must match the number of
-        materials in ``floor_mat_id``. Default units: m, default value: thickness of
-        material specified on the Materials tab.
+        Thickness of each of the layers of the floor. Must match the number of
+        materials in ``floor_mat_id``. Default units: m, default value: the
+        ``thickness`` of each material.
+    origin_x : float, optional
+        X coordinate of the lower, left, front corner of the compartment. All coordinates
+        for all compartments must be greater than or equal to zero to facilitate
+        visualization by Smokeview. Default units: m, default value: 0 m.
+    origin_y : float, optional
+        Y coordinate of the lower, left, front corner of the compartment. All coordinates
+        for all compartments must be greater than or equal to zero to facilitate
+        visualization by Smokeview. Default units: m, default value: 0 m.
+    origin_z : float, optional
+        Z coordinate of the lower, left, front corner of the compartment. All coordinates
+        for all compartments must be greater than or equal to zero to facilitate
+        visualization by Smokeview. Default units: m, default value: 0 m.
     shaft : bool, optional
-        For tall compartments or those removed from the room of fire origin, the compartment
-        may be modeled as a single, well-mixed zone rather than the default two-zone assumption.
-        A single zone approximation is appropriate for smoke flow far from a fire source. Examples
-        are elevators, shafts, complex stairwells, or compartments far from the fire.
+        Conditions in the compartment are calculated as a single well-mixed zone. A single
+        zone approximation may be appropriate for compartments away from the fire, where
+        the two-zone layer stratification is less pronounced than in compartments near the
+        fire, or in situations where the stratification does not occur, such as elevators,
+        shafts, or stairwells. Cannot be combined with ``hall``. Default value: False.
     hall : bool, optional
-        By specifying the compartment as a corridor, the ceiling jet temperature is calculated
-        with a different empirical correlation that results in a somewhat higher temperature near
-        the ceiling. This will impact, for example, detectors, sprinkler, and targets near the
-        ceiling in corridors.
+        Conditions in the compartment are calculated with the normal two-zone approach,
+        but ceiling jet temperatures are calculated with an empirical model that constrains
+        the upper layer to a narrow passage. This feature will impact, for example,
+        detectors, sprinklers, and targets near the ceiling in corridors. Cannot be
+        combined with ``shaft``. Default value: False.
     leak_area_ratio : tuple[float, float], optional
-        CFAST can automatically calculate leakage between one or more compartments and the outdoors.
-        Leakage is specified as a leakage area per unit wall area and/or per unit floor area.
-        Format: (Wall Leakage, Floor Leakage). Default units: m²/m².
+        Leakage area ratio input as the leakage area per unit wall and floor area. CFAST
+        uses it to automatically calculate leakage between the compartment and the
+        outdoors. Format: (wall, floor). Default units: m²/m², default value: (0, 0).
     cross_sect_areas : list[float], optional
-        Cross-sectional area at the corresponding height for variable cross-sectional area
-        compartments. Used for defining compartment properties for spaces which are not
-        rectangular in area. Default units: m².
+        Cross-sectional area at the corresponding height, for a compartment whose
+        horizontal cross-sectional area is a function of height. Must have the same
+        length as ``cross_sect_heights``. Default units: m².
     cross_sect_heights : list[float], optional
-        Height off the floor of the compartment for variable cross-sectional area definition.
-        Cross-sectional area values should be input in order by ascending height. Default units: m.
+        Height off the floor of the compartment. Cross-sectional area values should be
+        input in order by ascending height. Default units: m.
     grid : tuple[int, int, int], optional
-        Number of Smokeview slice-file data points along the compartment's X, Y and
-        Z axes: (grid_x, grid_y, grid_z). Increasing these values can dramatically
-        slow simulation execution, since the gas temperature and velocity are
-        evaluated at each grid location whenever a Smokeview output is written.
-        The default is appropriate for most simulations. Default units: n/a,
-        default value: (50, 50, 50).
+        Number of Smokeview sampling points along x, y, and z axes. These parameters are
+        purely for visualization within Smokeview for depicting plume and ceiling jet
+        profiles. Specifying a larger number of data points can dramatically slow program
+        execution since the gas temperature and velocity are evaluated at each grid
+        location every time a Smokeview output is specified. Format: (x, y, z). Default
+        value: (50, 50, 50).
 
     Notes
     -----
-    If the thermophysical properties of the enclosing surfaces are not included, CFAST will
-    treat them as adiabatic (no heat transfer). If a name is used which is not in the input
-    file, the model should stop with an error message. The back surfaces of compartments are
-    assumed to be exposed to ambient conditions unless specifically specified.
+    To calculate heat loss through the ceiling, walls, and floor of a compartment, material
+    properties must be specified. Separate properties can be specified for the ceiling and
+    floor, but the four walls all must have the same set of properties. If the
+    thermophysical properties of the surfaces are not specified, they will be treated as
+    adiabatic, i.e. no heat transfer. The back surfaces of compartments are assumed to be
+    exposed to ambient conditions.
 
-    All surfaces (ceiling, walls and floor) are turned off by default. The fully mixed
-    (single zone) and corridor models are turned off by default.
+    The normal two-zone model is used by default; the shaft (single-zone) and corridor
+    options are off.
+
+    For a variable cross-sectional area, if the first height value is not zero (i.e., at
+    floor level), the cross-sectional area is assumed constant from the floor to the height
+    specified in the first cross-sectional area value. Similarly, if the last height value is
+    not at the specified ceiling height, the cross-sectional area is assumed constant from
+    the height specified in the last cross-sectional area value to the ceiling. Between any
+    two adjacent cross-sectional area data values, the area is assumed to be a pyramidal
+    section (which by definition maintains the same width to depth aspect ratio for the
+    compartment from floor to ceiling).
+
+    Typical leakage areas of walls and floors are given in the *Handbook of Smoke Control
+    Engineering* (Klote et al., 2012).
+
+    Adapted from the `CFAST User's Guide <https://pages.nist.gov/cfast/>`__.
 
     Examples
     --------
