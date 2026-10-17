@@ -82,6 +82,16 @@ class SimulationEnvironment(CFASTComponent):
         oxygen limit is incorporated through a smooth decrease in the burning rate near
         the limit. Normally, this value would not be changed by the user. Default units: %,
         default value: 15 %.
+    max_iteration : int, optional
+        Maximum number of iterations for the equation solver. Once it is exceeded, CFAST
+        stops the simulation without error, so the results end before
+        ``time_simulation``. A negative value means no limit. Default value: -1
+        (unlimited).
+    specific_extinction : tuple[float, float], optional
+        Specific-extinction coefficients for flaming and smoldering combustion. They
+        convert the soot concentration into the optical density used for smoke
+        obscuration and smoke detector activation. Format: (Flaming, Smoldering).
+        Default units: m²/kg, default value: (8700, 4400) m²/kg.
 
     Notes
     -----
@@ -102,6 +112,8 @@ class SimulationEnvironment(CFASTComponent):
     ... )
     """
 
+    _TUPLE_FIELDS = frozenset({"specific_extinction"})
+
     def __init__(
         self,
         title: str,
@@ -116,6 +128,8 @@ class SimulationEnvironment(CFASTComponent):
         adiabatic: bool | None = None,
         max_time_step: float | None = None,  # =2 in CFAST if None
         lower_oxygen_limit: float | None = None,
+        max_iteration: int | None = None,
+        specific_extinction: tuple[float, float] | None = None,
         extra_custom: str | None = None,  # mainly use for DIAG section
     ):
         self.title = title
@@ -130,6 +144,8 @@ class SimulationEnvironment(CFASTComponent):
         self.adiabatic = adiabatic
         self.max_time_step = max_time_step
         self.lower_oxygen_limit = lower_oxygen_limit
+        self.max_iteration = max_iteration
+        self.specific_extinction = specific_extinction
         self.extra_custom = extra_custom
 
         self._validate()
@@ -160,6 +176,7 @@ class SimulationEnvironment(CFASTComponent):
             ("print", self.print),
             ("smokeview", self.smokeview),
             ("spreadsheet", self.spreadsheet),
+            ("max_iteration", self.max_iteration),
         ):
             if val is not None and (not isinstance(val, int) or isinstance(val, bool)):
                 raise TypeError(f"{param} must be an int, got {type(val).__name__}.")
@@ -178,6 +195,15 @@ class SimulationEnvironment(CFASTComponent):
         if self.adiabatic is not None and not isinstance(self.adiabatic, bool):
             raise TypeError(
                 f"adiabatic must be a bool, got {type(self.adiabatic).__name__}."
+            )
+
+        if self.specific_extinction is not None and (
+            not isinstance(self.specific_extinction, tuple)
+            or not all(isinstance(v, (int, float)) for v in self.specific_extinction)
+        ):
+            raise TypeError(
+                "specific_extinction must be a sequence of numbers, "
+                f"got {self.specific_extinction!r}."
             )
 
         if len(self.title) > 128:
@@ -240,6 +266,12 @@ class SimulationEnvironment(CFASTComponent):
                 f"lower_oxygen_limit={self.lower_oxygen_limit} is outside [0, 100] %.",
                 UserWarning,
                 stacklevel=2,
+            )
+
+        if self.specific_extinction is not None and len(self.specific_extinction) != 2:
+            raise ValueError(
+                "specific_extinction must contain exactly 2 values "
+                f"(flaming, smoldering), got {len(self.specific_extinction)}."
             )
 
     def __repr__(self) -> str:
@@ -310,12 +342,20 @@ class SimulationEnvironment(CFASTComponent):
 
         input_str = head + "\n!! Scenario Configuration \n" + time_rec + init_rec
 
-        if self.adiabatic is not None or self.max_time_step or self.lower_oxygen_limit:
+        if (
+            self.adiabatic is not None
+            or self.max_time_step
+            or self.lower_oxygen_limit
+            or self.max_iteration is not None
+            or self.specific_extinction is not None
+        ):
             misc = NamelistRecord("MISC")
             if self.adiabatic is not None:
                 misc.add_field("ADIABATIC", self.adiabatic)
             misc.add_field("MAX_TIME_STEP", self.max_time_step)
             misc.add_field("LOWER_OXYGEN_LIMIT", self.lower_oxygen_limit)
+            misc.add_field("MAX_ITERATION", self.max_iteration)
+            misc.add_list_field("SPECIFIC_EXTINCTION", self.specific_extinction)
             input_str += misc.build()
 
         if self.extra_custom:

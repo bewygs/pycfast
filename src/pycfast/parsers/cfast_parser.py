@@ -554,6 +554,12 @@ class CFASTParser:
             self.simulation_environment.lower_oxygen_limit = params[
                 "LOWER_OXYGEN_LIMIT"
             ]
+        if "MAX_ITERATION" in params:
+            self.simulation_environment.max_iteration = int(params["MAX_ITERATION"])
+        if "SPECIFIC_EXTINCTION" in params:
+            self.simulation_environment.specific_extinction = params[
+                "SPECIFIC_EXTINCTION"
+            ]
 
     def _parse_material_block(self, params: dict[str, Any]) -> None:
         """Parse MATL namelist block."""
