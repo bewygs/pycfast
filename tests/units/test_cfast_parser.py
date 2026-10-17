@@ -551,13 +551,21 @@ class TestCFASTParser:
     def test_parse_misc_block(self):
         """Test MISC block parsing."""
         parser = CFASTParser()
-        params = {"ADIABATIC": True, "MAX_TIME_STEP": 0.1, "LOWER_OXYGEN_LIMIT": 0.15}
+        params = {
+            "ADIABATIC": True,
+            "MAX_TIME_STEP": 0.1,
+            "LOWER_OXYGEN_LIMIT": 0.15,
+            "MAX_ITERATION": -1.0,
+            "SPECIFIC_EXTINCTION": [8000.0, 4000.0],
+        }
 
         parser._parse_misc_block(params)
 
         assert parser.simulation_environment.adiabatic is True
         assert parser.simulation_environment.max_time_step == 0.1
         assert parser.simulation_environment.lower_oxygen_limit == 0.15
+        assert parser.simulation_environment.max_iteration == -1
+        assert parser.simulation_environment.specific_extinction == (8000.0, 4000.0)
 
     def test_parse_material_block(self):
         """Test MATL block parsing."""

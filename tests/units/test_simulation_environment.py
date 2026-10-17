@@ -156,6 +156,14 @@ class TestSimulationEnvironment:
                 "LOWER_OXYGEN_LIMIT = 10.0",
                 id="lower-oxygen-limit",
             ),
+            pytest.param(
+                {"max_iteration": 500}, "MAX_ITERATION = 500", id="max-iteration"
+            ),
+            pytest.param(
+                {"specific_extinction": (8000, 4000)},
+                "SPECIFIC_EXTINCTION = 8000, 4000",
+                id="specific-extinction",
+            ),
         ],
     )
     def test_to_input_string_misc_single_option(
@@ -238,6 +246,21 @@ class TestSimulationEnvironment:
             pytest.param(
                 {"adiabatic": 1}, "adiabatic must be a bool", id="adiabatic-int"
             ),
+            pytest.param(
+                {"max_iteration": 100.0},
+                "max_iteration must be an int",
+                id="max-iteration-float",
+            ),
+            pytest.param(
+                {"specific_extinction": 8700},
+                "specific_extinction must be a sequence of numbers",
+                id="extinction-scalar",
+            ),
+            pytest.param(
+                {"specific_extinction": ("8700", "4400")},
+                "specific_extinction must be a sequence of numbers",
+                id="extinction-str",
+            ),
         ],
     )
     def test_init_type_errors(self, kwargs: dict, match: str):
@@ -271,6 +294,11 @@ class TestSimulationEnvironment:
         """Test that non-positive max_time_step raises ValueError."""
         with pytest.raises(ValueError, match="max_time_step must be positive"):
             SimulationEnvironment(title="Test", max_time_step=value)
+
+    def test_init_specific_extinction_wrong_length(self):
+        """Test that specific_extinction without exactly 2 values raises ValueError."""
+        with pytest.raises(ValueError, match="must contain exactly 2 values"):
+            SimulationEnvironment(title="Test", specific_extinction=(8700.0,))
 
     def test_init_long_title_warning(self):
         """Test that a warning is raised for titles over 128 characters."""
