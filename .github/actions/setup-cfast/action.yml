@@ -32,6 +32,7 @@ runs:
       uses: fortran-lang/setup-fortran@v1
       with:
         compiler: gcc
+        version: 15
 
     - name: Build CFAST from source (Linux / macOS)
       if: runner.os != 'Windows' && inputs.cfast-version != 'latest' && steps.cache-cfast.outputs.cache-hit != 'true'
