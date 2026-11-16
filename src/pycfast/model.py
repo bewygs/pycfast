@@ -360,6 +360,13 @@ class CFASTModel:
             If CFAST execution exceeds the timeout, or if an expected output
             CSV file is missing, empty, or cannot be read.
 
+        Warnings
+        --------
+        Runs executing at the same time must each use a different ``file_name``.
+        CFAST names its output files after the input file, so runs sharing a
+        ``file_name`` overwrite each other's files and can return the results of
+        another run without raising an error.
+
         Examples
         --------
         Run a model with a custom filename :

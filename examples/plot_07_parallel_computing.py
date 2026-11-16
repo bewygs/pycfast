@@ -45,14 +45,16 @@ from pycfast.parsers import parse_cfast_file
 #
 # **Cluster Configuration:**
 #
-# - **n_workers**: Number of worker processes (typically = number of CPU cores)
+# - **n_workers**: Number of workers (typically = number of CPU cores)
 # - **threads_per_worker**: Threads per worker (1 for CPU-bound tasks like CFAST)
-# - **memory_limit**: Memory limit per worker to prevent system overload
+# - **processes**: ``False`` runs the workers as threads of this Python process.
+#   Each CFAST simulation is already a separate process, so threads are enough
+#   to use several CPU cores.
 
 cluster = LocalCluster(
     n_workers=4,
     threads_per_worker=1,
-    memory_limit="256MB",
+    processes=False,
 )
 client = Client(cluster)
 
@@ -170,8 +172,12 @@ print(
 # **Parallel approach characteristics:**
 #
 # - Uses multiple CPU cores simultaneously
-# - Each worker runs in isolated temporary directories
-# - Requires careful handling of file I/O to avoid conflicts
+# - Each simulation runs in its own temporary directory
+#
+# CFAST writes its output files next to the input file and names them after it,
+# so simulations running at the same time must not share a ``file_name``: their
+# results would get mixed up. ``_run_one`` therefore creates a new directory for
+# each simulation and writes its input file there.
 
 
 def _run_one(hoc, rf, sim_idx: int):
@@ -245,6 +251,7 @@ time_saved = sequential_time - parallel_time
 print(
     f"Time saved: {time_saved:.2f} seconds ({time_saved / sequential_time * 100:.1f}%)"
 )
+
 # %%
 # Cleanup
 # -------
