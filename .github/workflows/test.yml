@@ -49,7 +49,7 @@ jobs:
   # Python testing
   python-compat:
     name: python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # a CFAST run that does not converge hangs forever, fail fast instead
     timeout-minutes: 30
     strategy:
@@ -109,14 +109,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-24.04, windows-latest, macos-latest]
         cfast-version: ["7.7.4", "7.7.5", "7.7.6", "7.7.7", "latest"]
         exclude:
           # Linux and macOS have no pre-built binaries: they are compiled with
           # current gcc, which restricts the versions that can be tested.
           # Linux is tested from 7.7.5 (older versions do not build), macOS from
           # 7.7.6 (7.7.5 builds but the dassl solver fails to converge).
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             cfast-version: "7.7.4"
           - os: macos-latest
             cfast-version: "7.7.4"
