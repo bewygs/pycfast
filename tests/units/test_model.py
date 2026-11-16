@@ -28,6 +28,12 @@ Tests for the CFASTModel class.
 class TestCFASTModel:
     """Test class for CFASTModel."""
 
+    @pytest.fixture
+    def cfast_on_path(self, monkeypatch):
+        """Pretend CFAST is installed, so `run()` tests work without it."""
+        monkeypatch.delenv("CFAST", raising=False)
+        monkeypatch.setattr("pycfast.model.shutil.which", lambda cmd: cmd)
+
     def create_minimal_model(self) -> CFASTModel:
         """Create a minimal valid CFASTModel for testing."""
         simulation_env = SimulationEnvironment(title="Test Simulation")
@@ -270,6 +276,7 @@ class TestCFASTModel:
                 ):
                     model._write_input()
 
+    @pytest.mark.usefixtures("cfast_on_path")
     @patch("subprocess.run")
     @patch("pandas.read_csv")
     @patch("os.path.exists")
@@ -308,20 +315,24 @@ class TestCFASTModel:
             assert isinstance(list(results.values())[0], pd.DataFrame)
             mock_subprocess.assert_called_once()
 
+    @pytest.mark.usefixtures("cfast_on_path")
     @patch("subprocess.run")
     def test_run_subprocess_failure(self, mock_subprocess):
         """Test CFAST execution failure."""
         model = self.create_minimal_model()
 
         # Mock failed subprocess run
-        mock_subprocess.side_effect = FileNotFoundError("CFAST executable not found")
+        mock_subprocess.side_effect = FileNotFoundError("No such file: 'cfast'")
 
         with tempfile.TemporaryDirectory() as temp_dir:
             model.file_name = os.path.join(temp_dir, "test.in")
 
-            with pytest.raises(FileNotFoundError):
+            with pytest.raises(FileNotFoundError, match="No such file: 'cfast'"):
                 model.run()
 
+        mock_subprocess.assert_called_once()
+
+    @pytest.mark.usefixtures("cfast_on_path")
     @patch("subprocess.run")
     def test_run_cfast_error(self, mock_subprocess):
         """Test CFAST execution returning error code."""
@@ -343,6 +354,7 @@ class TestCFASTModel:
             with pytest.raises(subprocess.CalledProcessError):
                 model.run()
 
+    @pytest.mark.usefixtures("cfast_on_path")
     @patch("subprocess.run")
     def test_run_cfast_error_without_log(self, mock_subprocess):
         """Test CFAST error is raised even when no log file was written."""
@@ -359,6 +371,7 @@ class TestCFASTModel:
 
             assert "CFAST error occurred" in exc_info.value.stderr
 
+    @pytest.mark.usefixtures("cfast_on_path")
     @pytest.mark.filterwarnings("ignore::RuntimeWarning")
     @patch("subprocess.run")
     def test_run_passes_input_file_with_extension(self, mock_subprocess):
@@ -371,6 +384,7 @@ class TestCFASTModel:
 
         assert mock_subprocess.call_args.args[0][1] == "test.in"
 
+    @pytest.mark.usefixtures("cfast_on_path")
     @patch("subprocess.run")
     @patch("pandas.read_csv")
     @patch("os.path.exists")
@@ -406,6 +420,7 @@ class TestCFASTModel:
             assert "CFAST stderr:" in caplog.text
             assert results is not None
 
+    @pytest.mark.usefixtures("cfast_on_path")
     @patch("subprocess.run")
     @patch("pandas.read_csv")
     @patch("os.path.exists")
@@ -441,6 +456,7 @@ class TestCFASTModel:
             assert "CFAST stderr:" not in caplog.text
             assert results is not None
 
+    @pytest.mark.usefixtures("cfast_on_path")
     @patch("subprocess.run")
     @patch("pandas.read_csv")
     @patch("os.path.exists")
@@ -474,6 +490,7 @@ class TestCFASTModel:
             assert "CFAST stderr:" not in caplog.text
             assert results is not None
 
+    @pytest.mark.usefixtures("cfast_on_path")
     @patch("subprocess.run")
     def test_run_verbose_with_error(self, mock_subprocess):
         """Test CFAST execution failure with verbose=True still raises error."""

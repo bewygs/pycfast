@@ -356,10 +356,12 @@ class FireDefinition(CFASTComponent):
         ...     fire_id="WOOD",
         ...     data_table=[[0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]],
         ... )
-        >>> defn.to_dataframe()
-        TIME     HRR  HEIGHT  AREA  ...
-        0   0.0  1000.0     0.5   1.0  ...
-        [1 rows x 9 columns]
+        >>> df = defn.to_dataframe()
+        >>> df.shape
+        (1, 9)
+        >>> df[["TIME", "HRR", "HEIGHT", "AREA"]]
+           TIME     HRR  HEIGHT  AREA
+        0   0.0  1000.0     0.5   1.0
         """
         return pd.DataFrame(self.data_table, columns=self.LABELS)
 
@@ -1064,9 +1066,10 @@ class Fire(CFASTComponent):
         ...     data_table=[[0, 1000, 0.5, 1.0, 0.01, 0.01, 0, 0, 0]]
         ... )
         >>> df = fire.to_dataframe()
-        >>> df
-        TIME     HRR  HEIGHT  AREA  ...
-        0   0.0  1000.0     0.5   1.0  ...
-        [1 rows x 9 columns]
+        >>> df.shape
+        (1, 9)
+        >>> df[["TIME", "HRR", "HEIGHT", "AREA"]]
+           TIME     HRR  HEIGHT  AREA
+        0   0.0  1000.0     0.5   1.0
         """
         return self._definition.to_dataframe()
