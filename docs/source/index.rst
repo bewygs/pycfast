@@ -29,8 +29,8 @@ parametric studies, automation, and reproducibility cumbersome.
 
 PyCFAST was originally developed internally at `Orano <https://www.orano.group/>`_ to
 integrate CFAST with the Python scientific ecosystem (notably for the
-|scipy.optimize|_ module), and complements existing tools like |CData|_ by
-exposing every CFAST component programmatically. Below is a 
+|scipy.optimize|_ module), and complements existing tools like |CData|_, or |RAVEN|_
+coupled with CFAST, by exposing every CFAST component programmatically. Below is a 
 diagram of how the components of PyCFAST interact with the CFAST model:
 
 .. figure:: _static/images/pycfast-workflow.svg
@@ -86,6 +86,9 @@ section, which includes more complex use cases.
 
 .. |CData| replace:: **CData**
 .. _CData: https://www.nist.gov/publications/cfast-consolidated-fire-and-smoke-transport-version-7-volume-5-cfast-fire-data
+
+.. |RAVEN| replace:: **RAVEN**
+.. _RAVEN: https://github.com/idaholab/raven
 
 .. toctree::
    :maxdepth: 1

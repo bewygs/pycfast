@@ -131,7 +131,7 @@ Check out the [examples](https://pycfast.org/examples.html) for more usage scena
 
 ## Installation
 
-PyCFAST requires **Python 3.11 or later** *and* a working installation of **[CFAST](https://pages.nist.gov/cfast/) itself**. It is fully [tested on verification input files](https://github.com/bewygs/pycfast/tree/main/tests/verification_tests) and [validation input files](https://github.com/bewygs/pycfast/tree/main/tests/validation_tests) from CFAST version **7.7.4** to version **7.7.7**. Versions below **7.7.4** might work but are not guaranteed to be fully compatible.
+PyCFAST requires **Python 3.11 or later** *and* a working installation of **[CFAST](https://pages.nist.gov/cfast/) itself**. It is tested against the [verification](https://github.com/bewygs/pycfast/tree/main/tests/verification_tests) and [validation](https://github.com/bewygs/pycfast/tree/main/tests/validation_tests) input files of CFAST **7.7.4** to **7.7.7**. Running them through PyCFAST gives the same results as running them directly in CFAST. These tests check PyCFAST itself, not CFAST's fire physics. Versions below **7.7.4** might work but are not guaranteed to be fully compatible.
 
 ### CFAST Installation
 
@@ -215,6 +215,12 @@ If CFAST is installed in a non-standard location, you can manually specify the p
 ## Documentation
 
 Full documentation, including the API reference and examples, is available online: [PyCFAST Documentation](https://pycfast.org/index.html)
+
+## Other CFAST automation tools
+
+[CData](https://www.nist.gov/publications/cfast-consolidated-fire-and-smoke-transport-version-7-volume-5-cfast-fire-data) is the Monte Carlo tool distributed with CFAST. It samples inputs and runs the simulations, but it is not built natively for Python workflows. [RAVEN](https://github.com/idaholab/raven) is a general-purpose uncertainty quantification framework with no CFAST support, so the studies that use it need to write their own CFAST input generator. PyCFAST lets you build, edit and run CFAST models directly from Python, for example inside a sensitivity analysis or an optimization loop. This [literature review](https://github.com/bewygs/pycfast/blob/main/paper/literature_review.md) lists recent studies that automate CFAST and the tool each one used.
+
+PyCFAST does not keep CData blocks (`&MHDR`, `&MRND`, `&MFLD`) when it rewrites an input file.
 
 ## Contributing
 
