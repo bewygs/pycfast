@@ -367,6 +367,9 @@ class CFASTModel:
         ``file_name`` overwrite each other's files and can return the results of
         another run without raising an error.
 
+        Output files left by an earlier run with the same ``file_name`` are
+        deleted before CFAST starts.
+
         Examples
         --------
         Run a model with a custom filename :
@@ -392,6 +395,18 @@ class CFASTModel:
             # cfast and its input files need to be in the same directory
             # otherwise there is a weird error where only "_zone.csv" is generated
             cwd = os.path.dirname(input_file_path)
+
+            # Remove outputs left by a previous run with the same file_name,
+            # so they are never read as the results of this run.
+            base_name = str(Path(self.file_name).with_suffix(""))
+            stale_suffixes = (
+                *(f"_{suffix}.csv" for suffix in CSV_READ_CONFIGS),
+                *(".log", ".out", ".smv", ".plt", ".sinfo", ".status"),
+            )
+            for stale_suffix in stale_suffixes:
+                stale_file = base_name + stale_suffix
+                if os.path.abspath(stale_file) != input_file_path:
+                    Path(stale_file).unlink(missing_ok=True)
 
             try:
                 result = subprocess.run(
@@ -432,9 +447,11 @@ class CFASTModel:
                     stacklevel=2,
                 )
             dataframes = {}
-            base_name = str(Path(self.file_name).with_suffix(""))
 
             optional_csvs = {"diagnostics"}
+            # CFAST only writes _zone.csv when the Smokeview output is enabled
+            if self.simulation_environment.smokeview == 0:
+                optional_csvs.add("zone")
             for suffix, read_params in CSV_READ_CONFIGS.items():
                 csv_file = base_name + "_" + suffix + ".csv"
                 if os.path.exists(csv_file):
