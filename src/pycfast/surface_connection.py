@@ -8,15 +8,36 @@ by means of conduction.
 
 from __future__ import annotations
 
+import os
+import sys
 import warnings
 
 from ._base_component import CFASTComponent
 from .utils.namelist import NamelistRecord
 
+_PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__)) + os.sep
+
+
+def _user_stacklevel() -> int:
+    """Return the ``stacklevel`` that points at the first caller outside PyCFAST."""
+    # Start at the function that calls warnings.warn (the caller of this helper)
+    frame = sys._getframe(1)
+    level = 1
+    while frame.f_back is not None and frame.f_code.co_filename.startswith(
+        _PACKAGE_DIR
+    ):
+        frame = frame.f_back
+        level += 1
+    return level
+
 
 class SurfaceConnection(CFASTComponent):
     """
     Represents surface connections for heat transfer between compartments in CFAST.
+
+    .. deprecated:: 0.3.0
+        ``SurfaceConnection`` will be removed after the CFAST 8 release with PyCFAST
+        0.4.0 because CFAST 8 ignores the ``&CONN`` namelist.
 
     The Surface Connections functionality allows the user to define heat transfer
     between compartments in a simulation. Energy can be transferred from compartment
@@ -131,6 +152,12 @@ class SurfaceConnection(CFASTComponent):
         comp_ids: str,
         fraction: float | None = None,
     ):
+        warnings.warn(
+            "SurfaceConnection is deprecated and will be removed in PyCFAST 0.4.0: "
+            "CFAST 8 ignores the &CONN namelist.",
+            FutureWarning,
+            stacklevel=_user_stacklevel(),
+        )
         self.conn_type = conn_type  # "FLOOR" or "WALL"
         self.comp_id = comp_id  # id of the first compartment, to be validate in _validate_dependencies in CFASTModel
         self.comp_ids = comp_ids  # id of the second compartment

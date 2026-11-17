@@ -12,6 +12,12 @@ Tests for the SurfaceConnection class.
 class TestSurfaceConnection:
     """Test class for SurfaceConnection."""
 
+    def test_init_emits_deprecation_warning(self) -> None:
+        """Test the FutureWarning and that it points at the caller's code."""
+        with pytest.warns(FutureWarning, match="removed in PyCFAST 0.4.0") as record:
+            SurfaceConnection.wall_connection("ROOM1", "ROOM2", 0.5)
+        assert record[0].filename == __file__
+
     def test_wall_connection_classmethod(self):
         """Test the wall_connection class method."""
         conn = SurfaceConnection.wall_connection(

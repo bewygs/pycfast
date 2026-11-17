@@ -179,6 +179,9 @@ doctest_optionflags = [
     "NORMALIZE_WHITESPACE",
     "ELLIPSIS",
 ]
+filterwarnings = [
+    "ignore:SurfaceConnection is deprecated:FutureWarning",
+]
 
 
 [tool.coverage.run]
