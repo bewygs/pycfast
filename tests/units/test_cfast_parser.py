@@ -32,6 +32,7 @@ class TestCFASTParser:
         assert parser.mechanical_vents == []
         assert parser.fires == []
         assert parser.devices == []
+        assert parser.surface_connections == []
         assert parser.visualizations == []
         assert parser._pending_fires == []
         assert parser._fire_chem == {}
@@ -58,6 +59,7 @@ class TestCFASTParser:
         assert parser.mechanical_vents == []
         assert parser.fires == []
         assert parser.devices == []
+        assert parser.surface_connections == []
         assert parser.visualizations == []
         assert parser._pending_fires == []
         assert parser._fire_chem == {}
@@ -287,11 +289,10 @@ class TestCFASTParser:
     @pytest.mark.parametrize(
         "block",
         [
-            "&CONN TYPE = 'WALL' COMP_ID = 'Room1' COMP_IDS = 'Room2' F = 0.5 /",
             "&RAMP ID = 'R1' TYPE = 'FRACTION' T = 0, 10 F = 0, 1 /",
             "&DUMP MASS_BUDGET = .TRUE. /",
         ],
-        ids=["CONN", "RAMP", "DUMP"],
+        ids=["RAMP", "DUMP"],
     )
     def test_parse_file_with_block_removed_in_cfast_8(self, block: str) -> None:
         """Test that namelists dropped by CFAST 8 warn and are ignored."""
@@ -320,14 +321,14 @@ class TestCFASTParser:
             os.unlink(temp_file)
 
     # can be removed once CFAST 7 input files are no longer expected (after the CFAST 8 release)
-    def test_parse_file_with_repeated_conn_blocks_warns_once(self) -> None:
-        """Test that several &CONN blocks in one file produce a single warning."""
-        content = """&HEAD VERSION = 7600, TITLE = 'Repeated CONN Test' /
+    def test_parse_file_with_repeated_ramp_blocks_warns_once(self) -> None:
+        """Test that several &RAMP blocks in one file produce a single warning."""
+        content = """&HEAD VERSION = 7600, TITLE = 'Repeated RAMP Test' /
                      &TIME SIMULATION = 900 /
                      &COMP ID = 'Room1', DEPTH = 5, HEIGHT = 3, WIDTH = 4, ORIGIN = 0, 0, 0 /
                      &COMP ID = 'Room2', DEPTH = 5, HEIGHT = 3, WIDTH = 4, ORIGIN = 0, 0, 3 /
-                     &CONN TYPE = 'FLOOR' COMP_ID = 'Room2' COMP_IDS = 'Room1' /
-                     &CONN TYPE = 'WALL' COMP_ID = 'Room1' COMP_IDS = 'Room2' F = 0.5 /
+                     &RAMP ID = 'R1' TYPE = 'FRACTION' T = 0, 10 F = 0, 1 /
+                     &RAMP ID = 'R2' TYPE = 'FRACTION' T = 0, 20 F = 0, 1 /
                      &TAIL /"""
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".in", delete=False) as f:
@@ -336,13 +337,37 @@ class TestCFASTParser:
 
         try:
             parser = CFASTParser()
-            with pytest.warns(UserWarning, match="&CONN namelist") as record:
+            with pytest.warns(UserWarning, match="&RAMP namelist") as record:
                 model = parser.parse_file(temp_file)
-            conn_warnings = [w for w in record if "&CONN namelist" in str(w.message)]
-            assert len(conn_warnings) == 1
+            ramp_warnings = [w for w in record if "&RAMP namelist" in str(w.message)]
+            assert len(ramp_warnings) == 1
             assert len(model.compartments) == 2
         finally:
             os.unlink(temp_file)
+
+    # can be removed with SurfaceConnection in PyCFAST 0.4.0
+    def test_parse_file_keeps_conn_blocks(self, tmp_path: Path) -> None:
+        """Test that &CONN blocks are parsed and written back on save."""
+        input_file = tmp_path / "conn.in"
+        input_file.write_text(
+            """&HEAD VERSION = 7600, TITLE = 'CONN Test' /
+            &TIME SIMULATION = 900 /
+            &COMP ID = 'Room1', DEPTH = 5, HEIGHT = 3, WIDTH = 4, ORIGIN = 0, 0, 0 /
+            &COMP ID = 'Room2', DEPTH = 5, HEIGHT = 3, WIDTH = 4, ORIGIN = 0, 0, 3 /
+            &CONN TYPE = 'FLOOR' COMP_ID = 'Room2' COMP_IDS = 'Room1' /
+            &CONN TYPE = 'WALL' COMP_ID = 'Room1' COMP_IDS = 'Room2' F = 0.5 /
+            &TAIL /"""
+        )
+
+        model = CFASTParser().parse_file(input_file)
+        assert [c.conn_type for c in model.surface_connections] == ["FLOOR", "WALL"]
+
+        written = Path(model.save(file_name=str(tmp_path / "saved.in"))).read_text()
+        assert "&CONN TYPE = 'FLOOR' COMP_ID = 'Room2' COMP_IDS = 'Room1' /" in written
+        assert (
+            "&CONN TYPE = 'WALL' COMP_ID = 'Room1' COMP_IDS = 'Room2' F = 0.5 /"
+            in written
+        )
 
     def test_clean_content(self):
         """Test content cleaning functionality."""
@@ -905,6 +930,69 @@ class TestCFASTParser:
 
         with pytest.raises(ValueError, match="Unknown device type: UNKNOWN_DEVICE"):
             parser._parse_device_block(params)
+
+    def test_parse_connection_block_wall(self) -> None:
+        """Test CONN block parsing for wall connections."""
+        parser = CFASTParser()
+        params = {
+            "TYPE": "WALL",
+            "COMP_ID": "ROOM1",
+            "COMP_IDS": "ROOM2",
+            "F": 0.6,
+        }
+
+        parser._parse_connection_block(params)
+
+        assert len(parser.surface_connections) == 1
+        connection = parser.surface_connections[0]
+        assert connection.conn_type == "WALL"
+        assert connection.comp_id == "ROOM1"
+        assert connection.comp_ids == "ROOM2"
+        assert connection.fraction == 0.6
+
+    def test_parse_connection_block_floor(self) -> None:
+        """Test CONN block parsing for floor connections."""
+        parser = CFASTParser()
+        params = {
+            "TYPE": "FLOOR",
+            "COMP_ID": "UPPER_ROOM",
+            "COMP_IDS": "LOWER_ROOM",
+        }
+
+        parser._parse_connection_block(params)
+
+        assert len(parser.surface_connections) == 1
+        connection = parser.surface_connections[0]
+        assert connection.conn_type == "FLOOR"
+        assert connection.comp_id == "UPPER_ROOM"
+        assert connection.comp_ids == "LOWER_ROOM"
+        assert connection.fraction is None  # Floor connections don't use fraction
+
+    def test_parse_connection_block_missing_type(self) -> None:
+        """Test CONN block parsing with missing TYPE parameter."""
+        parser = CFASTParser()
+        params = {
+            "COMP_ID": "ROOM1",
+            "COMP_IDS": "ROOM2",
+            "F": 0.5,
+        }
+
+        with pytest.raises(ValueError, match="Missing required parameter: TYPE"):
+            parser._parse_connection_block(params)
+
+    def test_parse_connection_block_unknown_type(self) -> None:
+        """Test CONN block parsing with unknown connection type."""
+        parser = CFASTParser()
+        params = {
+            "TYPE": "CEILING",  # Not a valid connection type
+            "COMP_ID": "ROOM1",
+            "COMP_IDS": "ROOM2",
+        }
+
+        with pytest.raises(
+            ValueError, match="Unknown Surface Connections type: CEILING"
+        ):
+            parser._parse_connection_block(params)
 
     def test_parse_vent_block_unknown_type(self):
         """Test VENT block parsing with unknown vent type."""

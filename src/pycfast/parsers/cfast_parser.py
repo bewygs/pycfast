@@ -22,6 +22,7 @@ from ..material import Material
 from ..mechanical_vent import MechanicalVent
 from ..model import CFASTModel
 from ..simulation_environment import SimulationEnvironment
+from ..surface_connection import SurfaceConnection
 from ..visualization import Visualization
 from ..wall_vent import WallVent
 
@@ -38,13 +39,14 @@ BLOCK_TYPE_FIRE = "FIRE"
 BLOCK_TYPE_CHEM = "CHEM"
 BLOCK_TYPE_TABL = "TABL"
 BLOCK_TYPE_DEVC = "DEVC"
+BLOCK_TYPE_CONN = "CONN"
 BLOCK_TYPE_ISOF = "ISOF"
 BLOCK_TYPE_SLCF = "SLCF"
 BLOCK_TYPE_TAIL = "TAIL"
 
 # Namelist groups that CFAST 8 no longer reads (silently ignored by CFAST 8)
 # can be removed once CFAST 7 input files are no longer expected (after the CFAST 8 release)
-REMOVED_IN_CFAST_8 = ("CONN", "RAMP", "DUMP")
+REMOVED_IN_CFAST_8 = ("RAMP", "DUMP")
 
 # VENT type constants
 VENT_TYPE_WALL = "WALL"
@@ -79,6 +81,8 @@ class CFASTParser:
         List of Fire objects.
     devices: List[Device]
         List of Device objects.
+    surface_connections: List[SurfaceConnection]
+        List of SurfaceConnection objects.
     visualizations: List[Visualization]
         List of Visualization objects.
     """
@@ -103,6 +107,7 @@ class CFASTParser:
         self.mechanical_vents: list[MechanicalVent] = []
         self.fires: list[Fire] = []
         self.devices: list[Device] = []
+        self.surface_connections: list[SurfaceConnection] = []
         self.visualizations: list[Visualization] = []
 
         # &FIRE records are collected as pending instances while &CHEM / &TABL
@@ -188,6 +193,7 @@ class CFASTParser:
             mechanical_vents=self.mechanical_vents,
             fires=self.fires,
             devices=self.devices,
+            surface_connections=self.surface_connections,
             visualizations=self.visualizations,
             file_name=file_name,
         )
@@ -222,6 +228,7 @@ class CFASTParser:
             BLOCK_TYPE_CHEM.lower(): self._parse_chemistry_block,
             BLOCK_TYPE_TABL.lower(): self._parse_table_block,
             BLOCK_TYPE_DEVC.lower(): self._parse_device_block,
+            BLOCK_TYPE_CONN.lower(): self._parse_connection_block,
             BLOCK_TYPE_ISOF.lower(): self._parse_isof_block,
             BLOCK_TYPE_SLCF.lower(): self._parse_slcf_block,
         }
@@ -888,6 +895,34 @@ class CFASTParser:
             raise ValueError(f"Unknown device type: {device_type}")
 
         self.devices.append(device)
+
+    def _parse_connection_block(self, params: dict[str, Any]) -> None:
+        """Parse a CONNECTION namelist block."""
+        conn_type = self._get_param(params, "TYPE", required=True, param_type=str)
+
+        if conn_type == "WALL":
+            param_map = {
+                "comp_id": {"source": "COMP_ID", "required": True, "type": str},
+                "comp_ids": {"source": "COMP_IDS", "required": True, "type": str},
+                "fraction": {"source": "F", "required": True, "type": float},
+            }
+            conn_params = self._extract_params(params, param_map)
+            surface_connection = SurfaceConnection.wall_connection(**conn_params)
+
+        elif conn_type == "FLOOR":
+            param_map = {
+                "comp_id": {"source": "COMP_ID", "required": True, "type": str},
+                "comp_ids": {"source": "COMP_IDS", "required": True, "type": str},
+            }
+            conn_params = self._extract_params(params, param_map)
+            surface_connection = SurfaceConnection.ceiling_floor_connection(
+                **conn_params
+            )
+
+        else:
+            raise ValueError(f"Unknown Surface Connections type: {conn_type}")
+
+        self.surface_connections.append(surface_connection)
 
     def _parse_isof_block(self, params: dict[str, Any]) -> None:
         """Parse an ISOF (isosurface visualization) namelist block."""

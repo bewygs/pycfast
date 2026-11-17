@@ -21,6 +21,7 @@ from .material import Material
 from .mechanical_vent import MechanicalVent
 from .model import CFASTModel
 from .simulation_environment import SimulationEnvironment
+from .surface_connection import SurfaceConnection
 from .visualization import Visualization
 from .wall_vent import WallVent
 
@@ -38,6 +39,7 @@ __all__ = [
     "MechanicalVent",
     "CFASTModel",
     "SimulationEnvironment",
+    "SurfaceConnection",
     "Visualization",
     "WallVent",
 ]
