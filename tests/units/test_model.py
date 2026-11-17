@@ -523,6 +523,64 @@ class TestCFASTModel:
             # This test verifies that the error is still properly raised with verbose=True
             mock_subprocess.assert_called_once()
 
+    @pytest.mark.usefixtures("cfast_on_path")
+    @patch("subprocess.run")
+    def test_run_timeout_does_not_return_previous_outputs(
+        self, mock_subprocess, tmp_path
+    ):
+        """A run killed by the timeout must not return an earlier run's outputs."""
+        model = self.create_minimal_model()
+        model.file_name = str(tmp_path / "run.in")
+
+        stale = [tmp_path / f"run_{s}.csv" for s in ("devices", "diagnostics")]
+        stale.append(tmp_path / "run.log")
+        # Same prefix but another file_name, and a file CFAST reads as an input
+        kept = [tmp_path / "run_2.in", tmp_path / "run_2_devices.csv"]
+        kept.append(tmp_path / "run.stop")
+        for file in stale + kept:
+            file.write_text("Time,TRGSURT_1\ns,C\n\n\n0,20\n")
+
+        mock_subprocess.side_effect = subprocess.TimeoutExpired("cfast", 0.001)
+
+        with pytest.warns(RuntimeWarning) as record:
+            results = model.run(timeout=0.001)
+
+        assert "exceeded timeout" in str(record[0].message)
+        assert all(df is None for df in results.values())
+        assert not any(file.exists() for file in stale)
+        assert all(file.exists() for file in kept)
+
+    @pytest.mark.usefixtures("cfast_on_path")
+    @patch("subprocess.run")
+    def test_run_keeps_input_file_named_like_an_output(self, mock_subprocess, tmp_path):
+        """An input file named like a CFAST output is not deleted before the run."""
+        model = self.create_minimal_model()
+        model.file_name = str(tmp_path / "run.out")
+        mock_subprocess.return_value = Mock(returncode=0, stdout="", stderr="")
+
+        with pytest.warns(RuntimeWarning, match="not found"):
+            model.run()
+
+        assert (tmp_path / "run.out").exists()
+
+    @pytest.mark.usefixtures("cfast_on_path")
+    @pytest.mark.parametrize(("smokeview", "zone_expected"), [(0, False), (15, True)])
+    @patch("subprocess.run")
+    def test_run_missing_zone_csv_warning(
+        self, mock_subprocess, smokeview, zone_expected, tmp_path
+    ):
+        """A missing _zone.csv is only reported when Smokeview output is enabled."""
+        model = self.create_minimal_model()
+        model.simulation_environment.smokeview = smokeview
+        model.file_name = str(tmp_path / "run.in")
+        mock_subprocess.return_value = Mock(returncode=0, stdout="", stderr="")
+
+        with pytest.warns(RuntimeWarning, match="not found") as record:
+            model.run()
+
+        missing = [str(w.message) for w in record]
+        assert any("run_zone.csv" in msg for msg in missing) is zone_expected
+
     def test_get_log_content(self):
         """Test log file reading."""
         model = self.create_minimal_model()
