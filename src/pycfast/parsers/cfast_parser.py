@@ -127,8 +127,9 @@ class CFASTParser:
         file_path: str | Path
             Path to the CFAST input file (.in). Can be a string or Path object.
         output_path: str | Path | None, optional
-            Optional path to save the parsed output file. If None, defaults to
-            appending '_parsed' to the original file name.
+            File name of the returned model, used by ``save()`` and ``run()``.
+            Defaults to the input file name with ``_parsed`` before the extension
+            (``PRS_D1.in`` gives ``PRS_D1_parsed.in``).
 
 
         Returns
@@ -1026,6 +1027,10 @@ def parse_cfast_file(
     ----------
     file_path: str | Path
         Path to the CFAST input file (.in). Can be string or Path object.
+    output_path: str | Path | None
+        File name of the returned model, used by ``save()`` and ``run()``.
+        Defaults to the input file name with ``_parsed`` before the extension
+        (``PRS_D1.in`` gives ``PRS_D1_parsed.in``).
 
     Returns
     -------
@@ -1048,8 +1053,8 @@ def parse_cfast_file(
 
     Examples
     --------
-    >>> parse_cfast_file("simulation.in")  # doctest: +SKIP
-    CFASTModel(file_name='simulation.in', compartments=2, fires=1, wall_vents=3, ...
+    >>> parse_cfast_file("examples/data/PRS_D1.in")
+    CFASTModel(file_name='PRS_D1_parsed.in', compartments=2, fires=1, wall_vents=3, ...
     """
     parser = CFASTParser()
     return parser.parse_file(file_path, output_path)
