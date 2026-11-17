@@ -27,6 +27,7 @@ from .fire import Fire, FireDefinition
 from .material import Material
 from .mechanical_vent import MechanicalVent
 from .simulation_environment import SimulationEnvironment
+from .surface_connection import SurfaceConnection
 from .utils import CSV_READ_CONFIGS
 from .visualization import Visualization
 from .wall_vent import WallVent
@@ -53,6 +54,7 @@ _COMPONENT_SPECS: dict[str, tuple[type, str, str, tuple[str, ...]]] = {
     "cf_vent":      (CeilingFloorVent,  "ceiling_floor_vents", "Ceiling/floor vent", ("id",)),
     "mech_vent":    (MechanicalVent,    "mechanical_vents",    "Mechanical vent",    ("id",)),
     "device":       (Device,            "devices",             "Device",             ("id",)),
+    "surface_conn": (SurfaceConnection, "surface_connections", "Surface connection", ()),
     "visualization": (Visualization,    "visualizations",      "Visualization",      ()),
 }
 # fmt: on
@@ -140,6 +142,9 @@ class CFASTModel:
         List of fire definitions
     devices: List[Device]
         List of target/sensor definitions
+    surface_connections: List[SurfaceConnection]
+        List of heat conduction connections between compartments
+        (deprecated, ignored by CFAST 8)
     visualizations: List[Visualization]
         List of Smokeview visualization definitions
     file_name: str
@@ -183,6 +188,7 @@ class CFASTModel:
         mechanical_vents: list[MechanicalVent] | None = None,
         fires: list[Fire] | None = None,
         devices: list[Device] | None = None,
+        surface_connections: list[SurfaceConnection] | None = None,
         visualizations: list[Visualization] | None = None,
         file_name: str = "cfast_input.in",
         cfast_exe: str | None = None,
@@ -196,6 +202,7 @@ class CFASTModel:
         self.mechanical_vents = mechanical_vents or []
         self.fires = fires or []
         self.devices = devices or []
+        self.surface_connections = surface_connections or []
         self.visualizations = visualizations or []
         self.file_name = file_name
         self.cfast_exe = cfast_exe
@@ -214,6 +221,7 @@ class CFASTModel:
             f"mechanical_vents={len(self.mechanical_vents)}",
             f"devices={len(self.devices)}",
             f"material_properties={len(self.material_properties)}",
+            f"surface_connections={len(self.surface_connections)}",
             f"visualizations={len(self.visualizations)}",
         ]
 
@@ -264,6 +272,11 @@ class CFASTModel:
             for device in self.devices:
                 lines.append(f"    {device}")
 
+        if self.surface_connections:
+            lines.append(f"  Surface Connections ({len(self.surface_connections)}):")
+            for conn in self.surface_connections:
+                lines.append(f"    {conn}")
+
         if self.visualizations:
             lines.append(f"  Visualizations ({len(self.visualizations)}):")
             for viz in self.visualizations:
@@ -281,6 +294,7 @@ class CFASTModel:
             ("mechanical_vents", self.mechanical_vents),
             ("devices", self.devices),
             ("material_properties", self.material_properties),
+            ("surface_connections", self.surface_connections),
             ("visualizations", self.visualizations),
         ]
 
@@ -776,6 +790,38 @@ class CFASTModel:
         """
         return self._update_component("device", device, **kwargs)
 
+    def update_surface_connection_params(
+        self,
+        connection: int | None = None,
+        **kwargs: Any,
+    ) -> CFASTModel:
+        """
+        Update surface connection parameters and return a new model instance.
+
+        Parameters
+        ----------
+        connection : int | None, optional
+            Surface connection identifier. Can be:
+            - int: Connection index (0-based)
+            - None: Updates first connection (index 0)
+        **kwargs : Any
+            Surface connection attributes to update. See SurfaceConnection class
+            documentation for available parameters.
+
+        Returns
+        -------
+        CFASTModel
+            New model instance with updated surface connection parameters
+
+        Examples
+        --------
+        >>> new_model = model.update_surface_connection_params(
+        ...     connection=0,
+        ...     fraction=0.8
+        ... )
+        """
+        return self._update_component("surface_conn", connection, **kwargs)
+
     def update_visualization_params(
         self,
         visualization: int | None = None,
@@ -817,7 +863,7 @@ class CFASTModel:
         component : CFASTComponent
             One of: :class:`Fire`, :class:`Compartment`, :class:`Material`,
             :class:`WallVent`, :class:`CeilingFloorVent`, :class:`MechanicalVent`,
-            :class:`Device`, :class:`Visualization`.
+            :class:`Device`, :class:`SurfaceConnection`, :class:`Visualization`.
 
         Returns
         -------
@@ -1108,6 +1154,7 @@ class CFASTModel:
                 ("!! Mechanical Vents", self.mechanical_vents),
                 ("!! Fire", self.fires),
                 ("!! Device", self.devices),
+                ("!! Surface Connections", self.surface_connections),
                 ("!! Visualizations", self.visualizations),
             ]
 
@@ -1150,7 +1197,7 @@ class CFASTModel:
         - Duplicate ``id`` within any component list (compartments, fires, devices,
           wall/ceiling-floor/mechanical vents, material properties).
         - More than 100 compartments (hard CFAST limit).
-        - ``comp_id`` of a fire, device, vent, or visualization
+        - ``comp_id`` of a fire, device, vent, surface connection, or visualization
           referencing an undefined compartment (``"OUTSIDE"`` is accepted as second
           compartment for wall vents).
         - ``material_id`` of a device or compartment surface (ceiling/wall/floor)
@@ -1244,6 +1291,17 @@ class CFASTModel:
                     raise ValueError(
                         f"MechanicalVent '{m_vent.id}': comps_ids[{i}]='{cid}' does not match any defined compartment."
                     )
+
+        # comp_id of SurfaceConnection must exist in compartments
+        for sc in self.surface_connections:
+            if sc.comp_id not in comp_ids:
+                raise ValueError(
+                    f"SurfaceConnection: comp_id='{sc.comp_id}' does not match any defined compartment."
+                )
+            if sc.comp_ids not in comp_ids:
+                raise ValueError(
+                    f"SurfaceConnection: comp_ids='{sc.comp_ids}' does not match any defined compartment."
+                )
 
         # comp_id of Visualization must exist in compartments (None means all compartments)
         for viz in self.visualizations:
