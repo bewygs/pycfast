@@ -138,7 +138,7 @@ class CFASTModel:
         List of mechanical ventilation systems
     fires: List[Fire]
         List of fire definitions
-    targets: List[Device]
+    devices: List[Device]
         List of target/sensor definitions
     visualizations: List[Visualization]
         List of Smokeview visualization definitions
@@ -380,7 +380,7 @@ class CFASTModel:
 
         >>> results = model.run()  # doctest: +SKIP
         >>> comp_data = results['compartments'] # doctest: +SKIP
-        >>> temp_data['ULT_1'].max() # doctest: +SKIP
+        >>> comp_data['ULT_1'].max() # doctest: +SKIP
         np.float64(345.3)
 
         """
