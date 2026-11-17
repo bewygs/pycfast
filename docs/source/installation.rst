@@ -1,7 +1,7 @@
 Installation
 ============
 
-PyCFAST requires **Python 3.10 or later** *and* a working installation of `CFAST <https://pages.nist.gov/cfast/>`_
+PyCFAST requires **Python 3.11 or later** *and* a working installation of `CFAST <https://pages.nist.gov/cfast/>`_
 itself. It is tested against CFAST **7.7.4** through **7.7.7**. Versions below **7.7.4** might work but are not
 guaranteed to be fully compatible.
 

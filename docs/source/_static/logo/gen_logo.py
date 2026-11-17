@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.11"
 # dependencies = ["uharfbuzz", "fonttools"]
 # ///
 """Generate the PyCFAST logo and icon (SVG) this has been AI-generated.

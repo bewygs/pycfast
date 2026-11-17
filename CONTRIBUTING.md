@@ -172,7 +172,7 @@ With `pytest` directly, add `-n auto` or `-n N` to any of the commands above.
 
 ## Code Style
 
-We use Python 3.10+ with type hints. Code formatting and linting is handled by
+We use Python 3.11+ with type hints. Code formatting and linting is handled by
 [ruff](https://docs.astral.sh/ruff/), and type checking uses [mypy](http://mypy-lang.org/).
 You can run the following commands to check and format your code:
 
